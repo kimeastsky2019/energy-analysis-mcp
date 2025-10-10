@@ -275,3 +275,4 @@ def prepare_multivariate_forecasting_data(data: Union[np.ndarray, pd.DataFrame],
         'original_data': data,
         'scaled_data': scaled_data
     }
+

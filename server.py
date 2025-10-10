@@ -28,11 +28,7 @@ class EnergyAnalysisServer:
     """에너지 데이터 분석 MCP 서버 클래스"""
     
     def __init__(self):
-        self.mcp = FastMCP(
-            name=EnergyAnalysisConfig.SERVER_NAME,
-            version=EnergyAnalysisConfig.SERVER_VERSION,
-            instructions=EnergyAnalysisConfig.SERVER_DESCRIPTION
-        )
+        self.mcp = FastMCP()
         self.config = EnergyAnalysisConfig()
         self._validate_config()
         self._register_tools()

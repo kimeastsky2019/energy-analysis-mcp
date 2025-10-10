@@ -60,3 +60,5 @@ COPY docker/start-integrated.sh /start-integrated.sh
 RUN chmod +x /start-integrated.sh
 
 CMD ["/start-integrated.sh"]
+
+

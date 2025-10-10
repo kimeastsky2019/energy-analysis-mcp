@@ -97,6 +97,11 @@ class EnergyAnalysisConfig:
         return os.getenv("ENERGY_MCP_HOST", cls.HOST)
     
     @classmethod
+    def get_port(cls) -> int:
+        """포트 번호 반환"""
+        return int(os.getenv("PORT", cls.DEFAULT_PORT))
+    
+    @classmethod
     def get_data_dir(cls) -> str:
         """데이터 디렉토리 경로 반환"""
         data_dir = os.path.abspath(cls.DATA_DIR)

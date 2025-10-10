@@ -315,3 +315,4 @@ def validate_data(data: Union[np.ndarray, pd.DataFrame],
         return len(data) >= 50  # Minimum samples for complex models
     
     return True
+

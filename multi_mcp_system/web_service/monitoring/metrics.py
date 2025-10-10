@@ -389,3 +389,5 @@ def get_metrics_summary() -> Dict[str, Any]:
         )
     
     return summary
+
+
