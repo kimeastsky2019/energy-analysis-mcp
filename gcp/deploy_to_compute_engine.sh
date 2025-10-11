@@ -117,3 +117,4 @@ EOF
 
 echo "🎉 GCP Compute Engine 배포 완료!"
 echo "🌍 서비스 URL: http://34.47.89.217:8000"
+
