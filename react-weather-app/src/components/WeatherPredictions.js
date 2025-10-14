@@ -350,3 +350,4 @@ const WeatherPredictions = ({ data }) => {
 };
 
 export default WeatherPredictions;
+

@@ -472,3 +472,4 @@ const SimpleWeatherDashboard = () => {
 };
 
 export default SimpleWeatherDashboard;
+

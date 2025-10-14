@@ -377,3 +377,4 @@ const EnergyCorrelations = ({ data }) => {
 };
 
 export default EnergyCorrelations;
+
