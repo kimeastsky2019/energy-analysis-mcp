@@ -325,3 +325,4 @@ def get_language_name(lang_code: str) -> str:
         "zh": "中文"
     }
     return language_names.get(lang_code, lang_code)
+

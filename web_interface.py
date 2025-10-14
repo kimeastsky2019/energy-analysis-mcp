@@ -3314,6 +3314,46 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 transform: translateY(-5px);
                 box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
             }}
+            
+            /* 날씨 분석 스타일 */
+            .weather-stat {{
+                text-align: center;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }}
+            .stat-value {{
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 5px;
+            }}
+            .stat-label {{
+                font-size: 0.8rem;
+                color: #6c757d;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            .correlation-item {{
+                text-align: center;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 6px;
+                margin-bottom: 5px;
+            }}
+            .correlation-value {{
+                font-size: 1.1rem;
+                font-weight: bold;
+                color: #e74c3c;
+                margin-bottom: 3px;
+            }}
+            .correlation-label {{
+                font-size: 0.7rem;
+                color: #6c757d;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }}
         </style>
     </head>
     <body class="bg-light">
@@ -3523,7 +3563,86 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                             <h6><i class="fas fa-cloud-sun"></i> Weather Data Analysis</h6>
                                         </div>
                                         <div class="card-body">
-                                            <canvas id="spoWeatherChart" height="250"></canvas>
+                                            <!-- 새로운 Weather Analysis 페이지로 리다이렉트 -->
+                                            <div class="text-center p-4">
+                                                <div class="mb-4">
+                                                    <i class="fas fa-cloud-sun fa-4x text-primary mb-3"></i>
+                                                    <h4>Advanced Weather Analysis</h4>
+                                                    <p class="text-muted">Real-time weather monitoring with interactive charts and predictions</p>
+                                                </div>
+                                                
+                                                <!-- 미리보기 통계 -->
+                                                <div class="row mb-4">
+                                                <div class="col-6">
+                                                        <div class="weather-stat">
+                                                            <div class="stat-value">24.5°C</div>
+                                                            <div class="stat-label">평균 온도</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                        <div class="weather-stat success">
+                                                            <div class="stat-value">65%</div>
+                                                            <div class="stat-label">평균 습도</div>
+                                                        </div>
+                                                            </div>
+                                                        </div>
+                                                <div class="row mb-4">
+                                                <div class="col-6">
+                                                        <div class="weather-stat warning">
+                                                            <div class="stat-value">2.3 m/s</div>
+                                                            <div class="stat-label">최대 풍속</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                        <div class="weather-stat info">
+                                                            <div class="stat-value">850 W/m²</div>
+                                                            <div class="stat-label">태양 복사량</div>
+                                                        </div>
+                                                            </div>
+                                                        </div>
+                                                
+                                                <!-- 새로운 페이지로 이동 버튼 -->
+                                                <a href="/weather-dashboard" target="_blank" class="btn btn-primary btn-lg">
+                                                    <i class="fas fa-cloud-sun"></i> Open Weather Dashboard
+                                                </a>
+                                                <div class="mt-2">
+                                                    <a href="/weather-analysis" class="btn btn-outline-light btn-sm">
+                                                        <i class="fas fa-chart-line"></i> Legacy Weather Analysis
+                                                    </a>
+                                                </div>
+                                                
+                                                <div class="mt-3">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-info-circle"></i> 
+                                                        Modern React dashboard with advanced analytics, interactive maps, and real-time updates
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- 에너지 상관관계 분석 -->
+                                            <div class="mt-3">
+                                                <h6 class="text-muted mb-2">에너지 상관관계</h6>
+                                                <div class="row">
+                                                    <div class="col-4">
+                                                        <div class="correlation-item">
+                                                            <div class="correlation-value" id="tempCorrelation">0.78</div>
+                                                            <div class="correlation-label">온도 vs 소비</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="correlation-item">
+                                                            <div class="correlation-value" id="solarCorrelation">0.92</div>
+                                                            <div class="correlation-label">태양광 vs 발전</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="correlation-item">
+                                                            <div class="correlation-value" id="humidityCorrelation">-0.45</div>
+                                                            <div class="correlation-label">습도 vs 효율</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -5420,6 +5539,7 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
             let energyTrendChart = null;
             let efficiencyChart = null;
             let weatherChart = null;
+            let weatherForecastChart = null;
             let realtimeData = [];
 
             // 샘플 데이터 생성 함수
@@ -5703,44 +5823,310 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
                 }});
             }}
 
-            // SPO 스타일 날씨 차트 생성
+            // SPO 스타일 날씨 차트 생성 (게이지 & 도넛 차트)
             function createSPOWeatherChart() {{
-                const ctx = document.getElementById('spoWeatherChart').getContext('2d');
                 const sampleData = generateSampleData();
-
-                weatherChart = new Chart(ctx, {{
-                    type: 'line',
+                const currentData = sampleData[sampleData.length - 1];
+                
+                // 게이지 차트 생성
+                createWeatherGaugeChart('weatherTempGauge', currentData.temperature, 40, '#ff6b6b', 'Temperature');
+                createWeatherGaugeChart('weatherHumidityGauge', currentData.humidity, 100, '#00b894', 'Humidity');
+                
+                // 도넛 차트 생성
+                createWeatherDonutChart('weatherWindDonut', currentData.windSpeed, currentData.windSpeed * 1.2, '#fdcb6e', 'Wind Speed');
+                createWeatherDonutChart('weatherSolarDonut', currentData.irradiance, currentData.irradiance * 1.1, '#74b9ff', 'Solar Radiation');
+                
+                // 예측 데이터 업데이트
+                updateWeatherPredictions(currentData);
+                
+                // 날씨 통계 업데이트
+                updateWeatherStatistics(sampleData);
+            }}
+            
+            // 게이지 차트 생성 함수
+            function createWeatherGaugeChart(canvasId, value, max, color, label) {{
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                return new Chart(ctx, {{
+                    type: 'doughnut',
                     data: {{
-                        labels: sampleData.map(d => d.hour + ':00'),
                         datasets: [{{
-                            label: 'Temperature (°C)',
-                            data: sampleData.map(d => d.temperature),
-                            borderColor: '#ff6b35',
-                            backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                            tension: 0.4,
-                            fill: false,
-                            yAxisID: 'y'
-                        }}, {{
-                            label: 'Humidity (%)',
-                            data: sampleData.map(d => d.humidity),
-                            borderColor: '#4ecdc4',
-                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
-                            tension: 0.4,
-                            fill: false,
-                            yAxisID: 'y1'
+                            data: [value, max - value],
+                            backgroundColor: [color, '#f0f0f0'],
+                            borderWidth: 0,
+                            cutout: '75%'
                         }}]
                     }},
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                enabled: false
+                            }}
+                        }},
+                        elements: {{
+                            arc: {{
+                                borderWidth: 0
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 도넛 차트 생성 함수
+            function createWeatherDonutChart(canvasId, current, predicted, color, label) {{
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                return new Chart(ctx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['Current', 'Predicted'],
+                        datasets: [{{
+                            data: [current, predicted],
+                            backgroundColor: [color, color + '80'],
+                            borderWidth: 0
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return context.label + ': ' + context.parsed.toFixed(1);
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 예측 데이터 업데이트 함수
+            function updateWeatherPredictions(data) {{
+                document.getElementById('predTemp1').textContent = (data.temperature + 0.7).toFixed(1) + '°C';
+                document.getElementById('predHumidity2').textContent = (data.humidity + 3).toFixed(0) + '%';
+                document.getElementById('predWind3').textContent = (data.windSpeed + 0.5).toFixed(1) + ' m/s';
+                document.getElementById('predSolar4').textContent = (data.irradiance + 70).toFixed(0) + ' W/m²';
+            }}
+            
+            // 게이지 차트 업데이트 함수
+            function updateWeatherGaugeChart(canvasId, value, max, color) {{
+                const chart = Chart.getChart(canvasId);
+                if (chart) {{
+                    chart.data.datasets[0].data = [value, max - value];
+                    chart.update('none');
+                }}
+            }}
+            
+            // 도넛 차트 업데이트 함수
+            function updateWeatherDonutChart(canvasId, current, predicted, color) {{
+                const chart = Chart.getChart(canvasId);
+                if (chart) {{
+                    chart.data.datasets[0].data = [current, predicted];
+                    chart.update('none');
+                }}
+            }}
+            
+            // 날씨 통계 업데이트 함수
+            function updateWeatherStatistics(data) {{
+                if (!data || data.length === 0) return;
+                
+                // 평균 온도 계산
+                const avgTemp = data.reduce((sum, d) => sum + d.temperature, 0) / data.length;
+                document.getElementById('avgTemperature').textContent = avgTemp.toFixed(1) + '°C';
+                
+                // 평균 습도 계산
+                const avgHumidity = data.reduce((sum, d) => sum + d.humidity, 0) / data.length;
+                document.getElementById('avgHumidity').textContent = avgHumidity.toFixed(1) + '%';
+                
+                // 최대 풍속 계산
+                const maxWindSpeed = Math.max(...data.map(d => d.windSpeed));
+                document.getElementById('maxWindSpeed').textContent = maxWindSpeed.toFixed(1) + ' m/s';
+                
+                // 평균 태양 복사량 계산
+                const avgIrradiance = data.reduce((sum, d) => sum + d.irradiance, 0) / data.length;
+                document.getElementById('solarIrradiance').textContent = avgIrradiance.toFixed(0) + ' W/m²';
+                
+                // 에너지 상관관계 계산 (샘플 데이터 기반)
+                const tempCorrelation = calculateCorrelation(
+                    data.map(d => d.temperature),
+                    data.map(d => d.solarPower)
+                );
+                const solarCorrelation = calculateCorrelation(
+                    data.map(d => d.irradiance),
+                    data.map(d => d.solarPower)
+                );
+                const humidityCorrelation = calculateCorrelation(
+                    data.map(d => d.humidity),
+                    data.map(d => d.batterySOC)
+                );
+                
+                document.getElementById('tempCorrelation').textContent = tempCorrelation.toFixed(2);
+                document.getElementById('solarCorrelation').textContent = solarCorrelation.toFixed(2);
+                document.getElementById('humidityCorrelation').textContent = humidityCorrelation.toFixed(2);
+            }}
+            
+            // 상관계수 계산 함수
+            function calculateCorrelation(x, y) {{
+                const n = x.length;
+                const sumX = x.reduce((a, b) => a + b, 0);
+                const sumY = y.reduce((a, b) => a + b, 0);
+                const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+                const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+                
+                const numerator = n * sumXY - sumX * sumY;
+                const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+                
+                return denominator === 0 ? 0 : numerator / denominator;
+            }}
+            
+            // 현황/예측 시계열 차트 생성 함수
+            function createWeatherForecastChart(data) {{
+                const ctx = document.getElementById('weatherForecastChart').getContext('2d');
+                
+                // 현재 시간 기준으로 과거/현재/미래 데이터 분리
+                const currentHour = new Date().getHours();
+                const pastData = data.slice(0, Math.floor(data.length * 0.6)); // 60%는 과거 데이터
+                const currentData = data.slice(Math.floor(data.length * 0.6), Math.floor(data.length * 0.8)); // 20%는 현재 데이터
+                const futureData = data.slice(Math.floor(data.length * 0.8)); // 20%는 미래 예측 데이터
+                
+                // 예측 데이터 생성 (현재 데이터 기반으로 트렌드 적용)
+                const lastCurrentTemp = currentData[currentData.length - 1]?.temperature || 24;
+                const lastCurrentHumidity = currentData[currentData.length - 1]?.humidity || 65;
+                const lastCurrentWind = currentData[currentData.length - 1]?.windSpeed || 2.3;
+                const lastCurrentIrradiance = currentData[currentData.length - 1]?.irradiance || 850;
+                
+                const forecastData = futureData.map((d, index) => ({{
+                    ...d,
+                    temperature: lastCurrentTemp + (Math.sin(index * 0.5) * 2) + (Math.random() - 0.5) * 1,
+                    humidity: Math.max(30, Math.min(90, lastCurrentHumidity + (Math.random() - 0.5) * 10)),
+                    windSpeed: Math.max(0, lastCurrentWind + (Math.random() - 0.5) * 1),
+                    irradiance: Math.max(0, lastCurrentIrradiance + (Math.sin(index * 0.3) * 100) + (Math.random() - 0.5) * 50)
+                }}));
+                
+                // 모든 데이터 합치기
+                const allData = [...pastData, ...currentData, ...forecastData];
+                const labels = allData.map((d, index) => {{
+                    const hour = (currentHour - Math.floor(data.length * 0.6) + index) % 24;
+                    return hour + ':00';
+                }});
+                
+                // 구분점 인덱스
+                const currentStartIndex = pastData.length;
+                const futureStartIndex = pastData.length + currentData.length;
+                
+                weatherForecastChart = new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            label: '온도 (°C)',
+                            data: allData.map(d => d.temperature),
+                            borderColor: '#ff6b35',
+                            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y',
+                            segment: {{
+                                borderColor: function(ctx) {{
+                                    const index = ctx.p1DataIndex;
+                                    if (index < currentStartIndex) return '#ff6b35'; // 과거: 주황색
+                                    if (index < futureStartIndex) return '#28a745'; // 현재: 초록색
+                                    return '#dc3545'; // 미래: 빨간색
+                                }}
+                            }}
+                        }}, {{
+                            label: '습도 (%)',
+                            data: allData.map(d => d.humidity),
+                            borderColor: '#4ecdc4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y1',
+                            segment: {{
+                                borderColor: function(ctx) {{
+                                    const index = ctx.p1DataIndex;
+                                    if (index < currentStartIndex) return '#4ecdc4'; // 과거: 청록색
+                                    if (index < futureStartIndex) return '#28a745'; // 현재: 초록색
+                                    return '#dc3545'; // 미래: 빨간색
+                                }}
+                            }}
+                        }}, {{
+                            label: '풍속 (m/s)',
+                            data: allData.map(d => d.windSpeed),
+                            borderColor: '#9b59b6',
+                            backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y2',
+                            segment: {{
+                                borderColor: function(ctx) {{
+                                    const index = ctx.p1DataIndex;
+                                    if (index < currentStartIndex) return '#9b59b6'; // 과거: 보라색
+                                    if (index < futureStartIndex) return '#28a745'; // 현재: 초록색
+                                    return '#dc3545'; // 미래: 빨간색
+                                }}
+                            }}
+                        }}, {{
+                            label: '태양복사량 (W/m²)',
+                            data: allData.map(d => d.irradiance),
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y3',
+                            segment: {{
+                                borderColor: function(ctx) {{
+                                    const index = ctx.p1DataIndex;
+                                    if (index < currentStartIndex) return '#f39c12'; // 과거: 주황색
+                                    if (index < futureStartIndex) return '#28a745'; // 현재: 초록색
+                                    return '#dc3545'; // 미래: 빨간색
+                                }}
+                            }}
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {{
+                            intersect: false,
+                            mode: 'index'
+                        }},
                         scales: {{
+                            x: {{
+                                display: true,
+                                title: {{
+                                    display: true,
+                                    text: '시간'
+                                }},
+                                grid: {{
+                                    color: function(context) {{
+                                        const index = context.index;
+                                        if (index === currentStartIndex || index === futureStartIndex) {{
+                                            return '#dc3545'; // 구분선
+                                        }}
+                                        return 'rgba(0, 0, 0, 0.1)';
+                                    }}
+                                }}
+                            }},
                             y: {{
                                 type: 'linear',
                                 display: true,
                                 position: 'left',
                                 title: {{
                                     display: true,
-                                    text: 'Temperature (°C)'
+                                    text: '온도 (°C)'
                                 }}
                             }},
                             y1: {{
@@ -5749,20 +6135,69 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
                                 position: 'right',
                                 title: {{
                                     display: true,
-                                    text: 'Humidity (%)'
+                                    text: '습도 (%)'
                                 }},
                                 grid: {{
                                     drawOnChartArea: false,
+                                }}
+                            }},
+                            y2: {{
+                                type: 'linear',
+                                display: false,
+                                position: 'right',
+                                title: {{
+                                    display: true,
+                                    text: '풍속 (m/s)'
+                                }}
+                            }},
+                            y3: {{
+                                type: 'linear',
+                                display: false,
+                                position: 'right',
+                                title: {{
+                                    display: true,
+                                    text: '태양복사량 (W/m²)'
                                 }}
                             }}
                         }},
                         plugins: {{
                             legend: {{
-                                display: true
+                                display: true,
+                                position: 'top'
                             }},
                             title: {{
                                 display: true,
-                                text: 'Weather Data Analysis'
+                                text: '현황/예측 시계열 분석'
+                            }},
+                            annotation: {{
+                                annotations: {{
+                                    currentLine: {{
+                                        type: 'line',
+                                        xMin: currentStartIndex,
+                                        xMax: currentStartIndex,
+                                        borderColor: '#28a745',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: {{
+                                            content: '현재',
+                                            enabled: true,
+                                            position: 'start'
+                                        }}
+                                    }},
+                                    futureLine: {{
+                                        type: 'line',
+                                        xMin: futureStartIndex,
+                                        xMax: futureStartIndex,
+                                        borderColor: '#dc3545',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: {{
+                                            content: '예측 시작',
+                                            enabled: true,
+                                            position: 'start'
+                                        }}
+                                    }}
+                                }}
                             }}
                         }}
                     }}
@@ -5773,6 +6208,24 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
             function updateSPOData() {{
                 const newData = generateSPOData();
                 realtimeData.push(newData);
+                
+                // 날씨 통계 실시간 업데이트
+                updateWeatherStatistics(realtimeData);
+                
+                // 새로운 날씨 차트들 업데이트
+                const currentData = realtimeData[realtimeData.length - 1];
+                if (currentData) {{
+                    // 게이지 차트 업데이트
+                    updateWeatherGaugeChart('weatherTempGauge', currentData.temperature, 40, '#ff6b6b');
+                    updateWeatherGaugeChart('weatherHumidityGauge', currentData.humidity, 100, '#00b894');
+                    
+                    // 도넛 차트 업데이트
+                    updateWeatherDonutChart('weatherWindDonut', currentData.windSpeed, currentData.windSpeed * 1.2, '#fdcb6e');
+                    updateWeatherDonutChart('weatherSolarDonut', currentData.irradiance, currentData.irradiance * 1.1, '#74b9ff');
+                    
+                    // 예측 데이터 업데이트
+                    updateWeatherPredictions(currentData);
+                }}
 
                 // 최근 50개 데이터만 유지
                 if (realtimeData.length > 50) {{
@@ -5883,6 +6336,373 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
     </body>
     </html>
     """
+
+@web_app.get("/weather-analysis", response_class=HTMLResponse)
+async def weather_analysis_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """Weather Data Analysis 전용 페이지"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🌤️ Weather Data Analysis</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            body {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }}
+            .main-card {{ background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }}
+            .weather-stat {{ text-align: center; padding: 15px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border-radius: 10px; margin: 5px; }}
+            .weather-stat.success {{ background: linear-gradient(135deg, #00b894, #00a085); }}
+            .weather-stat.warning {{ background: linear-gradient(135deg, #fdcb6e, #e17055); }}
+            .weather-stat.info {{ background: linear-gradient(135deg, #74b9ff, #0984e3); }}
+            .stat-value {{ font-size: 1.5rem; font-weight: bold; }}
+            .stat-label {{ font-size: 0.9rem; opacity: 0.9; }}
+            .prediction-card {{ background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; border-radius: 15px; padding: 20px; }}
+            .correlation-item {{ text-align: center; padding: 10px; }}
+            .correlation-value {{ font-size: 1.8rem; font-weight: bold; }}
+            .correlation-label {{ font-size: 0.8rem; color: #666; }}
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid py-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="main-card p-4">
+                        <!-- 헤더 -->
+                        <div class="text-center mb-4">
+                            <h1 class="display-5 fw-bold text-primary">
+                                <i class="fas fa-cloud-sun"></i> Weather Data Analysis
+                            </h1>
+                            <p class="lead text-muted">Real-time Weather Monitoring & Prediction</p>
+                        </div>
+
+                        <!-- 날씨 통계 요약 -->
+                        <div class="row mb-4">
+                            <div class="col-6 col-md-3">
+                                <div class="weather-stat">
+                                    <div class="stat-value" id="avgTemperature">24.5°C</div>
+                                    <div class="stat-label">평균 온도</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="weather-stat success">
+                                    <div class="stat-value" id="avgHumidity">65%</div>
+                                    <div class="stat-label">평균 습도</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="weather-stat warning">
+                                    <div class="stat-value" id="maxWindSpeed">2.3 m/s</div>
+                                    <div class="stat-label">최대 풍속</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="weather-stat info">
+                                    <div class="stat-value" id="solarIrradiance">850 W/m²</div>
+                                    <div class="stat-label">태양 복사량</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 현황/예측 차트 -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <canvas id="weatherTempGauge" height="120"></canvas>
+                                    <h6 class="mt-2">Temperature</h6>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <canvas id="weatherHumidityGauge" height="120"></canvas>
+                                    <h6 class="mt-2">Humidity</h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <canvas id="weatherWindDonut" height="120"></canvas>
+                                    <h6 class="mt-2">Wind Speed</h6>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <canvas id="weatherSolarDonut" height="120"></canvas>
+                                    <h6 class="mt-2">Solar Radiation</h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 예측 섹션 -->
+                        <div class="prediction-card mb-4">
+                            <h4 class="text-center mb-3"><i class="fas fa-crystal-ball"></i> Weather Prediction</h4>
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <h6>+1 Hour</h6>
+                                    <div class="fw-bold" id="predTemp1">25.2°C</div>
+                                    <small>Temperature</small>
+                                </div>
+                                <div class="col-3">
+                                    <h6>+2 Hours</h6>
+                                    <div class="fw-bold" id="predHumidity2">68%</div>
+                                    <small>Humidity</small>
+                                </div>
+                                <div class="col-3">
+                                    <h6>+3 Hours</h6>
+                                    <div class="fw-bold" id="predWind3">2.8 m/s</div>
+                                    <small>Wind Speed</small>
+                                </div>
+                                <div class="col-3">
+                                    <h6>+4 Hours</h6>
+                                    <div class="fw-bold" id="predSolar4">920 W/m²</div>
+                                    <small>Solar Radiation</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 에너지 상관관계 -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-link"></i> 에너지 상관관계</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <div class="correlation-item">
+                                                    <div class="correlation-value text-danger" id="tempCorrelation">0.78</div>
+                                                    <div class="correlation-label">온도 vs 소비</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="correlation-item">
+                                                    <div class="correlation-value text-success" id="solarCorrelation">0.92</div>
+                                                    <div class="correlation-label">태양광 vs 발전</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="correlation-item">
+                                                    <div class="correlation-value text-warning" id="humidityCorrelation">-0.45</div>
+                                                    <div class="correlation-label">습도 vs 효율</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 전역 변수
+            let weatherCharts = {{}};
+            let currentData = {{
+                temperature: 24.5,
+                humidity: 65,
+                windSpeed: 2.3,
+                irradiance: 850
+            }};
+
+            // 데이터 생성 함수
+            function generateWeatherData() {{
+                const now = new Date();
+                const hour = now.getHours();
+                
+                // 시간대별 기본값
+                let baseTemp = 20 + Math.sin((hour - 6) * Math.PI / 12) * 8;
+                let baseHumidity = 70 - Math.sin((hour - 6) * Math.PI / 12) * 20;
+                let baseWind = 2 + Math.random() * 3;
+                let baseSolar = Math.max(0, Math.sin((hour - 6) * Math.PI / 12) * 1000);
+                
+                // 랜덤 변동 추가
+                currentData = {{
+                    temperature: baseTemp + (Math.random() - 0.5) * 4,
+                    humidity: Math.max(30, Math.min(90, baseHumidity + (Math.random() - 0.5) * 10)),
+                    windSpeed: Math.max(0, baseWind + (Math.random() - 0.5) * 2),
+                    irradiance: Math.max(0, baseSolar + (Math.random() - 0.5) * 200)
+                }};
+                
+                return currentData;
+            }}
+
+            // 게이지 차트 생성 함수
+            function createWeatherGaugeChart(canvasId, value, max, color, label) {{
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                const chart = new Chart(ctx, {{
+                    type: 'doughnut',
+                    data: {{
+                        datasets: [{{
+                            data: [value, max - value],
+                            backgroundColor: [color, '#f0f0f0'],
+                            borderWidth: 0,
+                            cutout: '75%'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                enabled: false
+                            }}
+                        }},
+                        elements: {{
+                            arc: {{
+                                borderWidth: 0
+                            }}
+                        }}
+                    }}
+                }});
+                
+                weatherCharts[canvasId] = chart;
+                return chart;
+            }}
+
+            // 도넛 차트 생성 함수
+            function createWeatherDonutChart(canvasId, current, predicted, color, label) {{
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                const chart = new Chart(ctx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['Current', 'Predicted'],
+                        datasets: [{{
+                            data: [current, predicted],
+                            backgroundColor: [color, color + '80'],
+                            borderWidth: 0
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return context.label + ': ' + context.parsed.toFixed(1);
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+                
+                weatherCharts[canvasId] = chart;
+                return chart;
+            }}
+
+            // 차트 초기화
+            function initializeWeatherCharts() {{
+                const data = generateWeatherData();
+                
+                // 게이지 차트 생성
+                createWeatherGaugeChart('weatherTempGauge', data.temperature, 40, '#ff6b6b', 'Temperature');
+                createWeatherGaugeChart('weatherHumidityGauge', data.humidity, 100, '#00b894', 'Humidity');
+                
+                // 도넛 차트 생성
+                createWeatherDonutChart('weatherWindDonut', data.windSpeed, data.windSpeed * 1.2, '#fdcb6e', 'Wind Speed');
+                createWeatherDonutChart('weatherSolarDonut', data.irradiance, data.irradiance * 1.1, '#74b9ff', 'Solar Radiation');
+                
+                // 메트릭 업데이트
+                updateWeatherMetrics(data);
+                
+                // 예측 데이터 업데이트
+                updateWeatherPredictions(data);
+                
+                // 상관관계 업데이트
+                updateCorrelations();
+            }}
+
+            // 메트릭 업데이트
+            function updateWeatherMetrics(data) {{
+                document.getElementById('avgTemperature').textContent = data.temperature.toFixed(1) + '°C';
+                document.getElementById('avgHumidity').textContent = data.humidity.toFixed(0) + '%';
+                document.getElementById('maxWindSpeed').textContent = data.windSpeed.toFixed(1) + ' m/s';
+                document.getElementById('solarIrradiance').textContent = data.irradiance.toFixed(0) + ' W/m²';
+            }}
+
+            // 예측 데이터 업데이트
+            function updateWeatherPredictions(data) {{
+                document.getElementById('predTemp1').textContent = (data.temperature + 0.7).toFixed(1) + '°C';
+                document.getElementById('predHumidity2').textContent = (data.humidity + 3).toFixed(0) + '%';
+                document.getElementById('predWind3').textContent = (data.windSpeed + 0.5).toFixed(1) + ' m/s';
+                document.getElementById('predSolar4').textContent = (data.irradiance + 70).toFixed(0) + ' W/m²';
+            }}
+
+            // 상관관계 업데이트
+            function updateCorrelations() {{
+                document.getElementById('tempCorrelation').textContent = (0.75 + Math.random() * 0.1).toFixed(2);
+                document.getElementById('solarCorrelation').textContent = (0.90 + Math.random() * 0.05).toFixed(2);
+                document.getElementById('humidityCorrelation').textContent = (-0.40 - Math.random() * 0.1).toFixed(2);
+            }}
+
+            // 데이터 업데이트
+            function updateWeatherData() {{
+                const newData = generateWeatherData();
+                
+                // 게이지 차트 업데이트
+                if (weatherCharts['weatherTempGauge']) {{
+                    weatherCharts['weatherTempGauge'].data.datasets[0].data = [newData.temperature, 40 - newData.temperature];
+                    weatherCharts['weatherTempGauge'].update('none');
+                }}
+                
+                if (weatherCharts['weatherHumidityGauge']) {{
+                    weatherCharts['weatherHumidityGauge'].data.datasets[0].data = [newData.humidity, 100 - newData.humidity];
+                    weatherCharts['weatherHumidityGauge'].update('none');
+                }}
+                
+                // 도넛 차트 업데이트
+                if (weatherCharts['weatherWindDonut']) {{
+                    weatherCharts['weatherWindDonut'].data.datasets[0].data = [newData.windSpeed, newData.windSpeed * 1.2];
+                    weatherCharts['weatherWindDonut'].update('none');
+                }}
+                
+                if (weatherCharts['weatherSolarDonut']) {{
+                    weatherCharts['weatherSolarDonut'].data.datasets[0].data = [newData.irradiance, newData.irradiance * 1.1];
+                    weatherCharts['weatherSolarDonut'].update('none');
+                }}
+                
+                // 메트릭 및 예측 업데이트
+                updateWeatherMetrics(newData);
+                updateWeatherPredictions(newData);
+                updateCorrelations();
+            }}
+
+            // 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initializeWeatherCharts();
+                setInterval(updateWeatherData, 5000); // 5초마다 업데이트
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/weather-dashboard", response_class=HTMLResponse)
+async def weather_dashboard_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """Weather Dashboard 전용 페이지"""
+    try:
+        with open("weather_dashboard.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse("Weather Dashboard not found", status_code=404)
 
 if __name__ == "__main__":
     # MCP 도구 등록

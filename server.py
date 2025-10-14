@@ -16,6 +16,7 @@ from tools import (
     SimpleAnalysisTools, PromptTools, ExternalDataCollectionTools,
     ClimatePredictionTools, TFHubModelTools, ClimateVisualizationTools
 )
+from tools.kma_weather_tools import KMAWeatherTools
 
 # 로깅 설정
 logging.basicConfig(
@@ -88,6 +89,10 @@ class EnergyAnalysisServer:
             # 기후 시각화 도구 등록
             self.climate_visualization_tools = ClimateVisualizationTools(self.mcp)
             logger.info("기후 시각화 도구 등록 완료")
+            
+            # KMA 날씨 도구 등록
+            self.kma_weather_tools = KMAWeatherTools(self.mcp)
+            logger.info("KMA 날씨 도구 등록 완료")
             
         except Exception as e:
             logger.error(f"도구 등록 실패: {e}")
