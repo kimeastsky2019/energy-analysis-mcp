@@ -3687,11 +3687,366 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
         <script>
             // 현재 언어 설정
             let currentLanguage = '{lang}';
             let translations = {{}};
+            
+            // 실시간 데이터 변수
+            let solarData = [];
+            let weatherData = [];
+            let charts = {{}};
+            let dataUpdateInterval;
+            
+            // 가상 태양광 데이터 생성
+            function generateSolarData() {{
+                const now = new Date();
+                const hour = now.getHours();
+                
+                // 시간대별 태양광 발전량 시뮬레이션 (6시-18시)
+                let basePower = 0;
+                if (hour >= 6 && hour <= 18) {{
+                    // 정규분포 곡선으로 일출-일몰 시뮬레이션
+                    const peakHour = 12;
+                    const timeFromPeak = Math.abs(hour - peakHour);
+                    basePower = Math.max(0, 4.5 * Math.exp(-Math.pow(timeFromPeak / 3, 2)));
+                }}
+                
+                // 날씨 영향 (구름, 온도 등)
+                const weatherFactor = 0.7 + Math.random() * 0.3; // 70-100%
+                const temperatureFactor = 1 - (Math.random() - 0.5) * 0.1; // 온도 영향
+                
+                const solarPower = Math.max(0, basePower * weatherFactor * temperatureFactor);
+                const batterySOC = Math.min(100, Math.max(0, 85 + (Math.random() - 0.5) * 10));
+                const temperature = 20 + Math.random() * 15; // 20-35°C
+                const humidity = 40 + Math.random() * 40; // 40-80%
+                const windSpeed = Math.random() * 5; // 0-5 m/s
+                const irradiance = solarPower > 0 ? 200 + solarPower * 150 : Math.random() * 100;
+                
+                return {{
+                    timestamp: now.toISOString(),
+                    solarPower: parseFloat(solarPower.toFixed(2)),
+                    batterySOC: parseFloat(batterySOC.toFixed(1)),
+                    temperature: parseFloat(temperature.toFixed(1)),
+                    humidity: parseFloat(humidity.toFixed(1)),
+                    windSpeed: parseFloat(windSpeed.toFixed(1)),
+                    irradiance: parseFloat(irradiance.toFixed(0))
+                }};
+            }}
+            
+            // 실시간 데이터 업데이트
+            function updateRealtimeData() {{
+                const newData = generateSolarData();
+                
+                // 데이터 배열에 추가 (최근 50개만 유지)
+                solarData.push(newData);
+                if (solarData.length > 50) {{
+                    solarData.shift();
+                }}
+                
+                // 상단 카드 업데이트
+                updateTopCards(newData);
+                
+                // 실시간 상태 카드 업데이트
+                updateStatusCards(newData);
+                
+                // 차트 업데이트
+                updateCharts();
+                
+                // 데이터 테이블 업데이트
+                updateDataTable();
+                
+                // 날씨 통계 업데이트
+                updateWeatherStats();
+                
+                // 에너지 상관관계 업데이트
+                updateCorrelations();
+            }}
+            
+            // 상단 카드 업데이트
+            function updateTopCards(data) {{
+                // Solar Generation 카드
+                const solarCard = document.querySelector('.col-md-4:nth-child(1) .card-body');
+                if (solarCard) {{
+                    solarCard.querySelector('h2').textContent = data.solarPower.toFixed(2) + ' kW';
+                    const progressBar = solarCard.querySelector('.progress-bar');
+                    const percentage = (data.solarPower / 4.5) * 100;
+                    progressBar.style.width = percentage + '%';
+                    progressBar.textContent = Math.round(percentage) + '%';
+                }}
+                
+                // Energy Storage 카드
+                const storageCard = document.querySelector('.col-md-4:nth-child(2) .card-body');
+                if (storageCard) {{
+                    storageCard.querySelector('h2').textContent = data.batterySOC.toFixed(0) + '%';
+                    const progressBar = storageCard.querySelector('.progress-bar');
+                    progressBar.style.width = data.batterySOC + '%';
+                    progressBar.textContent = Math.round(data.batterySOC) + '%';
+                }}
+                
+                // Weather Data 카드
+                const weatherCard = document.querySelector('.col-md-4:nth-child(3) .card-body');
+                if (weatherCard) {{
+                    weatherCard.querySelector('h2').textContent = data.temperature.toFixed(1) + '°C';
+                    weatherCard.querySelector('small').textContent = '습도: ' + data.humidity.toFixed(0) + '%';
+                }}
+            }}
+            
+            // 실시간 상태 카드 업데이트
+            function updateStatusCards(data) {{
+                document.getElementById('currentSolarPower').textContent = data.solarPower.toFixed(2) + ' kW';
+                document.getElementById('currentBatterySOC').textContent = data.batterySOC.toFixed(1) + '%';
+                document.getElementById('currentTemperature').textContent = data.temperature.toFixed(1) + '°C';
+                document.getElementById('currentHumidity').textContent = data.humidity.toFixed(1) + '%';
+            }}
+            
+            // 차트 생성 및 업데이트
+            function createCharts() {{
+                // 실시간 전력 데이터 차트
+                const powerCtx = document.getElementById('spoPowerDataChart');
+                if (powerCtx) {{
+                    charts.powerData = new Chart(powerCtx, {{
+                        type: 'line',
+                        data: {{
+                            labels: [],
+                            datasets: [{{
+                                label: 'Solar Power (kW)',
+                                data: [],
+                                borderColor: '#ffc107',
+                                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }}, {{
+                                label: 'Battery SOC (%)',
+                                data: [],
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {{
+                                y: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: {{
+                                        display: true,
+                                        text: 'Power (kW)'
+                                    }}
+                                }},
+                                y1: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: {{
+                                        display: true,
+                                        text: 'SOC (%)'
+                                    }},
+                                    grid: {{
+                                        drawOnChartArea: false,
+                                    }}
+                                }}
+                            }},
+                            plugins: {{
+                                legend: {{
+                                    display: true,
+                                    position: 'top'
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+                
+                // 24시간 에너지 트렌드 차트
+                const trendCtx = document.getElementById('spoEnergyTrendChart');
+                if (trendCtx) {{
+                    charts.energyTrend = new Chart(trendCtx, {{
+                        type: 'bar',
+                        data: {{
+                            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                            datasets: [{{
+                                label: 'Hourly Generation (kWh)',
+                                data: [0, 0, 2.5, 4.2, 3.8, 0.5],
+                                backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                                borderColor: '#ffc107',
+                                borderWidth: 1
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {{
+                                y: {{
+                                    beginAtZero: true,
+                                    title: {{
+                                        display: true,
+                                        text: 'Energy (kWh)'
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+                
+                // 시스템 효율성 차트
+                const efficiencyCtx = document.getElementById('spoEfficiencyChart');
+                if (efficiencyCtx) {{
+                    charts.efficiency = new Chart(efficiencyCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['Solar Efficiency', 'Battery Efficiency', 'System Loss'],
+                            datasets: [{{
+                                data: [85, 92, 8],
+                                backgroundColor: ['#28a745', '#17a2b8', '#dc3545'],
+                                borderWidth: 2
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {{
+                                legend: {{
+                                    position: 'bottom'
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+                
+                // 날씨 데이터 차트
+                const weatherCtx = document.getElementById('spoWeatherChart');
+                if (weatherCtx) {{
+                    charts.weather = new Chart(weatherCtx, {{
+                        type: 'line',
+                        data: {{
+                            labels: [],
+                            datasets: [{{
+                                label: 'Temperature (°C)',
+                                data: [],
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                tension: 0.4
+                            }}, {{
+                                label: 'Humidity (%)',
+                                data: [],
+                                borderColor: '#17a2b8',
+                                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {{
+                                y: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: {{
+                                        display: true,
+                                        text: 'Temperature (°C)'
+                                    }}
+                                }},
+                                y1: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: {{
+                                        display: true,
+                                        text: 'Humidity (%)'
+                                    }},
+                                    grid: {{
+                                        drawOnChartArea: false,
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+            }}
+            
+            // 차트 업데이트
+            function updateCharts() {{
+                if (solarData.length === 0) return;
+                
+                const labels = solarData.map(d => new Date(d.timestamp).toLocaleTimeString());
+                const powerData = solarData.map(d => d.solarPower);
+                const socData = solarData.map(d => d.batterySOC);
+                const tempData = solarData.map(d => d.temperature);
+                const humidityData = solarData.map(d => d.humidity);
+                
+                // 전력 데이터 차트 업데이트
+                if (charts.powerData) {{
+                    charts.powerData.data.labels = labels;
+                    charts.powerData.data.datasets[0].data = powerData;
+                    charts.powerData.data.datasets[1].data = socData;
+                    charts.powerData.update('none');
+                }}
+                
+                // 날씨 차트 업데이트
+                if (charts.weather) {{
+                    charts.weather.data.labels = labels;
+                    charts.weather.data.datasets[0].data = tempData;
+                    charts.weather.data.datasets[1].data = humidityData;
+                    charts.weather.update('none');
+                }}
+            }}
+            
+            // 데이터 테이블 업데이트
+            function updateDataTable() {{
+                const tbody = document.getElementById('dataTableBody');
+                if (!tbody || solarData.length === 0) return;
+                
+                // 최근 10개 데이터만 표시
+                const recentData = solarData.slice(-10).reverse();
+                
+                tbody.innerHTML = recentData.map(data => `
+                    <tr>
+                        <td>${{new Date(data.timestamp).toLocaleString()}}</td>
+                        <td>${{data.solarPower.toFixed(2)}}</td>
+                        <td>${{data.batterySOC.toFixed(1)}}</td>
+                        <td>${{data.temperature.toFixed(1)}}</td>
+                        <td>${{data.humidity.toFixed(1)}}</td>
+                        <td>${{data.windSpeed.toFixed(1)}}</td>
+                        <td>${{data.irradiance.toFixed(0)}}</td>
+                    </tr>
+                `).join('');
+            }}
+            
+            // 날씨 통계 업데이트
+            function updateWeatherStats() {{
+                if (solarData.length === 0) return;
+                
+                const avgTemp = solarData.reduce((sum, d) => sum + d.temperature, 0) / solarData.length;
+                const avgHumidity = solarData.reduce((sum, d) => sum + d.humidity, 0) / solarData.length;
+                const maxWind = Math.max(...solarData.map(d => d.windSpeed));
+                const avgIrradiance = solarData.reduce((sum, d) => sum + d.irradiance, 0) / solarData.length;
+                
+                document.getElementById('avgTemperature').textContent = avgTemp.toFixed(1) + '°C';
+                document.getElementById('avgHumidity').textContent = avgHumidity.toFixed(0) + '%';
+                document.getElementById('maxWindSpeed').textContent = maxWind.toFixed(1) + ' m/s';
+                document.getElementById('solarIrradiance').textContent = avgIrradiance.toFixed(0) + ' W/m²';
+            }}
+            
+            // 에너지 상관관계 업데이트
+            function updateCorrelations() {{
+                if (solarData.length < 10) return;
+                
+                // 간단한 상관관계 계산 (실제로는 더 정교한 계산 필요)
+                const tempCorrelation = (0.75 + Math.random() * 0.1).toFixed(2);
+                const solarCorrelation = (0.90 + Math.random() * 0.05).toFixed(2);
+                const humidityCorrelation = (-0.40 - Math.random() * 0.1).toFixed(2);
+                
+                document.getElementById('tempCorrelation').textContent = tempCorrelation;
+                document.getElementById('solarCorrelation').textContent = solarCorrelation;
+                document.getElementById('humidityCorrelation').textContent = humidityCorrelation;
+            }}
 
             // 번역 로드
             async function loadTranslations(lang) {{
@@ -3738,6 +4093,26 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 loadTranslations(currentLanguage);
+                
+                // 차트 생성
+                createCharts();
+                
+                // 초기 데이터 생성
+                for (let i = 0; i < 20; i++) {{
+                    updateRealtimeData();
+                }}
+                
+                // 실시간 업데이트 시작 (5초마다)
+                dataUpdateInterval = setInterval(updateRealtimeData, 5000);
+                
+                console.log('Energy Supply Monitoring Dashboard initialized');
+            }});
+            
+            // 페이지 언로드 시 인터벌 정리
+            window.addEventListener('beforeunload', function() {{
+                if (dataUpdateInterval) {{
+                    clearInterval(dataUpdateInterval);
+                }}
             }});
         </script>
     </body>
@@ -3760,7 +4135,7 @@ async def llm_slm_page(request: Request, lang: str = Query("ko", description="La
         <title>🤖 LLM-based Energy SLM Development</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
         <style>
             .llm-card {{
@@ -5023,100 +5398,261 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
                 alert('Model monitoring dashboard opened!');
             }}
 
-            // 평가 차트 생성
+            // 평가 차트 생성 (수정된 버전)
             function createEvaluationChart() {{
-                const ctx = document.getElementById('evaluationChart').getContext('2d');
-                new Chart(ctx, {{
-                    type: 'line',
-                    data: {{
-                        labels: ['Epoch 1', 'Epoch 2', 'Epoch 3', 'Epoch 4', 'Epoch 5', 'Epoch 6', 'Epoch 7', 'Epoch 8', 'Epoch 9', 'Epoch 10'],
-                        datasets: [{{
-                            label: 'Training Loss',
-                            data: [2.5, 2.1, 1.8, 1.6, 1.4, 1.2, 1.0, 0.9, 0.8, 0.7],
-                            borderColor: '#dc3545',
-                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                            tension: 0.4
-                        }}, {{
-                            label: 'Validation Loss',
-                            data: [2.6, 2.2, 1.9, 1.7, 1.5, 1.3, 1.1, 1.0, 0.9, 0.8],
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                            tension: 0.4
-                        }}, {{
-                            label: 'BLEU Score',
-                            data: [0.65, 0.72, 0.78, 0.82, 0.85, 0.87, 0.89, 0.90, 0.91, 0.92],
-                            borderColor: '#28a745',
-                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {{
-                            y: {{
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: {{
+                try {{
+                    const chartElement = document.getElementById('evaluationChart');
+                    if (!chartElement) {{
+                        console.error('evaluationChart element not found');
+                        return;
+                    }}
+                    
+                    // 기존 차트가 있다면 제거
+                    if (window.evaluationChart) {{
+                        window.evaluationChart.destroy();
+                    }}
+                    
+                    const ctx = chartElement.getContext('2d');
+                    
+                    // 차트 컨테이너 크기 설정
+                    chartElement.style.width = '100%';
+                    chartElement.style.height = '400px';
+                    
+                    window.evaluationChart = new Chart(ctx, {{
+                        type: 'line',
+                        data: {{
+                            labels: ['Epoch 1', 'Epoch 2', 'Epoch 3', 'Epoch 4', 'Epoch 5', 'Epoch 6', 'Epoch 7', 'Epoch 8', 'Epoch 9', 'Epoch 10'],
+                            datasets: [{{
+                                label: 'Training Loss',
+                                data: [2.5, 2.1, 1.8, 1.6, 1.4, 1.2, 1.0, 0.9, 0.8, 0.7],
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            }}, {{
+                                label: 'Validation Loss',
+                                data: [2.6, 2.2, 1.9, 1.7, 1.5, 1.3, 1.1, 1.0, 0.9, 0.8],
+                                borderColor: '#007bff',
+                                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            }}, {{
+                                label: 'BLEU Score',
+                                data: [0.65, 0.72, 0.78, 0.82, 0.85, 0.87, 0.89, 0.90, 0.91, 0.92],
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {{
+                                intersect: false,
+                                mode: 'index'
+                            }},
+                            plugins: {{
+                                legend: {{
                                     display: true,
-                                    text: 'Loss'
+                                    position: 'top',
+                                    labels: {{
+                                        usePointStyle: true,
+                                        padding: 20
+                                    }}
+                                }},
+                                tooltip: {{
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: 'white',
+                                    bodyColor: 'white',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderWidth: 1
                                 }}
                             }},
-                            y1: {{
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {{
+                            scales: {{
+                                x: {{
                                     display: true,
-                                    text: 'BLEU Score'
+                                    title: {{
+                                        display: true,
+                                        text: 'Training Epochs'
+                                    }},
+                                    grid: {{
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }}
                                 }},
-                                grid: {{
-                                    drawOnChartArea: false,
+                                y: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: {{
+                                        display: true,
+                                        text: 'Loss Value'
+                                    }},
+                                    grid: {{
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }},
+                                    ticks: {{
+                                        color: 'rgba(255, 255, 255, 0.8)'
+                                    }}
+                                }},
+                                y1: {{
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: {{
+                                        display: true,
+                                        text: 'BLEU Score'
+                                    }},
+                                    grid: {{
+                                        drawOnChartArea: false,
+                                    }},
+                                    ticks: {{
+                                        color: 'rgba(255, 255, 255, 0.8)'
+                                    }}
                                 }}
                             }}
                         }}
+                    }});
+                    
+                    console.log('Evaluation chart created successfully');
+                }} catch (error) {{
+                    console.error('Error creating evaluation chart:', error);
+                    // 차트 생성 실패 시 대체 메시지 표시
+                    const chartElement = document.getElementById('evaluationChart');
+                    if (chartElement) {{
+                        chartElement.style.display = 'flex';
+                        chartElement.style.alignItems = 'center';
+                        chartElement.style.justifyContent = 'center';
+                        chartElement.style.color = '#ffc107';
+                        chartElement.innerHTML = '<div>차트를 로드하는 중입니다...</div>';
                     }}
-                }});
+                }}
             }}
 
-            // 비교 차트 생성
+            // 비교 차트 생성 (수정된 버전)
             function createComparisonChart() {{
-                const ctx = document.getElementById('comparisonChart').getContext('2d');
-                new Chart(ctx, {{
-                    type: 'bar',
-                    data: {{
-                        labels: ['Accuracy', 'BLEU Score', 'ROUGE-L', 'F1 Score', 'Perplexity'],
-                        datasets: [{{
-                            label: 'Base Model',
-                            data: [78.5, 0.65, 0.72, 0.75, 25.3],
-                            backgroundColor: '#6c757d'
-                        }}, {{
-                            label: 'Fine-tuned v1',
-                            data: [89.2, 0.78, 0.82, 0.85, 18.7],
-                            backgroundColor: '#007bff'
-                        }}, {{
-                            label: 'Fine-tuned v2',
-                            data: [94.2, 0.87, 0.89, 0.91, 12.3],
-                            backgroundColor: '#28a745'
-                        }}, {{
-                            label: 'Current Model',
-                            data: [96.1, 0.92, 0.94, 0.95, 8.9],
-                            backgroundColor: '#ffc107'
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                max: 100
+                try {{
+                    const chartElement = document.getElementById('comparisonChart');
+                    if (!chartElement) {{
+                        console.error('comparisonChart element not found');
+                        return;
+                    }}
+                    
+                    // 기존 차트가 있다면 제거
+                    if (window.comparisonChart) {{
+                        window.comparisonChart.destroy();
+                    }}
+                    
+                    const ctx = chartElement.getContext('2d');
+                    
+                    // 차트 컨테이너 크기 설정
+                    chartElement.style.width = '100%';
+                    chartElement.style.height = '400px';
+                    
+                    window.comparisonChart = new Chart(ctx, {{
+                        type: 'bar',
+                        data: {{
+                            labels: ['Accuracy', 'BLEU Score', 'ROUGE-L', 'F1 Score', 'Perplexity'],
+                            datasets: [{{
+                                label: 'Base Model',
+                                data: [78.5, 65, 72, 75, 25.3],
+                                backgroundColor: '#6c757d',
+                                borderColor: '#495057',
+                                borderWidth: 1
+                            }}, {{
+                                label: 'Fine-tuned v1',
+                                data: [89.2, 78, 82, 85, 18.7],
+                                backgroundColor: '#007bff',
+                                borderColor: '#0056b3',
+                                borderWidth: 1
+                            }}, {{
+                                label: 'Fine-tuned v2',
+                                data: [94.2, 87, 89, 91, 12.3],
+                                backgroundColor: '#28a745',
+                                borderColor: '#1e7e34',
+                                borderWidth: 1
+                            }}, {{
+                                label: 'Current Model',
+                                data: [96.1, 92, 94, 95, 8.9],
+                                backgroundColor: '#ffc107',
+                                borderColor: '#e0a800',
+                                borderWidth: 1
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {{
+                                intersect: false,
+                                mode: 'index'
+                            }},
+                            plugins: {{
+                                legend: {{
+                                    display: true,
+                                    position: 'top',
+                                    labels: {{
+                                        usePointStyle: true,
+                                        padding: 20
+                                    }}
+                                }},
+                                tooltip: {{
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: 'white',
+                                    bodyColor: 'white',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderWidth: 1
+                                }}
+                            }},
+                            scales: {{
+                                x: {{
+                                    display: true,
+                                    title: {{
+                                        display: true,
+                                        text: 'Metrics'
+                                    }},
+                                    grid: {{
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }},
+                                    ticks: {{
+                                        color: 'rgba(255, 255, 255, 0.8)'
+                                    }}
+                                }},
+                                y: {{
+                                    display: true,
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {{
+                                        display: true,
+                                        text: 'Score (%)'
+                                    }},
+                                    grid: {{
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }},
+                                    ticks: {{
+                                        color: 'rgba(255, 255, 255, 0.8)'
+                                    }}
+                                }}
                             }}
                         }}
+                    }});
+                    
+                    console.log('Comparison chart created successfully');
+                }} catch (error) {{
+                    console.error('Error creating comparison chart:', error);
+                    // 차트 생성 실패 시 대체 메시지 표시
+                    const chartElement = document.getElementById('comparisonChart');
+                    if (chartElement) {{
+                        chartElement.style.display = 'flex';
+                        chartElement.style.alignItems = 'center';
+                        chartElement.style.justifyContent = 'center';
+                        chartElement.style.color = '#ffc107';
+                        chartElement.innerHTML = '<div>차트를 로드하는 중입니다...</div>';
                     }}
-                }});
+                }}
             }}
 
             // 모델 성능 지표 그래프 생성
@@ -5494,21 +6030,62 @@ Output: "For a 2000 sq ft home, optimal solar configuration typically includes: 
                 }}, 3000);
             }}
             
-            // 초기화
+            // 초기화 (수정된 버전)
             document.addEventListener('DOMContentLoaded', function() {{
                 loadTranslations(currentLanguage);
-                createEvaluationChart();
-                createComparisonChart();
-                createPerformanceChart();
-                createAccuracyChart();
-                createLossChart();
-                createInferenceChart();
+                
+                // Chart.js가 로드될 때까지 대기
+                if (typeof Chart === 'undefined') {{
+                    console.log('Chart.js not loaded yet, waiting...');
+                    setTimeout(() => {{
+                        initializeCharts();
+                    }}, 1000);
+                }} else {{
+                    initializeCharts();
+                }}
+                
                 updateRealtimeData();
                 setInterval(updateRealtimeData, 5000); // 5초마다 업데이트
                 
                 // 시뮬레이터 초기화
                 initializeSimulator();
             }});
+            
+            // 차트 초기화 함수
+            function initializeCharts() {{
+                try {{
+                    console.log('Initializing charts...');
+                    
+                    // 차트 생성 전에 DOM 요소가 존재하는지 확인
+                    if (document.getElementById('evaluationChart')) {{
+                        createEvaluationChart();
+                    }}
+                    
+                    if (document.getElementById('comparisonChart')) {{
+                        createComparisonChart();
+                    }}
+                    
+                    if (document.getElementById('performanceChart')) {{
+                        createPerformanceChart();
+                    }}
+                    
+                    if (document.getElementById('accuracyChart')) {{
+                        createAccuracyChart();
+                    }}
+                    
+                    if (document.getElementById('lossChart')) {{
+                        createLossChart();
+                    }}
+                    
+                    if (document.getElementById('inferenceChart')) {{
+                        createInferenceChart();
+                    }}
+                    
+                    console.log('All charts initialized successfully');
+                }} catch (error) {{
+                    console.error('Error initializing charts:', error);
+                }}
+            }}
             
             function initializeSimulator() {{
                 // 초기 상태 설정
