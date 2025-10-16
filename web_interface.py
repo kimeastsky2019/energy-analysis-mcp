@@ -1531,6 +1531,69 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
             .status-online {{ background-color: #28a745; }}
             .status-offline {{ background-color: #dc3545; }}
             .status-warning {{ background-color: #ffc107; }}
+            
+            /* 새로운 기능 스타일 */
+            .feature-card {{
+                transition: all 0.3s ease;
+                border-left: 4px solid #007bff;
+            }}
+            .feature-card:hover {{
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }}
+            .ai-insight-card {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }}
+            .session-replay-card {{
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+            }}
+            .privacy-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+            }}
+            .monitoring-card {{
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                color: white;
+            }}
+            .interaction-heatmap {{
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 10px 0;
+            }}
+            .heatmap-point {{
+                position: absolute;
+                width: 8px;
+                height: 8px;
+                background: #ff6b6b;
+                border-radius: 50%;
+                opacity: 0.7;
+            }}
+            .ai-chat-container {{
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #dee2e6;
+                border-radius: 10px;
+                padding: 15px;
+                background: #f8f9fa;
+            }}
+            .ai-message {{
+                margin: 10px 0;
+                padding: 10px;
+                border-radius: 10px;
+                max-width: 80%;
+            }}
+            .ai-user-message {{
+                background: #007bff;
+                color: white;
+                margin-left: auto;
+            }}
+            .ai-assistant-message {{
+                background: #e9ecef;
+                color: #333;
+            }}
         </style>
     </head>
     <body class="bg-light">
@@ -1646,6 +1709,252 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     </div>
                 </div>
             </div>
+
+            <!-- 포괄적인 사용자 상호작용 캡처 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card feature-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-mouse-pointer"></i> 포괄적인 사용자 상호작용 캡처</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">웹 및 모바일 앱에서 발생하는 모든 프론트엔드와 백엔드 이벤트를 실시간으로 자동 기록하여 중요한 데이터가 누락되지 않도록 보장합니다.</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>실시간 이벤트 캡처</h6>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">95%</div>
+                                    </div>
+                                    <small class="text-muted">프론트엔드 이벤트 캡처율</small>
+                                    
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 98%" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">98%</div>
+                                    </div>
+                                    <small class="text-muted">백엔드 API 호출 캡처율</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>캡처된 이벤트 통계</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> 클릭 이벤트: <span id="clickEvents">1,247</span></li>
+                                        <li><i class="fas fa-check text-success"></i> 스크롤 이벤트: <span id="scrollEvents">3,891</span></li>
+                                        <li><i class="fas fa-check text-success"></i> 폼 제출: <span id="formSubmissions">156</span></li>
+                                        <li><i class="fas fa-check text-success"></i> 페이지 뷰: <span id="pageViews">2,834</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 기반 인사이트 어시스턴트 -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card ai-insight-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-robot"></i> AI 기반 인사이트 어시스턴트 (GIA)</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Microsoft Azure OpenAI 모델을 활용하여 데이터 전문 지식 없이도 빠르고 대화식으로 심층적인 디지털 경험 인사이트를 제공합니다.</p>
+                            
+                            <div class="ai-chat-container" id="aiChatContainer">
+                                <div class="ai-message ai-assistant-message">
+                                    <strong>GIA:</strong> 안녕하세요! 디지털 경험 분석을 도와드리겠습니다. 어떤 인사이트가 필요하신가요?
+                                </div>
+                                <div class="ai-message ai-user-message">
+                                    사용자 행동 패턴을 분석해주세요
+                                </div>
+                                <div class="ai-message ai-assistant-message">
+                                    <strong>GIA:</strong> 현재 데이터를 분석한 결과, 사용자들이 주로 대시보드 상단의 메트릭 카드에 집중하고 있습니다. 전환율을 높이기 위해 CTA 버튼의 위치를 조정하는 것을 권장합니다.
+                                </div>
+                            </div>
+                            
+                            <div class="input-group mt-3">
+                                <input type="text" class="form-control" id="aiInput" placeholder="AI에게 질문하세요...">
+                                <button class="btn btn-light" type="button" onclick="sendAIMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card session-replay-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-video"></i> 세션 리플레이 및 인터랙션 맵</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>비디오와 유사한 세션 리플레이와 인터랙션 히트맵을 결합하여 사용자 행동과 마찰 지점을 시각화하고 디지털 여정을 최적화합니다.</p>
+                            
+                            <div class="interaction-heatmap" style="position: relative; height: 200px; background: white; border: 2px solid #dee2e6;">
+                                <div class="heatmap-point" style="top: 20px; left: 30px;"></div>
+                                <div class="heatmap-point" style="top: 50px; left: 80px;"></div>
+                                <div class="heatmap-point" style="top: 80px; left: 120px;"></div>
+                                <div class="heatmap-point" style="top: 120px; left: 200px;"></div>
+                                <div class="heatmap-point" style="top: 150px; left: 250px;"></div>
+                                <div class="text-center mt-4">
+                                    <small class="text-muted">인터랙션 히트맵 - 빨간 점이 클릭된 위치를 나타냅니다</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <button class="btn btn-light btn-sm w-100" onclick="startSessionReplay()">
+                                        <i class="fas fa-play"></i> 세션 리플레이 시작
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-light btn-sm w-100" onclick="generateHeatmap()">
+                                        <i class="fas fa-fire"></i> 히트맵 생성
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 내장형 프라이버시 및 컴플라이언스 -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card privacy-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shield-alt"></i> 내장형 프라이버시 및 컴플라이언스</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>PII, PCI, PHI 등 민감한 데이터를 자동으로 마스킹하여 보안 및 규제 준수를 보장합니다.</p>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6>데이터 마스킹 상태</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm text-white">
+                                            <thead>
+                                                <tr>
+                                                    <th>데이터 타입</th>
+                                                    <th>상태</th>
+                                                    <th>마스킹률</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>PII (개인정보)</td>
+                                                    <td><span class="badge bg-success">활성</span></td>
+                                                    <td>100%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>PCI (결제정보)</td>
+                                                    <td><span class="badge bg-success">활성</span></td>
+                                                    <td>100%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>PHI (건강정보)</td>
+                                                    <td><span class="badge bg-success">활성</span></td>
+                                                    <td>100%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-light btn-sm" onclick="togglePrivacyMode()">
+                                    <i class="fas fa-eye-slash"></i> 프라이버시 모드 토글
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card monitoring-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-bell"></i> 실시간 모니터링 및 알림</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>팀이 오류, 전환율 변화, 사용자 불편을 신속하게 감지하고 대응할 수 있도록 맞춤형 알림을 제공합니다.</p>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6>활성 알림</h6>
+                                    <div class="alert alert-warning alert-sm" role="alert">
+                                        <i class="fas fa-exclamation-triangle"></i> 전환율이 15% 감소했습니다
+                                    </div>
+                                    <div class="alert alert-info alert-sm" role="alert">
+                                        <i class="fas fa-info-circle"></i> 새로운 사용자 세션이 시작되었습니다
+                                    </div>
+                                    <div class="alert alert-success alert-sm" role="alert">
+                                        <i class="fas fa-check-circle"></i> 모든 시스템이 정상 작동 중입니다
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <button class="btn btn-light btn-sm w-100" onclick="configureAlerts()">
+                                        <i class="fas fa-cog"></i> 알림 설정
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-light btn-sm w-100" onclick="viewAnalytics()">
+                                        <i class="fas fa-chart-line"></i> 분석 보기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 유연한 배포 옵션 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card feature-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cloud"></i> 유연한 배포 옵션</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>엔터프라이즈의 운영 및 컴플라이언스 요구에 맞춘 하이브리드, 싱글 테넌트, 멀티 테넌트 환경을 지원합니다.</p>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-cloud fa-2x text-primary mb-3"></i>
+                                            <h6>하이브리드</h6>
+                                            <p class="small text-muted">클라우드와 온프레미스의 조합</p>
+                                            <span class="badge bg-primary">활성</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-server fa-2x text-success mb-3"></i>
+                                            <h6>싱글 테넌트</h6>
+                                            <p class="small text-muted">독립적인 인프라 환경</p>
+                                            <span class="badge bg-success">사용 가능</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-users fa-2x text-info mb-3"></i>
+                                            <h6>멀티 테넌트</h6>
+                                            <p class="small text-muted">공유 인프라 환경</p>
+                                            <span class="badge bg-info">사용 가능</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -1709,11 +2018,140 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 document.getElementById('uptime').textContent = `${{hours}}h ${{minutes}}m ${{seconds}}s`;
             }}
 
+            // 새로운 기능들을 위한 JavaScript 함수들
+            
+            // AI 메시지 전송
+            function sendAIMessage() {{
+                const input = document.getElementById('aiInput');
+                const message = input.value.trim();
+                if (!message) return;
+                
+                const chatContainer = document.getElementById('aiChatContainer');
+                
+                // 사용자 메시지 추가
+                const userMessage = document.createElement('div');
+                userMessage.className = 'ai-message ai-user-message';
+                userMessage.textContent = message;
+                chatContainer.appendChild(userMessage);
+                
+                // AI 응답 시뮬레이션
+                setTimeout(() => {{
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'ai-message ai-assistant-message';
+                    aiMessage.innerHTML = '<strong>GIA:</strong> ' + generateAIResponse(message);
+                    chatContainer.appendChild(aiMessage);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }}, 1000);
+                
+                input.value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }}
+            
+            // AI 응답 생성 (시뮬레이션)
+            function generateAIResponse(userMessage) {{
+                const responses = [
+                    '분석 결과, 사용자 행동 패턴에서 흥미로운 인사이트를 발견했습니다. 전환율 개선을 위해 A/B 테스트를 권장합니다.',
+                    '데이터를 기반으로 한 추천: 페이지 로딩 시간을 0.5초 단축하면 이탈률이 15% 감소할 것으로 예상됩니다.',
+                    '사용자 여정 분석 결과, 3단계에서 가장 많은 이탈이 발생하고 있습니다. 해당 단계의 UX 개선이 필요합니다.',
+                    '세션 리플레이 데이터를 분석한 결과, 모바일 사용자들이 특정 버튼을 찾는데 어려움을 겪고 있습니다.',
+                    '전환 퍼널 분석: 2단계에서 3단계로의 전환율이 업계 평균보다 20% 낮습니다. CTA 버튼의 위치와 색상을 조정해보세요.'
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }}
+            
+            // 세션 리플레이 시작
+            function startSessionReplay() {{
+                alert('세션 리플레이가 시작됩니다. 사용자의 실제 행동을 재생합니다.');
+                // 실제 구현에서는 세션 리플레이 플레이어를 시작
+            }}
+            
+            // 히트맵 생성
+            function generateHeatmap() {{
+                alert('새로운 히트맵을 생성합니다. 사용자 클릭 패턴을 분석 중...');
+                // 실제 구현에서는 히트맵 데이터를 업데이트
+                updateHeatmap();
+            }}
+            
+            // 히트맵 업데이트
+            function updateHeatmap() {{
+                const heatmap = document.querySelector('.interaction-heatmap');
+                const points = heatmap.querySelectorAll('.heatmap-point');
+                
+                points.forEach(point => {{
+                    const newTop = Math.random() * 180;
+                    const newLeft = Math.random() * 300;
+                    point.style.top = newTop + 'px';
+                    point.style.left = newLeft + 'px';
+                }});
+            }}
+            
+            // 프라이버시 모드 토글
+            function togglePrivacyMode() {{
+                const button = event.target;
+                const isActive = button.classList.contains('active');
+                
+                if (isActive) {{
+                    button.classList.remove('active');
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i> 프라이버시 모드 토글';
+                    alert('프라이버시 모드가 비활성화되었습니다.');
+                }} else {{
+                    button.classList.add('active');
+                    button.innerHTML = '<i class="fas fa-eye"></i> 프라이버시 모드 활성화됨';
+                    alert('프라이버시 모드가 활성화되었습니다. 민감한 데이터가 마스킹됩니다.');
+                }}
+            }}
+            
+            // 알림 설정
+            function configureAlerts() {{
+                alert('알림 설정 페이지로 이동합니다. 전환율, 오류율, 사용자 불편 등의 알림을 설정할 수 있습니다.');
+            }}
+            
+            // 분석 보기
+            function viewAnalytics() {{
+                alert('상세 분석 대시보드로 이동합니다. 실시간 메트릭과 트렌드를 확인할 수 있습니다.');
+            }}
+            
+            // 실시간 이벤트 통계 업데이트
+            function updateEventStats() {{
+                const clickEvents = document.getElementById('clickEvents');
+                const scrollEvents = document.getElementById('scrollEvents');
+                const formSubmissions = document.getElementById('formSubmissions');
+                const pageViews = document.getElementById('pageViews');
+                
+                if (clickEvents) {{
+                    const currentClicks = parseInt(clickEvents.textContent.replace(',', ''));
+                    clickEvents.textContent = (currentClicks + Math.floor(Math.random() * 5)).toLocaleString();
+                }}
+                
+                if (scrollEvents) {{
+                    const currentScrolls = parseInt(scrollEvents.textContent.replace(',', ''));
+                    scrollEvents.textContent = (currentScrolls + Math.floor(Math.random() * 10)).toLocaleString();
+                }}
+                
+                if (formSubmissions) {{
+                    const currentForms = parseInt(formSubmissions.textContent.replace(',', ''));
+                    formSubmissions.textContent = (currentForms + Math.floor(Math.random() * 2)).toLocaleString();
+                }}
+                
+                if (pageViews) {{
+                    const currentViews = parseInt(pageViews.textContent.replace(',', ''));
+                    pageViews.textContent = (currentViews + Math.floor(Math.random() * 3)).toLocaleString();
+                }}
+            }}
+            
+            // Enter 키로 AI 메시지 전송
+            document.addEventListener('keypress', function(e) {{
+                if (e.key === 'Enter' && e.target.id === 'aiInput') {{
+                    sendAIMessage();
+                }}
+            }});
+            
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 loadTranslations(currentLanguage);
                 updateUptime();
                 setInterval(updateUptime, 1000);
+                setInterval(updateEventStats, 5000); // 5초마다 이벤트 통계 업데이트
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             }});
         </script>
@@ -3547,13 +3985,94 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
 
                             <!-- 하단 분석 차트 -->
                             <div class="row mt-4">
-                                <div class="col-lg-6">
+                                <div class="col-lg-12">
                                     <div class="card">
                                         <div class="card-header">
                                             <h6><i class="fas fa-chart-line"></i> System Efficiency Analysis</h6>
                                         </div>
                                         <div class="card-body">
-                                            <canvas id="spoEfficiencyChart" height="250"></canvas>
+                                            <!-- System Efficiency Overview -->
+                                            <div class="row mb-4">
+                                                <div class="col-lg-4">
+                                                    <h6 class="text-center mb-3">System Efficiency Analysis</h6>
+                                                    <canvas id="spoEfficiencyChart" height="200"></canvas>
+                                                </div>
+                                                <div class="col-lg-4">
+                                                    <h6 class="text-center mb-3">Panel Performance</h6>
+                                                    <canvas id="spoPanelPerformanceChart" height="200"></canvas>
+                                                </div>
+                                                <div class="col-lg-4">
+                                                    <h6 class="text-center mb-3">Energy Distribution</h6>
+                                                    <canvas id="spoEnergyDistributionChart" height="200"></canvas>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Solar Panel Status Grid -->
+                                            <div class="mb-4">
+                                                <h6 class="mb-3"><i class="fas fa-solar-panel"></i> Individual Panel Status</h6>
+                                                <div class="row" id="spoPanelStatusGrid">
+                                                    <!-- 동적으로 생성될 판넬 카드들 -->
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Panel Performance Details Table -->
+                                            <div class="mb-4">
+                                                <h6 class="mb-3"><i class="fas fa-table"></i> Panel Performance Details</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-striped">
+                                                        <thead class="table-dark">
+                                                            <tr>
+                                                                <th>Panel ID</th>
+                                                                <th>Location</th>
+                                                                <th>Output (W)</th>
+                                                                <th>Efficiency (%)</th>
+                                                                <th>Temperature (°C)</th>
+                                                                <th>Status</th>
+                                                                <th>Last Check</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="spoPanelDetailTable">
+                                                            <!-- 동적으로 생성될 테이블 행들 -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Panel Alerts and Warnings -->
+                                            <div class="mb-4">
+                                                <h6 class="mb-3"><i class="fas fa-exclamation-triangle"></i> Alerts and Warnings</h6>
+                                                <div id="spoPanelAlerts">
+                                                    <!-- 동적으로 생성될 알림들 -->
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Panel Efficiency Metrics -->
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="text-center p-3 bg-success text-white rounded">
+                                                        <div class="h4 mb-0" id="spoAvgPanelEfficiency">0.0%</div>
+                                                        <div class="small">Average Efficiency</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center p-3 bg-primary text-white rounded">
+                                                        <div class="h4 mb-0" id="spoTotalPanelOutput">0.0 kW</div>
+                                                        <div class="small">Total Output</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center p-3 bg-warning text-white rounded">
+                                                        <div class="h4 mb-0" id="spoActivePanels">0/12</div>
+                                                        <div class="small">Active Panels</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center p-3 bg-danger text-white rounded">
+                                                        <div class="h4 mb-0" id="spoMaintenanceNeeded">0</div>
+                                                        <div class="small">Maintenance Needed</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3735,6 +4254,149 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 }};
             }}
             
+            // 태양광 판넬 데이터 생성
+            function generatePanelData() {{
+                const panels = [];
+                for (let i = 1; i <= 12; i++) {{
+                    const baseOutput = 300 + Math.random() * 50; // 300-350W
+                    const efficiency = 85 + Math.random() * 10; // 85-95%
+                    const temperature = 25 + Math.random() * 15; // 25-40°C
+                    
+                    panels.push({{
+                        id: `Panel-${{i.toString().padStart(2, '0')}}`,
+                        position: `Row ${{Math.ceil(i/4)}} Col ${{((i-1) % 4) + 1}}`,
+                        output: Math.round(baseOutput * (efficiency / 100)),
+                        efficiency: Math.round(efficiency * 10) / 10,
+                        temperature: Math.round(temperature * 10) / 10,
+                        status: efficiency > 90 ? 'Excellent' : efficiency > 80 ? 'Good' : efficiency > 70 ? 'Fair' : 'Poor',
+                        lastCheck: new Date().toLocaleString()
+                    }});
+                }}
+                return panels;
+            }}
+            
+            // 판넬 상태 카드 생성
+            function createPanelStatusCards(panels) {{
+                const grid = document.getElementById('spoPanelStatusGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                
+                panels.forEach(panel => {{
+                    const statusColor = panel.status === 'Excellent' ? 'success' : 
+                                      panel.status === 'Good' ? 'primary' : 
+                                      panel.status === 'Fair' ? 'warning' : 'danger';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'col-md-3 col-sm-6 mb-3';
+                    card.innerHTML = `
+                        <div class="card border-${{statusColor}}">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="card-title mb-0">${{panel.id}}</h6>
+                                    <span class="badge bg-${{statusColor}}">${{panel.status}}</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <div>출력: <strong>${{panel.output}}W</strong></div>
+                                    <div>효율: <strong>${{panel.efficiency}}%</strong></div>
+                                    <div>온도: <strong>${{panel.temperature}}°C</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }});
+            }}
+            
+            // 판넬 상세 테이블 업데이트
+            function updatePanelDetailTable(panels) {{
+                const tbody = document.getElementById('spoPanelDetailTable');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                
+                panels.forEach(panel => {{
+                    const row = document.createElement('tr');
+                    const statusClass = panel.status === 'Excellent' ? 'success' :
+                                      panel.status === 'Good' ? 'primary' :
+                                      panel.status === 'Fair' ? 'warning' : 'danger';
+                    row.innerHTML = `
+                        <td>${{panel.id}}</td>
+                        <td>${{panel.position}}</td>
+                        <td>${{panel.output}}</td>
+                        <td>${{panel.efficiency}}</td>
+                        <td>${{panel.temperature}}</td>
+                        <td><span class="badge bg-${{statusClass}}">${{panel.status}}</span></td>
+                        <td class="small text-muted">${{panel.lastCheck}}</td>
+                    `;
+                    tbody.appendChild(row);
+                }});
+            }}
+            
+            // 알림 생성
+            function generatePanelAlerts(panels) {{
+                const alertsContainer = document.getElementById('spoPanelAlerts');
+                if (!alertsContainer) return;
+                alertsContainer.innerHTML = '';
+                
+                const alerts = [];
+                
+                // 효율성 낮은 판넬 체크
+                panels.forEach(panel => {{
+                    if (panel.efficiency < 75) {{
+                        alerts.push({{
+                            type: 'warning',
+                            message: `${{panel.id}} 효율성이 낮습니다 (${{panel.efficiency}}%)`,
+                            time: new Date().toLocaleTimeString()
+                        }});
+                    }}
+                    if (panel.temperature > 50) {{
+                        alerts.push({{
+                            type: 'danger',
+                            message: `${{panel.id}} 온도가 높습니다 (${{panel.temperature}}°C)`,
+                            time: new Date().toLocaleTimeString()
+                        }});
+                    }}
+                }});
+                
+                // 알림이 없으면 정상 메시지 표시
+                if (alerts.length === 0) {{
+                    alerts.push({{
+                        type: 'success',
+                        message: '모든 판넬이 정상 작동 중입니다',
+                        time: new Date().toLocaleTimeString()
+                    }});
+                }}
+                
+                alerts.forEach(alert => {{
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = `alert alert-${{alert.type}} alert-dismissible fade show`;
+                    alertDiv.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${{alert.message}}</span>
+                            <small class="text-muted">${{alert.time}}</small>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(alertDiv);
+                }});
+            }}
+            
+            // 판넬 효율성 메트릭 업데이트
+            function updatePanelMetrics(panels) {{
+                const avgEfficiency = panels.reduce((sum, p) => sum + p.efficiency, 0) / panels.length;
+                const totalOutput = panels.reduce((sum, p) => sum + p.output, 0) / 1000; // kW로 변환
+                const activePanels = panels.filter(p => p.status !== 'Poor').length;
+                const maintenanceNeeded = panels.filter(p => p.efficiency < 75 || p.temperature > 50).length;
+                
+                const avgEfficiencyEl = document.getElementById('spoAvgPanelEfficiency');
+                const totalOutputEl = document.getElementById('spoTotalPanelOutput');
+                const activePanelsEl = document.getElementById('spoActivePanels');
+                const maintenanceEl = document.getElementById('spoMaintenanceNeeded');
+                
+                if (avgEfficiencyEl) avgEfficiencyEl.textContent = avgEfficiency.toFixed(1) + '%';
+                if (totalOutputEl) totalOutputEl.textContent = totalOutput.toFixed(2) + ' kW';
+                if (activePanelsEl) activePanelsEl.textContent = `${{activePanels}}/12`;
+                if (maintenanceEl) maintenanceEl.textContent = maintenanceNeeded;
+            }}
+            
             // 실시간 데이터 업데이트
             function updateRealtimeData() {{
                 const newData = generateSolarData();
@@ -3762,6 +4424,43 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 
                 // 에너지 상관관계 업데이트
                 updateCorrelations();
+                
+                // 태양광 판넬 모니터링 업데이트
+                const panels = generatePanelData();
+                createPanelStatusCards(panels);
+                updatePanelDetailTable(panels);
+                generatePanelAlerts(panels);
+                updatePanelMetrics(panels);
+                
+                // 판넬 성능 차트 업데이트
+                if (charts.panelPerformance) {{
+                    const panelOutputs = panels.slice(0, 6).map(p => p.output);
+                    charts.panelPerformance.data.datasets[0].data = panelOutputs;
+                    charts.panelPerformance.update('none');
+                }}
+                
+                // 효율성 차트 업데이트 (동적 값)
+                if (charts.efficiency) {{
+                    const avgEfficiency = panels.reduce((sum, p) => sum + p.efficiency, 0) / panels.length;
+                    charts.efficiency.data.datasets[0].data = [
+                        Math.round(avgEfficiency), // 평균 판넬 효율성
+                        Math.round(newData.batterySOC), // 배터리 SOC를 배터리 효율로 사용
+                        Math.round(100 - avgEfficiency - newData.batterySOC) // 시스템 손실
+                    ];
+                    charts.efficiency.update('none');
+                }}
+                
+                // Energy Distribution 차트 업데이트
+                if (charts.energyDistribution) {{
+                    const totalOutput = panels.reduce((sum, p) => sum + p.output, 0) / 1000; // kW
+                    charts.energyDistribution.data.datasets[0].data = [
+                        Math.round(newData.solarPower * 10), // Grid Export
+                        Math.round(newData.batterySOC / 2), // Battery Charge
+                        Math.round(totalOutput), // Load Consumption
+                        Math.round(newData.windSpeed * 5) // System Loss
+                    ];
+                    charts.energyDistribution.update('none');
+                }}
             }}
             
             // 상단 카드 업데이트
@@ -3912,6 +4611,67 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                             plugins: {{
                                 legend: {{
                                     position: 'bottom'
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+                
+                // Panel Performance 차트
+                const panelPerformanceCtx = document.getElementById('spoPanelPerformanceChart');
+                if (panelPerformanceCtx) {{
+                    charts.panelPerformance = new Chart(panelPerformanceCtx, {{
+                        type: 'bar',
+                        data: {{
+                            labels: ['Panel 1', 'Panel 2', 'Panel 3', 'Panel 4', 'Panel 5', 'Panel 6'],
+                            datasets: [{{
+                                label: 'Output (W)',
+                                data: [320, 315, 325, 310, 318, 322],
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                                borderColor: '#3b82f6',
+                                borderWidth: 1
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {{
+                                y: {{
+                                    beginAtZero: true,
+                                    title: {{
+                                        display: true,
+                                        text: 'Output (W)'
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+                
+                // Energy Distribution 차트
+                const energyDistributionCtx = document.getElementById('spoEnergyDistributionChart');
+                if (energyDistributionCtx) {{
+                    charts.energyDistribution = new Chart(energyDistributionCtx, {{
+                        type: 'pie',
+                        data: {{
+                            labels: ['Grid Export', 'Battery Charge', 'Load Consumption', 'System Loss'],
+                            datasets: [{{
+                                data: [45, 30, 20, 5],
+                                backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {{
+                                legend: {{
+                                    position: 'bottom',
+                                    labels: {{
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }}
                                 }}
                             }}
                         }}
@@ -4096,6 +4856,13 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 
                 // 차트 생성
                 createCharts();
+                
+                // 태양광 판넬 초기화
+                const initialPanels = generatePanelData();
+                createPanelStatusCards(initialPanels);
+                updatePanelDetailTable(initialPanels);
+                generatePanelAlerts(initialPanels);
+                updatePanelMetrics(initialPanels);
                 
                 // 초기 데이터 생성
                 for (let i = 0; i < 20; i++) {{
