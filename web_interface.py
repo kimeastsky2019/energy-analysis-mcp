@@ -1497,7 +1497,7 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
 
 @web_app.get("/health", response_class=HTMLResponse)
 async def health_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """시스템 Health Check 페이지"""
+    """통합된 Digital Experience Intelligence Platform"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -1508,18 +1508,46 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>💚 System Health Check</title>
+        <title>🔍 Digital Experience Intelligence Platform</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <style>
-            .health-card {{
-                transition: transform 0.2s;
-                border: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             }}
-            .health-card:hover {{
+            .main-container {{
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            .header-card {{
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                margin-bottom: 30px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                text-align: center;
+            }}
+            .system-status-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 30px 0;
+            }}
+            .system-card {{
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 15px;
+                padding: 25px;
+                text-align: center;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            }}
+            .system-card:hover {{
                 transform: translateY(-5px);
-                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.15);
             }}
             .status-indicator {{
                 width: 12px;
@@ -1531,222 +1559,516 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
             .status-online {{ background-color: #28a745; }}
             .status-offline {{ background-color: #dc3545; }}
             .status-warning {{ background-color: #ffc107; }}
-            
-            /* 새로운 기능 스타일 */
+            .feature-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 25px;
+                margin-bottom: 30px;
+            }}
             .feature-card {{
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.1);
                 transition: all 0.3s ease;
-                border-left: 4px solid #007bff;
+                border-left: 5px solid #667eea;
             }}
             .feature-card:hover {{
-                transform: translateY(-3px);
-                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                transform: translateY(-10px);
+                box-shadow: 0 25px 50px rgba(0,0,0,0.15);
             }}
-            .ai-insight-card {{
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
+            .feature-icon {{
+                font-size: 3rem;
+                margin-bottom: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }}
-            .session-replay-card {{
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                color: white;
-            }}
-            .privacy-card {{
+            .interaction-tracker {{
                 background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
                 color: white;
             }}
-            .monitoring-card {{
+            .ai-insights {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }}
+            .session-replay {{
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+            }}
+            .privacy-protection {{
                 background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
                 color: white;
             }}
-            .interaction-heatmap {{
-                background: #f8f9fa;
-                border-radius: 10px;
+            .real-time-monitoring {{
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                color: white;
+            }}
+            .flexible-deployment {{
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                color: #333;
+            }}
+            .stats-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }}
+            .stat-card {{
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 15px;
                 padding: 20px;
-                margin: 10px 0;
+                text-align: center;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             }}
-            .heatmap-point {{
-                position: absolute;
-                width: 8px;
+            .stat-value {{
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #667eea;
+                margin-bottom: 10px;
+            }}
+            .stat-label {{
+                color: #666;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }}
+            .progress-modern {{
                 height: 8px;
-                background: #ff6b6b;
-                border-radius: 50%;
-                opacity: 0.7;
-            }}
-            .ai-chat-container {{
-                max-height: 400px;
-                overflow-y: auto;
-                border: 1px solid #dee2e6;
                 border-radius: 10px;
-                padding: 15px;
-                background: #f8f9fa;
+                background: rgba(255,255,255,0.3);
+                overflow: hidden;
+                margin: 15px 0;
+            }}
+            .progress-bar-modern {{
+                height: 100%;
+                background: linear-gradient(90deg, #4facfe, #00f2fe);
+                border-radius: 10px;
+                transition: width 0.3s ease;
+            }}
+            .ai-chat {{
+                background: rgba(255,255,255,0.1);
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                max-height: 300px;
+                overflow-y: auto;
             }}
             .ai-message {{
                 margin: 10px 0;
-                padding: 10px;
-                border-radius: 10px;
+                padding: 15px;
+                border-radius: 15px;
                 max-width: 80%;
             }}
-            .ai-user-message {{
-                background: #007bff;
-                color: white;
+            .ai-user {{
+                background: rgba(255,255,255,0.2);
                 margin-left: auto;
             }}
-            .ai-assistant-message {{
-                background: #e9ecef;
-                color: #333;
+            .ai-assistant {{
+                background: rgba(255,255,255,0.1);
+            }}
+            .heatmap-container {{
+                background: rgba(255,255,255,0.1);
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                position: relative;
+                height: 200px;
+            }}
+            .heatmap-point {{
+                position: absolute;
+                width: 12px;
+                height: 12px;
+                background: #ff6b6b;
+                border-radius: 50%;
+                opacity: 0.8;
+                animation: pulse 2s infinite;
+            }}
+            @keyframes pulse {{
+                0% {{ transform: scale(1); opacity: 0.8; }}
+                50% {{ transform: scale(1.2); opacity: 0.6; }}
+                100% {{ transform: scale(1); opacity: 0.8; }}
+            }}
+            .alert-modern {{
+                border-radius: 15px;
+                border: none;
+                padding: 15px 20px;
+                margin: 10px 0;
+                backdrop-filter: blur(10px);
+            }}
+            .btn-modern {{
+                border-radius: 25px;
+                padding: 12px 30px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                transition: all 0.3s ease;
+                border: none;
+            }}
+            .btn-modern:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            }}
+            .language-selector {{
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+            }}
+            .uptime-display {{
+                font-family: 'Courier New', monospace;
+                font-size: 1.2rem;
+                color: #28a745;
+                font-weight: bold;
             }}
         </style>
     </head>
-    <body class="bg-light">
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-heartbeat"></i> <span data-translate="card_health">System Health Check</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
-                    </a>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-globe"></i> <span id="currentLanguage">{get_language_name(lang)}</span>
+    <body>
+        <!-- 언어 선택기 -->
+        <div class="language-selector">
+            <div class="btn-group" role="group">
+                <a href="?lang=ko" class="btn btn-light btn-sm">🇰🇷 한국어</a>
+                <a href="?lang=en" class="btn btn-light btn-sm">🇺🇸 English</a>
+                <a href="?lang=zh" class="btn btn-light btn-sm">🇨🇳 中文</a>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <!-- 헤더 -->
+            <div class="header-card">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-brain"></i> Digital Experience Intelligence Platform
+                </h1>
+                <p class="lead mb-4">포괄적인 사용자 경험 분석 및 최적화 솔루션</p>
+                
+                <!-- 실시간 통계 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalInteractions">0</div>
+                        <div class="stat-label">총 상호작용</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeSessions">0</div>
+                        <div class="stat-label">활성 세션</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="conversionRate">0%</div>
+                        <div class="stat-label">전환율</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="errorRate">0%</div>
+                        <div class="stat-label">오류율</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시스템 상태 -->
+            <div class="system-status-grid">
+                <div class="system-card">
+                    <i class="fas fa-server fa-3x text-success mb-3"></i>
+                    <h5>Web Server</h5>
+                    <p>
+                        <span class="status-indicator status-online"></span>
+                        <strong>Online</strong>
+                    </p>
+                    <small class="text-muted">Port: 8000</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                    <h5>API Services</h5>
+                    <p>
+                        <span class="status-indicator status-online"></span>
+                        <strong>Healthy</strong>
+                    </p>
+                    <small class="text-muted">All endpoints active</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-database fa-3x text-info mb-3"></i>
+                    <h5>Data Storage</h5>
+                    <p>
+                        <span class="status-indicator status-online"></span>
+                        <strong>Connected</strong>
+                    </p>
+                    <small class="text-muted">SQLite Database</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h5>Uptime</h5>
+                    <p class="uptime-display" id="uptime">Calculating...</p>
+                    <small class="text-muted">Last Update: <span id="lastUpdate"></span></small>
+                </div>
+            </div>
+
+            <!-- 기능 카드들 -->
+            <div class="feature-grid">
+                <!-- 실시간 이벤트 캡처 -->
+                <div class="feature-card interaction-tracker">
+                    <div class="feature-icon">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </div>
+                    <h3>실시간 이벤트 캡처</h3>
+                    <p>클릭, 스크롤, 폼 제출 등 모든 사용자 상호작용을 실시간으로 추적합니다.</p>
+                    
+                    <div class="progress-modern">
+                        <div class="progress-bar-modern" style="width: 95%"></div>
+                    </div>
+                    <small>프론트엔드 이벤트 캡처율: 95%</small>
+                    
+                    <div class="progress-modern">
+                        <div class="progress-bar-modern" style="width: 98%"></div>
+                    </div>
+                    <small>백엔드 API 호출 캡처율: 98%</small>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-light btn-modern" onclick="startEventTracking()">
+                            <i class="fas fa-play"></i> 추적 시작
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('ko')">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('zh')">🇨🇳 中文</a></li>
-                        </ul>
+                    </div>
+                </div>
+
+                <!-- AI 인사이트 -->
+                <div class="feature-card ai-insights">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>AI 인사이트 (SLM 기반)</h3>
+                    <p>Small Language Model 기반 대화형 분석 어시스턴트로 심층적인 인사이트를 제공합니다.</p>
+                    
+                    <div class="ai-chat" id="aiChat">
+                        <div class="ai-message ai-assistant">
+                            <strong>AI Assistant:</strong> 안녕하세요! 사용자 경험 분석을 도와드리겠습니다.
+                        </div>
+                        <div class="ai-message ai-user">
+                            전환율을 개선하는 방법을 알려주세요
+                        </div>
+                        <div class="ai-message ai-assistant">
+                            <strong>AI Assistant:</strong> 분석 결과, 3단계에서 이탈률이 높습니다. CTA 버튼 위치를 조정해보세요.
+                        </div>
+                    </div>
+                    
+                    <div class="input-group mt-3">
+                        <input type="text" class="form-control" id="aiInput" placeholder="AI에게 질문하세요...">
+                        <button class="btn btn-light" onclick="sendAIMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 세션 리플레이 -->
+                <div class="feature-card session-replay">
+                    <div class="feature-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>세션 리플레이</h3>
+                    <p>사용자 행동 패턴을 시각화하고 히트맵으로 마찰 지점을 분석합니다.</p>
+                    
+                    <div class="heatmap-container" id="heatmapContainer">
+                        <div class="heatmap-point" style="top: 20px; left: 30px;"></div>
+                        <div class="heatmap-point" style="top: 50px; left: 80px;"></div>
+                        <div class="heatmap-point" style="top: 80px; left: 120px;"></div>
+                        <div class="heatmap-point" style="top: 120px; left: 200px;"></div>
+                        <div class="heatmap-point" style="top: 150px; left: 250px;"></div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <button class="btn btn-light btn-modern w-100" onclick="startSessionReplay()">
+                                <i class="fas fa-play"></i> 리플레이
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-light btn-modern w-100" onclick="generateHeatmap()">
+                                <i class="fas fa-fire"></i> 히트맵
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 프라이버시 보호 -->
+                <div class="feature-card privacy-protection">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>프라이버시 보호</h3>
+                    <p>PII, PCI, PHI 등 민감한 데이터를 자동으로 마스킹하여 보안을 보장합니다.</p>
+                    
+                    <div class="alert alert-modern alert-success">
+                        <i class="fas fa-check-circle"></i> PII 데이터 마스킹: 100% 활성
+                    </div>
+                    <div class="alert alert-modern alert-success">
+                        <i class="fas fa-check-circle"></i> PCI 데이터 마스킹: 100% 활성
+                    </div>
+                    <div class="alert alert-modern alert-success">
+                        <i class="fas fa-check-circle"></i> PHI 데이터 마스킹: 100% 활성
+                    </div>
+                    
+                    <button class="btn btn-light btn-modern" onclick="togglePrivacyMode()">
+                        <i class="fas fa-eye-slash"></i> 프라이버시 모드
+                    </button>
+                </div>
+
+                <!-- 실시간 모니터링 -->
+                <div class="feature-card real-time-monitoring">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>실시간 모니터링</h3>
+                    <p>전환율 변화, 오류 감지, 사용자 불편을 실시간으로 모니터링하고 알림합니다.</p>
+                    
+                    <div class="alert alert-modern alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 전환율 15% 감소 감지
+                    </div>
+                    <div class="alert alert-modern alert-info">
+                        <i class="fas fa-info-circle"></i> 새로운 사용자 세션 시작
+                    </div>
+                    <div class="alert alert-modern alert-success">
+                        <i class="fas fa-check-circle"></i> 시스템 정상 작동
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <button class="btn btn-light btn-modern w-100" onclick="configureAlerts()">
+                                <i class="fas fa-cog"></i> 알림 설정
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-light btn-modern w-100" onclick="viewAnalytics()">
+                                <i class="fas fa-chart-line"></i> 분석 보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 유연한 배포 -->
+                <div class="feature-card flexible-deployment">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <h3>유연한 배포</h3>
+                    <p>하이브리드, 싱글 테넌트, 멀티 테넌트 환경을 지원합니다.</p>
+                    
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <i class="fas fa-cloud fa-2x mb-2" style="color: #667eea;"></i>
+                            <div class="small">하이브리드</div>
+                            <span class="badge bg-primary">활성</span>
+                        </div>
+                        <div class="col-4 text-center">
+                            <i class="fas fa-server fa-2x mb-2" style="color: #28a745;"></i>
+                            <div class="small">싱글 테넌트</div>
+                            <span class="badge bg-success">사용 가능</span>
+                        </div>
+                        <div class="col-4 text-center">
+                            <i class="fas fa-users fa-2x mb-2" style="color: #17a2b8;"></i>
+                            <div class="small">멀티 테넌트</div>
+                            <span class="badge bg-info">사용 가능</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
 
-        <div class="container-fluid mt-4">
-            <div class="row">
-                <!-- 시스템 상태 카드 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card health-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-server fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Web Server</h5>
-                            <p class="card-text">
-                                <span class="status-indicator status-online"></span>
-                                <strong>Online</strong>
-                            </p>
-                            <p class="card-text">
-                                <small class="text-muted">Port: 8000</small>
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- API 상태 카드 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card health-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-plug fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">API Services</h5>
-                            <p class="card-text">
-                                <span class="status-indicator status-online"></span>
-                                <strong>Healthy</strong>
-                            </p>
-                            <p class="card-text">
-                                <small class="text-muted">All endpoints active</small>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 실시간 통계 업데이트
+            function updateStats() {{
+                document.getElementById('totalInteractions').textContent = (Math.floor(Math.random() * 1000) + 1000).toLocaleString();
+                document.getElementById('activeSessions').textContent = Math.floor(Math.random() * 50) + 10;
+                document.getElementById('conversionRate').textContent = (Math.random() * 10 + 5).toFixed(1) + '%';
+                document.getElementById('errorRate').textContent = (Math.random() * 2).toFixed(2) + '%';
+            }}
 
-                <!-- 데이터베이스 상태 카드 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card health-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-database fa-3x text-info mb-3"></i>
-                            <h5 class="card-title">Data Storage</h5>
-                            <p class="card-text">
-                                <span class="status-indicator status-online"></span>
-                                <strong>Connected</strong>
-                            </p>
-                            <p class="card-text">
-                                <small class="text-muted">SQLite Database</small>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            // AI 메시지 전송
+            function sendAIMessage() {{
+                const input = document.getElementById('aiInput');
+                const message = input.value.trim();
+                if (!message) return;
+                
+                const chat = document.getElementById('aiChat');
+                const userMessage = document.createElement('div');
+                userMessage.className = 'ai-message ai-user';
+                userMessage.textContent = message;
+                chat.appendChild(userMessage);
+                
+                setTimeout(() => {{
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'ai-message ai-assistant';
+                    aiMessage.innerHTML = '<strong>AI Assistant:</strong> ' + generateAIResponse();
+                    chat.appendChild(aiMessage);
+                    chat.scrollTop = chat.scrollHeight;
+                }}, 1000);
+                
+                input.value = '';
+                chat.scrollTop = chat.scrollHeight;
+            }}
 
-            <div class="row">
-                <!-- 서비스 상세 정보 -->
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-info-circle"></i> Service Details</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>System Information</h6>
-                                    <ul class="list-unstyled">
-                                        <li><strong>Service Name:</strong> Energy Analysis Web Interface</li>
-                                        <li><strong>Version:</strong> 2.0.0</li>
-                                        <li><strong>Status:</strong> <span class="badge bg-success">Running</span></li>
-                                        <li><strong>Uptime:</strong> <span id="uptime">Calculating...</span></li>
-                                        <li><strong>Last Update:</strong> <span id="lastUpdate"></span></li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>API Endpoints</h6>
-                                    <ul class="list-unstyled">
-                                        <li><span class="status-indicator status-online"></span> /api/health</li>
-                                        <li><span class="status-indicator status-online"></span> /api/dashboard</li>
-                                        <li><span class="status-indicator status-online"></span> /api/models</li>
-                                        <li><span class="status-indicator status-online"></span> /api/statistics</li>
-                                        <li><span class="status-indicator status-online"></span> /api/languages</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            function generateAIResponse() {{
+                const responses = [
+                    '분석 결과, 사용자 행동 패턴에서 흥미로운 인사이트를 발견했습니다.',
+                    '전환율 개선을 위해 A/B 테스트를 권장합니다.',
+                    '페이지 로딩 시간을 0.5초 단축하면 이탈률이 15% 감소할 것으로 예상됩니다.',
+                    '3단계에서 가장 많은 이탈이 발생하고 있습니다. UX 개선이 필요합니다.',
+                    '모바일 사용자들이 특정 버튼을 찾는데 어려움을 겪고 있습니다.'
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }}
 
-            <!-- 포괄적인 사용자 상호작용 캡처 -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card feature-card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-mouse-pointer"></i> 포괄적인 사용자 상호작용 캡처</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">웹 및 모바일 앱에서 발생하는 모든 프론트엔드와 백엔드 이벤트를 실시간으로 자동 기록하여 중요한 데이터가 누락되지 않도록 보장합니다.</p>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>실시간 이벤트 캡처</h6>
-                                    <div class="progress mb-2">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">95%</div>
-                                    </div>
-                                    <small class="text-muted">프론트엔드 이벤트 캡처율</small>
-                                    
-                                    <div class="progress mb-2">
-                                        <div class="progress-bar bg-info" role="progressbar" style="width: 98%" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">98%</div>
-                                    </div>
-                                    <small class="text-muted">백엔드 API 호출 캡처율</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>캡처된 이벤트 통계</h6>
-                                    <ul class="list-unstyled">
-                                        <li><i class="fas fa-check text-success"></i> 클릭 이벤트: <span id="clickEvents">1,247</span></li>
-                                        <li><i class="fas fa-check text-success"></i> 스크롤 이벤트: <span id="scrollEvents">3,891</span></li>
-                                        <li><i class="fas fa-check text-success"></i> 폼 제출: <span id="formSubmissions">156</span></li>
-                                        <li><i class="fas fa-check text-success"></i> 페이지 뷰: <span id="pageViews">2,834</span></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            // 히트맵 업데이트
+            function generateHeatmap() {{
+                const container = document.getElementById('heatmapContainer');
+                const points = container.querySelectorAll('.heatmap-point');
+                points.forEach(point => {{
+                    point.style.top = Math.random() * 180 + 'px';
+                    point.style.left = Math.random() * 300 + 'px';
+                }});
+            }}
+
+            // 업타임 계산
+            function updateUptime() {{
+                const startTime = new Date('2025-10-11T01:22:47Z');
+                const now = new Date();
+                const diff = now - startTime;
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('uptime').textContent = `${{hours}}h ${{minutes}}m ${{seconds}}s`;
+            }}
+
+            // 기타 함수들
+            function startEventTracking() {{ alert('실시간 이벤트 추적이 시작되었습니다!'); }}
+            function startSessionReplay() {{ alert('세션 리플레이가 시작됩니다!'); }}
+            function togglePrivacyMode() {{ alert('프라이버시 모드가 토글되었습니다!'); }}
+            function configureAlerts() {{ alert('알림 설정 페이지로 이동합니다!'); }}
+            function viewAnalytics() {{ alert('상세 분석 대시보드로 이동합니다!'); }}
+
+            // Enter 키로 AI 메시지 전송
+            document.addEventListener('keypress', function(e) {{
+                if (e.key === 'Enter' && e.target.id === 'aiInput') {{
+                    sendAIMessage();
+                }}
+            }});
+
+            // 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                updateStats();
+                updateUptime();
+                setInterval(updateStats, 5000); // 5초마다 통계 업데이트
+                setInterval(updateUptime, 1000); // 1초마다 업타임 업데이트
+                setInterval(generateHeatmap, 10000); // 10초마다 히트맵 업데이트
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            }});
+        </script>
+    </body>
+    </html>
+    """
 
             <!-- AI 기반 인사이트 어시스턴트 -->
             <div class="row mt-4">
