@@ -230,3 +230,8 @@ const WeatherStats = ({ data }) => {
 
 export default WeatherStats;
 
+
+
+
+
+

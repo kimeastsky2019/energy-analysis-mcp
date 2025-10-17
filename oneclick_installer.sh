@@ -329,6 +329,25 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+def generate_panel_data():
+    """개별 태양광 판넬 데이터 생성"""
+    panels = []
+    for i in range(1, 13):  # 12개 판넬
+        base_output = 300 + random.uniform(0, 50)  # 300-350W
+        efficiency = 85 + random.uniform(0, 10)  # 85-95%
+        temperature = 25 + random.uniform(0, 15)  # 25-40°C
+        
+        panels.append({
+            "id": f"Panel-{i:02d}",
+            "position": f"Row {math.ceil(i/4)} Col {((i-1) % 4) + 1}",
+            "output": round(base_output * (efficiency / 100)),
+            "efficiency": round(efficiency, 1),
+            "temperature": round(temperature, 1),
+            "status": "Excellent" if efficiency > 90 else "Good" if efficiency > 80 else "Fair" if efficiency > 70 else "Poor",
+            "lastCheck": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    return panels
+
 def generate_realistic_data():
     """현실적인 태양광 데이터 생성"""
     now = datetime.now()
@@ -368,6 +387,9 @@ def generate_realistic_data():
     wind_speed = random.uniform(0.5, 5.0)
     irradiance = int(solar_power * 1000) if solar_power > 0 else random.randint(0, 50)
     
+    # 태양광 판넬 데이터 생성
+    panels = generate_panel_data()
+    
     data = {
         "timestamp": now.strftime("%H:%M:%S"),
         "date": now.strftime("%Y-%m-%d"),
@@ -378,7 +400,21 @@ def generate_realistic_data():
         "windSpeed": round(wind_speed, 1),
         "irradiance": irradiance,
         "efficiency": round(85 + random.uniform(-5, 10), 1),
-        "dailyGeneration": round(random.uniform(15, 35), 1)  # 일일 발전량
+        "dailyGeneration": round(random.uniform(15, 35), 1),  # 일일 발전량
+        "panels": panels,  # 개별 판넬 데이터
+        "totalPanels": len(panels),
+        "activePanels": len([p for p in panels if p["status"] in ["Excellent", "Good"]]),
+        "systemEfficiency": round(sum(p["efficiency"] for p in panels) / len(panels), 1),
+        # 새로운 필드들
+        "ratedPower": 4.5,  # 정격 전력
+        "currentGeneration": round(solar_power, 2),  # 현재 발전량
+        "avgTemperature": round(temperature + random.uniform(-2, 2), 1),  # 평균 온도
+        "avgHumidity": int(humidity + random.uniform(-5, 5)),  # 평균 습도
+        "maxWindSpeed": round(wind_speed + random.uniform(0, 2), 1),  # 최대 풍속
+        "solarIrradiance": irradiance,  # 태양 복사량
+        "tempConsumptionCorrelation": round(0.75 + random.uniform(0, 0.1), 2),  # 온도-소비 상관관계
+        "solarGenerationCorrelation": round(0.90 + random.uniform(0, 0.05), 2),  # 태양광-발전 상관관계
+        "humidityEfficiencyCorrelation": round(-0.40 - random.uniform(0, 0.1), 2)  # 습도-효율 상관관계
     }
     
     # 데이터 히스토리 저장 (최근 100개)
@@ -593,7 +629,17 @@ cat > index.html << 'HTML_EOF'
     <div class="max-w-7xl mx-auto">
         <!-- 헤더 -->
         <div class="mb-6">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">🌞 실시간 태양광 모니터링</h1>
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-4xl font-bold text-gray-900">🌞 Energy Supply Monitoring Dashboard</h1>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Language:</span>
+                    <select id="language-selector" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                        <option value="ko">🇰🇷 한국어</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
+                </div>
+            </div>
             <div class="flex items-center gap-4">
                 <div id="connection-status" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100">
                     <div id="status-dot" class="w-3 h-3 rounded-full bg-gray-400"></div>
@@ -652,6 +698,215 @@ cat > index.html << 'HTML_EOF'
             </div>
         </div>
 
+        <!-- Solar Energy Management System -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">☀️ Solar Energy Management System</h3>
+            
+            <!-- PV Module Status -->
+            <div class="mb-6">
+                <h4 class="text-md font-medium mb-4">PV Module Status</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="pv-module-status">
+                    <!-- 동적으로 생성될 PV 모듈 상태 -->
+                </div>
+            </div>
+
+            <!-- Power Generation Summary -->
+            <div class="mb-6">
+                <h4 class="text-md font-medium mb-4">Power Generation</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-sm text-blue-600 font-medium">Current</div>
+                        <div class="text-2xl font-bold text-blue-800" id="current-generation">0.00 kW</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-sm text-green-600 font-medium">Rated</div>
+                        <div class="text-2xl font-bold text-green-800">4.50 kW</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="text-sm text-purple-600 font-medium">Today</div>
+                        <div class="text-2xl font-bold text-purple-800" id="today-generation">0.0 kWh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Power Data Analysis Platform -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">⚡ Power Data Analysis Platform</h3>
+            <p class="text-gray-600 mb-4">Real-time energy data monitoring and analysis system</p>
+            
+            <!-- Power Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-yellow-600 mb-2">Solar Power</h4>
+                    <div class="text-2xl font-bold text-yellow-800" id="solar-power-metric">0.00 kW</div>
+                    <div class="text-xs text-gray-500">Current Generation</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-green-600 mb-2">Battery SOC</h4>
+                    <div class="text-2xl font-bold text-green-800" id="battery-soc-metric">0.0%</div>
+                    <div class="text-xs text-gray-500">State of Charge</div>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-red-600 mb-2">Temperature</h4>
+                    <div class="text-2xl font-bold text-red-800" id="temperature-metric">0.0°C</div>
+                    <div class="text-xs text-gray-500">Ambient Temp</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-blue-600 mb-2">Humidity</h4>
+                    <div class="text-2xl font-bold text-blue-800" id="humidity-metric">0.0%</div>
+                    <div class="text-xs text-gray-500">Relative Humidity</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 태양광 판넬 모니터링 섹션 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">☀️ 태양광 판넬 모니터링</h3>
+            
+            <!-- 시스템 효율성 분석 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="text-center">
+                    <h4 class="text-md font-medium mb-2">System Efficiency Analysis</h4>
+                    <canvas id="efficiency-chart" height="200"></canvas>
+                </div>
+                <div class="text-center">
+                    <h4 class="text-md font-medium mb-2">Panel Performance</h4>
+                    <canvas id="panel-performance-chart" height="200"></canvas>
+                </div>
+                <div class="text-center">
+                    <h4 class="text-md font-medium mb-2">Energy Distribution</h4>
+                    <canvas id="energy-distribution-chart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- 개별 판넬 상태 -->
+            <div class="mb-6">
+                <h4 class="text-md font-medium mb-4">🔧 개별 판넬 상태</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="panel-status-grid">
+                    <!-- 동적으로 생성될 판넬 카드들 -->
+                </div>
+            </div>
+
+            <!-- 판넬 성능 테이블 -->
+            <div class="mb-6">
+                <h4 class="text-md font-medium mb-4">📋 판넬 성능 상세</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">판넬 ID</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">위치</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">출력 (W)</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">효율 (%)</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">온도 (°C)</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">마지막 점검</th>
+                            </tr>
+                        </thead>
+                        <tbody id="panel-detail-table" class="divide-y divide-gray-200">
+                            <!-- 동적으로 생성될 테이블 행들 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 알림 및 경고 -->
+            <div class="mb-6">
+                <h4 class="text-md font-medium mb-4">⚠️ 알림 및 경고</h4>
+                <div id="panel-alerts" class="space-y-2">
+                    <!-- 동적으로 생성될 알림들 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Weather Analysis -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">🌤️ Advanced Weather Analysis</h3>
+            <p class="text-gray-600 mb-4">Real-time weather monitoring with interactive charts and predictions</p>
+            
+            <!-- Weather Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-2xl font-bold text-red-800" id="avg-temperature">0.0°C</div>
+                    <div class="text-sm text-gray-600">평균 온도</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-800" id="avg-humidity">0%</div>
+                    <div class="text-sm text-gray-600">평균 습도</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-800" id="max-wind-speed">0.0 m/s</div>
+                    <div class="text-sm text-gray-600">최대 풍속</div>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-800" id="solar-irradiance">0 W/m²</div>
+                    <div class="text-sm text-gray-600">태양 복사량</div>
+                </div>
+            </div>
+
+            <!-- Weather Dashboard Links -->
+            <div class="flex gap-4 mb-6">
+                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Open Weather Dashboard
+                </button>
+                <button class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    Legacy Weather Analysis
+                </button>
+            </div>
+
+            <!-- Weather Description -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600">
+                    Modern React dashboard with advanced analytics, interactive maps, and real-time updates
+                </p>
+            </div>
+        </div>
+
+        <!-- Energy Correlations -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">📈 에너지 상관관계</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-800" id="temp-consumption-correlation">0.00</div>
+                    <div class="text-sm text-gray-600">온도 vs 소비</div>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-800" id="solar-generation-correlation">0.00</div>
+                    <div class="text-sm text-gray-600">태양광 vs 발전</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-800" id="humidity-efficiency-correlation">0.00</div>
+                    <div class="text-sm text-gray-600">습도 vs 효율</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Data Table -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">📊 Real-time Data Table</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Solar Power (kW)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Battery SOC (%)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Temperature (°C)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Humidity (%)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Wind Speed (m/s)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Irradiance (W/m²)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="realtime-data-table" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 데이터 로그 -->
         <div class="bg-white rounded-lg shadow-lg p-6">
             <div class="flex justify-between items-center mb-4">
@@ -665,9 +920,14 @@ cat > index.html << 'HTML_EOF'
     <script>
         let ws;
         let reconnectInterval;
-        let powerChart, batteryChart;
+        let powerChart, batteryChart, efficiencyChart, panelPerformanceChart, energyDistributionChart;
         let powerData = [];
         let batteryData = [];
+        let panelData = [];
+        let totalPanels = 12; // 총 판넬 개수
+        let currentLanguage = 'ko'; // 현재 언어
+        let translations = {}; // 번역 데이터
+        let dailyGeneration = 0; // 일일 발전량 누적
 
         // 차트 초기화
         function initCharts() {
@@ -724,6 +984,91 @@ cat > index.html << 'HTML_EOF'
                             title: {
                                 display: true,
                                 text: 'SOC (%)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // System Efficiency Analysis 도넛 차트 (참고 사이트와 동일한 스타일)
+            const efficiencyCtx = document.getElementById('efficiency-chart').getContext('2d');
+            efficiencyChart = new Chart(efficiencyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Solar Efficiency', 'Battery Efficiency', 'System Loss'],
+                    datasets: [{
+                        data: [85, 92, 8],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Panel Performance 차트
+            const panelPerformanceCtx = document.getElementById('panel-performance-chart').getContext('2d');
+            panelPerformanceChart = new Chart(panelPerformanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Panel 1', 'Panel 2', 'Panel 3', 'Panel 4', 'Panel 5', 'Panel 6'],
+                    datasets: [{
+                        label: 'Output (W)',
+                        data: [320, 315, 325, 310, 318, 322],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Output (W)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Energy Distribution 차트
+            const energyDistributionCtx = document.getElementById('energy-distribution-chart').getContext('2d');
+            energyDistributionChart = new Chart(energyDistributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Grid Export', 'Battery Charge', 'Load Consumption', 'System Loss'],
+                    datasets: [{
+                        data: [45, 30, 20, 5],
+                        backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true
                             }
                         }
                     }
@@ -803,9 +1148,381 @@ cat > index.html << 'HTML_EOF'
             }
         }
 
+        // 다국어 번역 데이터
+        const translationData = {
+            ko: {
+                'Energy Supply Monitoring Dashboard': '에너지 공급 모니터링 대시보드',
+                'Solar Generation': '태양광 발전',
+                'Energy Storage': '에너지 저장',
+                'Weather Data': '날씨 데이터',
+                'PV Module Status': 'PV 모듈 상태',
+                'Power Generation': '전력 발전',
+                'Current': '현재',
+                'Rated': '정격',
+                'Today': '오늘',
+                'Power Data Analysis Platform': '전력 데이터 분석 플랫폼',
+                'Real-time energy data monitoring and analysis system': '실시간 에너지 데이터 모니터링 및 분석 시스템',
+                'Solar Power': '태양광 전력',
+                'Battery SOC': '배터리 SOC',
+                'Temperature': '온도',
+                'Humidity': '습도',
+                'Current Generation': '현재 발전량',
+                'State of Charge': '충전 상태',
+                'Ambient Temp': '주변 온도',
+                'Relative Humidity': '상대 습도',
+                'Advanced Weather Analysis': '고급 날씨 분석',
+                'Real-time weather monitoring with interactive charts and predictions': '인터랙티브 차트와 예측을 통한 실시간 날씨 모니터링',
+                '평균 온도': '평균 온도',
+                '평균 습도': '평균 습도',
+                '최대 풍속': '최대 풍속',
+                '태양 복사량': '태양 복사량',
+                'Open Weather Dashboard': '날씨 대시보드 열기',
+                'Legacy Weather Analysis': '레거시 날씨 분석',
+                'Modern React dashboard with advanced analytics, interactive maps, and real-time updates': '고급 분석, 인터랙티브 맵, 실시간 업데이트가 포함된 모던 React 대시보드',
+                '에너지 상관관계': '에너지 상관관계',
+                '온도 vs 소비': '온도 vs 소비',
+                '태양광 vs 발전': '태양광 vs 발전',
+                '습도 vs 효율': '습도 vs 효율',
+                'Real-time Data Table': '실시간 데이터 테이블',
+                'Timestamp': '타임스탬프',
+                'Solar Power (kW)': '태양광 전력 (kW)',
+                'Battery SOC (%)': '배터리 SOC (%)',
+                'Temperature (°C)': '온도 (°C)',
+                'Humidity (%)': '습도 (%)',
+                'Wind Speed (m/s)': '풍속 (m/s)',
+                'Irradiance (W/m²)': '일사량 (W/m²)',
+                'Loading data...': '데이터 로딩 중...',
+                '실시간 데이터 로그': '실시간 데이터 로그',
+                '로그 지우기': '로그 지우기',
+                '연결 중...': '연결 중...',
+                '실시간 연결': '실시간 연결',
+                '연결 끊김': '연결 끊김',
+                '마지막 업데이트': '마지막 업데이트',
+                'Language': '언어'
+            },
+            en: {
+                'Energy Supply Monitoring Dashboard': 'Energy Supply Monitoring Dashboard',
+                'Solar Generation': 'Solar Generation',
+                'Energy Storage': 'Energy Storage',
+                'Weather Data': 'Weather Data',
+                'PV Module Status': 'PV Module Status',
+                'Power Generation': 'Power Generation',
+                'Current': 'Current',
+                'Rated': 'Rated',
+                'Today': 'Today',
+                'Power Data Analysis Platform': 'Power Data Analysis Platform',
+                'Real-time energy data monitoring and analysis system': 'Real-time energy data monitoring and analysis system',
+                'Solar Power': 'Solar Power',
+                'Battery SOC': 'Battery SOC',
+                'Temperature': 'Temperature',
+                'Humidity': 'Humidity',
+                'Current Generation': 'Current Generation',
+                'State of Charge': 'State of Charge',
+                'Ambient Temp': 'Ambient Temp',
+                'Relative Humidity': 'Relative Humidity',
+                'Advanced Weather Analysis': 'Advanced Weather Analysis',
+                'Real-time weather monitoring with interactive charts and predictions': 'Real-time weather monitoring with interactive charts and predictions',
+                '평균 온도': 'Average Temperature',
+                '평균 습도': 'Average Humidity',
+                '최대 풍속': 'Max Wind Speed',
+                '태양 복사량': 'Solar Irradiance',
+                'Open Weather Dashboard': 'Open Weather Dashboard',
+                'Legacy Weather Analysis': 'Legacy Weather Analysis',
+                'Modern React dashboard with advanced analytics, interactive maps, and real-time updates': 'Modern React dashboard with advanced analytics, interactive maps, and real-time updates',
+                '에너지 상관관계': 'Energy Correlations',
+                '온도 vs 소비': 'Temperature vs Consumption',
+                '태양광 vs 발전': 'Solar vs Generation',
+                '습도 vs 효율': 'Humidity vs Efficiency',
+                'Real-time Data Table': 'Real-time Data Table',
+                'Timestamp': 'Timestamp',
+                'Solar Power (kW)': 'Solar Power (kW)',
+                'Battery SOC (%)': 'Battery SOC (%)',
+                'Temperature (°C)': 'Temperature (°C)',
+                'Humidity (%)': 'Humidity (%)',
+                'Wind Speed (m/s)': 'Wind Speed (m/s)',
+                'Irradiance (W/m²)': 'Irradiance (W/m²)',
+                'Loading data...': 'Loading data...',
+                '실시간 데이터 로그': 'Real-time Data Log',
+                '로그 지우기': 'Clear Log',
+                '연결 중...': 'Connecting...',
+                '실시간 연결': 'Real-time Connected',
+                '연결 끊김': 'Disconnected',
+                '마지막 업데이트': 'Last Update',
+                'Language': 'Language'
+            },
+            zh: {
+                'Energy Supply Monitoring Dashboard': '能源供应监控仪表板',
+                'Solar Generation': '太阳能发电',
+                'Energy Storage': '能源存储',
+                'Weather Data': '天气数据',
+                'PV Module Status': '光伏模块状态',
+                'Power Generation': '发电',
+                'Current': '当前',
+                'Rated': '额定',
+                'Today': '今天',
+                'Power Data Analysis Platform': '电力数据分析平台',
+                'Real-time energy data monitoring and analysis system': '实时能源数据监控和分析系统',
+                'Solar Power': '太阳能',
+                'Battery SOC': '电池SOC',
+                'Temperature': '温度',
+                'Humidity': '湿度',
+                'Current Generation': '当前发电',
+                'State of Charge': '充电状态',
+                'Ambient Temp': '环境温度',
+                'Relative Humidity': '相对湿度',
+                'Advanced Weather Analysis': '高级天气分析',
+                'Real-time weather monitoring with interactive charts and predictions': '具有交互式图表和预测的实时天气监控',
+                '평균 온도': '平均温度',
+                '평균 습도': '平均湿度',
+                '최대 풍속': '最大风速',
+                '태양 복사량': '太阳辐射',
+                'Open Weather Dashboard': '打开天气仪表板',
+                'Legacy Weather Analysis': '传统天气分析',
+                'Modern React dashboard with advanced analytics, interactive maps, and real-time updates': '具有高级分析、交互式地图和实时更新的现代React仪表板',
+                '에너지 상관관계': '能源相关性',
+                '온도 vs 소비': '温度 vs 消耗',
+                '태양광 vs 발전': '太阳能 vs 发电',
+                '습도 vs 효율': '湿度 vs 效率',
+                'Real-time Data Table': '实时数据表',
+                'Timestamp': '时间戳',
+                'Solar Power (kW)': '太阳能 (kW)',
+                'Battery SOC (%)': '电池SOC (%)',
+                'Temperature (°C)': '温度 (°C)',
+                'Humidity (%)': '湿度 (%)',
+                'Wind Speed (m/s)': '风速 (m/s)',
+                'Irradiance (W/m²)': '辐照度 (W/m²)',
+                'Loading data...': '加载数据中...',
+                '실시간 데이터 로그': '实时数据日志',
+                '로그 지우기': '清除日志',
+                '연결 중...': '连接中...',
+                '실시간 연결': '实时连接',
+                '연결 끊김': '连接断开',
+                '마지막 업데이트': '最后更新',
+                'Language': '语言'
+            }
+        };
+
+        // PV Module Status 생성
+        function createPVModuleStatus() {
+            const container = document.getElementById('pv-module-status');
+            container.innerHTML = '';
+            
+            const modules = [
+                { id: 'Module 1', status: 'Active', color: 'green' },
+                { id: 'Module 2', status: 'Active', color: 'green' },
+                { id: 'Module 3', status: 'Maintenance', color: 'yellow' }
+            ];
+            
+            modules.forEach(module => {
+                const moduleDiv = document.createElement('div');
+                moduleDiv.className = `p-4 border-l-4 border-${module.color}-400 bg-${module.color}-50 rounded-lg`;
+                moduleDiv.innerHTML = `
+                    <div class="font-semibold text-sm">${module.id}</div>
+                    <div class="text-xs text-gray-600 mt-1">${module.status}</div>
+                `;
+                container.appendChild(moduleDiv);
+            });
+        }
+
+        // 언어 변경 함수
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            translations = translationData[lang] || translationData['ko'];
+            applyTranslations();
+        }
+
+        // 번역 적용 함수
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[key]) {
+                    element.textContent = translations[key];
+                }
+            });
+        }
+
+        // 태양광 판넬 데이터 생성
+        function generatePanelData() {
+            const panels = [];
+            for (let i = 1; i <= totalPanels; i++) {
+                const baseOutput = 300 + Math.random() * 50; // 300-350W
+                const efficiency = 85 + Math.random() * 10; // 85-95%
+                const temperature = 25 + Math.random() * 15; // 25-40°C
+                
+                panels.push({
+                    id: `Panel-${i.toString().padStart(2, '0')}`,
+                    position: `Row ${Math.ceil(i/4)} Col ${((i-1) % 4) + 1}`,
+                    output: Math.round(baseOutput * (efficiency / 100)),
+                    efficiency: Math.round(efficiency * 10) / 10,
+                    temperature: Math.round(temperature * 10) / 10,
+                    status: efficiency > 90 ? 'Excellent' : efficiency > 80 ? 'Good' : efficiency > 70 ? 'Fair' : 'Poor',
+                    lastCheck: new Date().toLocaleString()
+                });
+            }
+            return panels;
+        }
+
+        // 판넬 상태 카드 생성
+        function createPanelStatusCards(panels) {
+            const grid = document.getElementById('panel-status-grid');
+            grid.innerHTML = '';
+            
+            panels.forEach(panel => {
+                const statusColor = panel.status === 'Excellent' ? 'green' : 
+                                  panel.status === 'Good' ? 'blue' : 
+                                  panel.status === 'Fair' ? 'yellow' : 'red';
+                
+                const card = document.createElement('div');
+                card.className = `bg-white border-l-4 border-${statusColor}-400 p-4 rounded-lg shadow`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h5 class="font-semibold text-sm">${panel.id}</h5>
+                        <span class="px-2 py-1 text-xs rounded-full bg-${statusColor}-100 text-${statusColor}-800">${panel.status}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <div>출력: <span class="font-medium">${panel.output}W</span></div>
+                        <div>효율: <span class="font-medium">${panel.efficiency}%</span></div>
+                        <div>온도: <span class="font-medium">${panel.temperature}°C</span></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 판넬 상세 테이블 업데이트
+        function updatePanelDetailTable(panels) {
+            const tbody = document.getElementById('panel-detail-table');
+            tbody.innerHTML = '';
+            
+            panels.forEach(panel => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-2 text-sm font-medium">${panel.id}</td>
+                    <td class="px-4 py-2 text-sm text-gray-600">${panel.position}</td>
+                    <td class="px-4 py-2 text-sm">${panel.output}</td>
+                    <td class="px-4 py-2 text-sm">${panel.efficiency}</td>
+                    <td class="px-4 py-2 text-sm">${panel.temperature}</td>
+                    <td class="px-4 py-2 text-sm">
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            panel.status === 'Excellent' ? 'bg-green-100 text-green-800' :
+                            panel.status === 'Good' ? 'bg-blue-100 text-blue-800' :
+                            panel.status === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }">${panel.status}</span>
+                    </td>
+                    <td class="px-4 py-2 text-sm text-gray-500">${panel.lastCheck}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 알림 생성
+        function generatePanelAlerts(panels) {
+            const alertsContainer = document.getElementById('panel-alerts');
+            alertsContainer.innerHTML = '';
+            
+            const alerts = [];
+            
+            // 효율성 낮은 판넬 체크
+            panels.forEach(panel => {
+                if (panel.efficiency < 75) {
+                    alerts.push({
+                        type: 'warning',
+                        message: `${panel.id} 효율성이 낮습니다 (${panel.efficiency}%)`,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+                if (panel.temperature > 50) {
+                    alerts.push({
+                        type: 'error',
+                        message: `${panel.id} 온도가 높습니다 (${panel.temperature}°C)`,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            });
+            
+            // 알림이 없으면 정상 메시지 표시
+            if (alerts.length === 0) {
+                alerts.push({
+                    type: 'success',
+                    message: '모든 판넬이 정상 작동 중입니다',
+                    time: new Date().toLocaleTimeString()
+                });
+            }
+            
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-3 rounded-lg border-l-4 ${
+                    alert.type === 'success' ? 'bg-green-50 border-green-400 text-green-700' :
+                    alert.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-700' :
+                    'bg-red-50 border-red-400 text-red-700'
+                }`;
+                alertDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium">${alert.message}</span>
+                        <span class="text-xs text-gray-500">${alert.time}</span>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertDiv);
+            });
+        }
+
+        // 실시간 데이터 테이블 업데이트
+        function updateRealtimeDataTable(data) {
+            const tbody = document.getElementById('realtime-data-table');
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            row.innerHTML = `
+                <td class="px-4 py-2 text-sm">${data.timestamp}</td>
+                <td class="px-4 py-2 text-sm">${data.solarPower.toFixed(2)}</td>
+                <td class="px-4 py-2 text-sm">${data.batterySOC.toFixed(1)}</td>
+                <td class="px-4 py-2 text-sm">${data.temperature.toFixed(1)}</td>
+                <td class="px-4 py-2 text-sm">${data.humidity.toFixed(0)}</td>
+                <td class="px-4 py-2 text-sm">${data.windSpeed.toFixed(1)}</td>
+                <td class="px-4 py-2 text-sm">${data.irradiance.toFixed(0)}</td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild);
+            
+            // 최대 20개 행만 유지
+            while (tbody.children.length > 20) {
+                tbody.removeChild(tbody.lastChild);
+            }
+        }
+
+        // 에너지 상관관계 업데이트
+        function updateEnergyCorrelations(data) {
+            // 간단한 상관관계 계산 (실제로는 더 정교한 계산 필요)
+            const tempCorrelation = (0.75 + Math.random() * 0.1).toFixed(2);
+            const solarCorrelation = (0.90 + Math.random() * 0.05).toFixed(2);
+            const humidityCorrelation = (-0.40 - Math.random() * 0.1).toFixed(2);
+            
+            document.getElementById('temp-consumption-correlation').textContent = tempCorrelation;
+            document.getElementById('solar-generation-correlation').textContent = solarCorrelation;
+            document.getElementById('humidity-efficiency-correlation').textContent = humidityCorrelation;
+        }
+
+        // 고급 날씨 분석 업데이트
+        function updateAdvancedWeatherAnalysis(data) {
+            // 평균값 계산 (실제로는 히스토리 데이터에서 계산)
+            const avgTemp = (data.temperature + Math.random() * 5).toFixed(1);
+            const avgHumidity = (data.humidity + Math.random() * 10).toFixed(0);
+            const maxWind = (data.windSpeed + Math.random() * 2).toFixed(1);
+            const solarIrradiance = data.irradiance.toFixed(0);
+            
+            document.getElementById('avg-temperature').textContent = avgTemp + '°C';
+            document.getElementById('avg-humidity').textContent = avgHumidity + '%';
+            document.getElementById('max-wind-speed').textContent = maxWind + ' m/s';
+            document.getElementById('solar-irradiance').textContent = solarIrradiance + ' W/m²';
+        }
+
         function updateCharts(data) {
             const now = new Date();
             const timeLabel = now.toLocaleTimeString();
+            
+            // 일일 발전량 누적
+            dailyGeneration += data.solarPower * (5 / 3600); // 5초 간격을 시간으로 변환
             
             // 발전량 차트 업데이트
             powerData.push({x: timeLabel, y: data.solarPower});
@@ -822,6 +1539,44 @@ cat > index.html << 'HTML_EOF'
             batteryChart.data.labels = batteryData.map(d => d.x);
             batteryChart.data.datasets[0].data = batteryData.map(d => d.y);
             batteryChart.update('none');
+            
+            // 태양광 판넬 데이터 업데이트
+            const panels = generatePanelData();
+            createPanelStatusCards(panels);
+            updatePanelDetailTable(panels);
+            generatePanelAlerts(panels);
+            
+            // 판넬 성능 차트 업데이트
+            const panelOutputs = panels.slice(0, 6).map(p => p.output);
+            panelPerformanceChart.data.datasets[0].data = panelOutputs;
+            panelPerformanceChart.update('none');
+            
+            // 효율성 차트 업데이트 (동적 값)
+            const avgEfficiency = panels.reduce((sum, p) => sum + p.efficiency, 0) / panels.length;
+            const batteryEfficiency = 90 + Math.random() * 5; // 90-95%
+            const systemLoss = 100 - avgEfficiency - batteryEfficiency + 10;
+            
+            efficiencyChart.data.datasets[0].data = [
+                Math.round(avgEfficiency),
+                Math.round(batteryEfficiency),
+                Math.round(Math.max(0, systemLoss))
+            ];
+            efficiencyChart.update('none');
+            
+            // 새로운 기능들 업데이트
+            updateRealtimeDataTable(data);
+            updateEnergyCorrelations(data);
+            updateAdvancedWeatherAnalysis(data);
+            
+            // Power Data Analysis Platform 메트릭 업데이트
+            document.getElementById('solar-power-metric').textContent = data.solarPower.toFixed(2) + ' kW';
+            document.getElementById('battery-soc-metric').textContent = data.batterySOC.toFixed(1) + '%';
+            document.getElementById('temperature-metric').textContent = data.temperature.toFixed(1) + '°C';
+            document.getElementById('humidity-metric').textContent = data.humidity.toFixed(0) + '%';
+            
+            // Solar Energy Management System 업데이트
+            document.getElementById('current-generation').textContent = data.solarPower.toFixed(2) + ' kW';
+            document.getElementById('today-generation').textContent = dailyGeneration.toFixed(1) + ' kWh';
         }
 
         // 로그 지우기 기능
@@ -831,7 +1586,21 @@ cat > index.html << 'HTML_EOF'
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', () => {
+            // 언어 설정 초기화
+            translations = translationData[currentLanguage];
+            
+            // 차트 초기화
             initCharts();
+            
+            // PV Module Status 초기화
+            createPVModuleStatus();
+            
+            // 언어 선택기 이벤트 리스너
+            document.getElementById('language-selector').addEventListener('change', function(e) {
+                changeLanguage(e.target.value);
+            });
+            
+            // WebSocket 연결
             connect();
         });
     </script>

@@ -349,3 +349,8 @@ const WeatherCharts = ({ data }) => {
 
 export default WeatherCharts;
 
+
+
+
+
+

@@ -457,3 +457,8 @@ const WeatherMap = ({ data }) => {
 
 export default WeatherMap;
 
+
+
+
+
+
