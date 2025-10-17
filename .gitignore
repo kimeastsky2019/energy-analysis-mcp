@@ -42,3 +42,4 @@ web_interface_simple.py
 # 캐시
 .cache/
 react-weather-app/node_modules/
+energy-analysis-mcp/
