@@ -307,6 +307,24 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                         </div>
                     </div>
                 </div>
+
+                <!-- CrewAI System 카드 -->
+                <div class="col-md-2 mb-4">
+                    <div class="card energy-card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-users-cog text-info" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title">CrewAI System</h6>
+                            <p class="card-text small text-muted mb-3">
+                                전문화된 에이전트 팀 자동화
+                            </p>
+                            <a href="/crewai-system?lang={lang}" class="btn btn-info btn-sm w-100">
+                                <i class="fas fa-arrow-right"></i> CrewAI System
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- 실시간 에너지 분석 차트 -->
@@ -3605,6 +3623,418 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                     connectMCPServer();
                 }}, 1000);
             }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/crewai-system", response_class=HTMLResponse)
+async def crewai_system_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """CrewAI Specialized Agent Teams 페이지"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🤖 CrewAI Specialized Agent Teams</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .crew-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin-bottom: 20px;
+                padding: 25px;
+                transition: transform 0.3s ease;
+            }}
+            .crew-card:hover {{
+                transform: translateY(-5px);
+            }}
+            .crew-header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px;
+            }}
+            .status-indicator {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+            }}
+            .status-active {{ background-color: #28a745; }}
+            .status-idle {{ background-color: #ffc107; }}
+            .status-error {{ background-color: #dc3545; }}
+            .workflow-step {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                margin: 10px 0;
+                border-left: 4px solid #667eea;
+            }}
+            .agent-avatar {{
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 24px;
+                margin: 0 auto 15px;
+            }}
+        </style>
+    </head>
+    <body>
+        {generate_navigation(lang)}
+
+        <div class="container-fluid mt-4">
+            <!-- 헤더 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h1 class="mb-3">
+                            <i class="fas fa-users-cog text-primary"></i> CrewAI Specialized Agent Teams
+                        </h1>
+                        <h4 class="text-muted mb-3">전문화된 에이전트 팀을 통한 자동화된 에너지 관리</h4>
+                        <p class="lead">MCP 서버 기능을 전문화된 에이전트 팀으로 분해하여 이벤트 기반 자동화 시스템 구축</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crew Status Overview -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-chart-pie"></i> Crew Status Overview</h5>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-database"></i>
+                                    </div>
+                                    <h6>Data Ingestion</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6>Forecasting</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <h6>Anomaly Detection</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </div>
+                                    <h6>Demand Control</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <h6>Reporting</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="agent-avatar">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <h6>Orchestrator</h6>
+                                    <span class="status-indicator status-active"></span>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Control -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-play-circle"></i> Workflow Control</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Workflow Type</label>
+                            <select class="form-select" id="workflowType">
+                                <option value="sequential">Sequential Workflow</option>
+                                <option value="parallel">Parallel Workflow</option>
+                                <option value="hybrid">Hybrid Workflow</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trigger Event</label>
+                            <input type="text" class="form-control" id="triggerEvent" placeholder="Optional trigger event">
+                        </div>
+                        <button class="btn btn-primary w-100 mb-2" onclick="startWorkflow()">
+                            <i class="fas fa-play"></i> Start Workflow
+                        </button>
+                        <button class="btn btn-warning w-100 mb-2" onclick="pauseWorkflow()">
+                            <i class="fas fa-pause"></i> Pause Workflow
+                        </button>
+                        <button class="btn btn-danger w-100" onclick="stopWorkflow()">
+                            <i class="fas fa-stop"></i> Stop Workflow
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-chart-bar"></i> System Metrics</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Active Crews</h6>
+                                    <h3 class="text-success" id="activeCrews">5</h3>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Events Processed</h6>
+                                    <h3 class="text-info" id="eventsProcessed">1,247</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Success Rate</h6>
+                                    <h3 class="text-success" id="successRate">98.5%</h3>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Avg Response Time</h6>
+                                    <h3 class="text-warning" id="avgResponseTime">2.3s</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crew Details -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <div class="crew-header">
+                            <h5><i class="fas fa-database"></i> Data Ingestion Crew</h5>
+                        </div>
+                        <p><strong>Role:</strong> 센서/기상/발전/배터리/요금 데이터 수집·정제·스키마 검증</p>
+                        <p><strong>Tools:</strong> MCP 외부데이터/날씨 도구, HTTP/API 래퍼, Health/API 상태 체크</p>
+                        <div class="workflow-step">
+                            <strong>Current Task:</strong> Real-time sensor data collection
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Collecting data from 15 sources
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <div class="crew-header">
+                            <h5><i class="fas fa-chart-line"></i> Forecasting & Climate Crew</h5>
+                        </div>
+                        <p><strong>Role:</strong> 단기/중기 수요·발전 시계열 예측, 기후 Nowcasting 연계</p>
+                        <p><strong>Tools:</strong> 모델 비교/AutoML 파이프라인, XGBoost/LGBM/RF/NN 모델</p>
+                        <div class="workflow-step">
+                            <strong>Current Task:</strong> 24-hour energy demand prediction
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Model accuracy: 94.2%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <div class="crew-header">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Anomaly & Quality Crew</h5>
+                        </div>
+                        <p><strong>Role:</strong> 데이터 품질/예측 오차/장비 이상 탐지, 경보 임계치 동적 조정</p>
+                        <p><strong>Tools:</strong> 이상치 탐지·품질 리포트 루틴, 5분 주기 모니터링</p>
+                        <div class="workflow-step">
+                            <strong>Current Task:</strong> Real-time anomaly detection
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Status:</strong> <span class="status-indicator status-active"></span> 3 anomalies detected
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="crew-card">
+                        <div class="crew-header">
+                            <h5><i class="fas fa-sliders-h"></i> Demand Response & Control Crew</h5>
+                        </div>
+                        <p><strong>Role:</strong> 수요-공급 매칭율/피크 억제/부하전환 시뮬레이션, 제어 권고·명령 생성</p>
+                        <p><strong>Tools:</strong> 수요 제어/시뮬레이션/매칭율 대시보드, 운영 정책 옵션화</p>
+                        <div class="workflow-step">
+                            <strong>Current Task:</strong> Demand-supply matching optimization
+                        </div>
+                        <div class="workflow-step">
+                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Matching rate: 96.8%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <div class="crew-header">
+                            <h5><i class="fas fa-file-alt"></i> LLM-SLM Ops & Reporting Crew</h5>
+                        </div>
+                        <p><strong>Role:</strong> 운영 리포트 생성, 요약/설명, 자연어 질의 응답, LLM-SLM 개발보드 연동</p>
+                        <p><strong>Tools:</strong> 모델 거버넌스(배포/롤백) 자동화, 학습률/진행률/버전 관리</p>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="workflow-step">
+                                    <strong>Current Task:</strong> Daily operational report generation
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="workflow-step">
+                                    <strong>Model Status:</strong> EnergySLM-v2.1 (Training: 65%)
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="workflow-step">
+                                    <strong>Status:</strong> <span class="status-indicator status-active"></span> Report generation in progress
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Log -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-list"></i> Event Log</h5>
+                        <div class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: monospace;" id="eventLog">
+                            <div>[2024-01-15 10:30:15] Data Ingestion Crew: Started sensor data collection</div>
+                            <div>[2024-01-15 10:30:18] Forecasting Crew: Generated 24h demand prediction</div>
+                            <div>[2024-01-15 10:30:22] Anomaly Crew: Detected 3 anomalies in generation data</div>
+                            <div>[2024-01-15 10:30:25] Control Crew: Optimized demand-supply matching</div>
+                            <div>[2024-01-15 10:30:28] Reporting Crew: Generated operational summary</div>
+                            <div class="text-warning">[2024-01-15 10:30:30] System: All crews operating normally</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Workflow control functions
+            function startWorkflow() {{
+                const workflowType = document.getElementById('workflowType').value;
+                const triggerEvent = document.getElementById('triggerEvent').value;
+                
+                addEventLog(`Starting ${{workflowType}} workflow...`);
+                
+                // Simulate workflow execution
+                setTimeout(() => {{
+                    addEventLog(`${{workflowType}} workflow completed successfully`);
+                    updateMetrics();
+                }}, 3000);
+            }}
+
+            function pauseWorkflow() {{
+                addEventLog('Workflow paused by user');
+            }}
+
+            function stopWorkflow() {{
+                addEventLog('Workflow stopped by user');
+            }}
+
+            // Event logging
+            function addEventLog(message, type = 'info') {{
+                const logContainer = document.getElementById('eventLog');
+                const timestamp = new Date().toLocaleString();
+                const logEntry = document.createElement('div');
+                logEntry.className = type === 'error' ? 'text-danger' : type === 'warning' ? 'text-warning' : '';
+                logEntry.innerHTML = `[${{timestamp}}] ${{message}}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }}
+
+            // Metrics update
+            function updateMetrics() {{
+                const activeCrews = document.getElementById('activeCrews');
+                const eventsProcessed = document.getElementById('eventsProcessed');
+                const successRate = document.getElementById('successRate');
+                const avgResponseTime = document.getElementById('avgResponseTime');
+
+                // Simulate metric updates
+                const currentEvents = parseInt(eventsProcessed.textContent.replace(',', ''));
+                eventsProcessed.textContent = (currentEvents + Math.floor(Math.random() * 10)).toLocaleString();
+                
+                const currentRate = parseFloat(successRate.textContent);
+                successRate.textContent = (currentRate + Math.random() * 0.1).toFixed(1) + '%';
+                
+                const currentTime = parseFloat(avgResponseTime.textContent);
+                avgResponseTime.textContent = (currentTime + Math.random() * 0.2).toFixed(1) + 's';
+            }}
+
+            // Auto-update metrics every 30 seconds
+            setInterval(updateMetrics, 30000);
+
+            // Auto-add events every 60 seconds
+            setInterval(() => {{
+                const events = [
+                    'Data Ingestion Crew: Collected 1,000 new data points',
+                    'Forecasting Crew: Updated prediction models',
+                    'Anomaly Crew: No new anomalies detected',
+                    'Control Crew: Optimized energy distribution',
+                    'Reporting Crew: Generated hourly summary'
+                ];
+                const randomEvent = events[Math.floor(Math.random() * events.length)];
+                addEventLog(randomEvent);
+            }}, 60000);
         </script>
     </body>
     </html>
