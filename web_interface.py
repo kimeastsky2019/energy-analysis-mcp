@@ -1250,7 +1250,7 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
 
 @web_app.get("/data-collection", response_class=HTMLResponse)
 async def data_collection_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """Energy Supply Monitoring 페이지"""
+    """Energy Supply Monitoring with Advanced Weather Analysis 페이지"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -1261,7 +1261,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>⚡ Energy Supply Monitoring Dashboard</title>
+        <title>⚡ Energy Supply & Weather Analysis Dashboard</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -1282,6 +1282,13 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             }}
             .metric-card {{
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .weather-card {{
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
                 color: white;
                 border-radius: 10px;
                 padding: 15px;
@@ -1309,13 +1316,24 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             .status-online {{ background-color: #28a745; }}
             .status-offline {{ background-color: #dc3545; }}
             .status-warning {{ background-color: #ffc107; }}
+            .weather-icon {{
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }}
+            .correlation-card {{
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                color: #333;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
         </style>
     </head>
     <body>
         <nav class="navbar navbar-dark bg-dark">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">Energy Supply Monitoring</span>
+                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">Energy Supply & Weather Analysis</span>
                 </span>
                 <div class="navbar-nav ms-auto d-flex flex-row">
                     <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
@@ -1372,18 +1390,115 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 </div>
             </div>
 
-            <!-- 에너지 공급 차트 -->
+            <!-- 고급 날씨 정보 분석 -->
             <div class="row">
-                <div class="col-lg-8">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h4><i class="fas fa-cloud-sun"></i> Advanced Weather Analysis System</h4>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon" id="weatherIcon">☀️</div>
+                                    <div class="metric-value" id="temperature">23°C</div>
+                                    <div class="metric-label">Temperature</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon">💧</div>
+                                    <div class="metric-value" id="humidity">65%</div>
+                                    <div class="metric-label">Humidity</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon">💨</div>
+                                    <div class="metric-value" id="windSpeed">12 km/h</div>
+                                    <div class="metric-label">Wind Speed</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon">☀️</div>
+                                    <div class="metric-value" id="solarIrradiance">850 W/m²</div>
+                                    <div class="metric-label">Solar Irradiance</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon">🌧️</div>
+                                    <div class="metric-value" id="precipitation">0 mm</div>
+                                    <div class="metric-label">Precipitation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="weather-card text-center">
+                                    <div class="weather-icon">👁️</div>
+                                    <div class="metric-value" id="visibility">10 km</div>
+                                    <div class="metric-label">Visibility</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에너지-날씨 상관관계 분석 -->
+            <div class="row">
+                <div class="col-lg-6">
                     <div class="dashboard-card">
                         <h5><i class="fas fa-chart-area"></i> Energy Generation Trends</h5>
                         <canvas id="generationChart" class="chart-container"></canvas>
                     </div>
                 </div>
+                <div class="col-lg-6">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-thermometer-half"></i> Weather Conditions</h5>
+                        <canvas id="weatherChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에너지-날씨 상관관계 분석 -->
+            <div class="row">
                 <div class="col-lg-4">
                     <div class="dashboard-card">
                         <h5><i class="fas fa-chart-pie"></i> Energy Mix Distribution</h5>
                         <canvas id="energyMixChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-link"></i> Energy-Weather Correlation</h5>
+                        <div class="correlation-card">
+                            <h6><i class="fas fa-sun"></i> Solar vs Irradiance</h6>
+                            <div class="mb-2">
+                                <small>Correlation: <strong id="solarCorrelation">0.87</strong></small>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" style="width: 87%"></div>
+                                </div>
+                            </div>
+                            <h6><i class="fas fa-wind"></i> Wind vs Speed</h6>
+                            <div class="mb-2">
+                                <small>Correlation: <strong id="windCorrelation">0.92</strong></small>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width: 92%"></div>
+                                </div>
+                            </div>
+                            <h6><i class="fas fa-thermometer-half"></i> Efficiency vs Temperature</h6>
+                            <div class="mb-2">
+                                <small>Correlation: <strong id="tempCorrelation">-0.34</strong></small>
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" style="width: 34%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-chart-line"></i> Weather Impact Analysis</h5>
+                        <canvas id="impactChart" class="chart-container"></canvas>
                     </div>
                 </div>
             </div>
@@ -1394,7 +1509,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                     <div class="dashboard-card">
                         <h5><i class="fas fa-cogs"></i> System Status Monitoring</h5>
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <h6>Solar Panel Array</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
@@ -1409,7 +1524,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                     <span>Panel 21-25: <strong>Maintenance</strong></span>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <h6>Wind Turbine System</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
@@ -1424,7 +1539,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                     <span>Turbine 3: <strong>Offline</strong></span>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <h6>Energy Storage System</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
@@ -1437,6 +1552,124 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
                                     <span>Inverter System: <strong>Online</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Weather Sensors</h6>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Temperature: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Wind Speed: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Solar Sensor: <strong>Online</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 날씨 예측 및 에너지 예측 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-crystal-ball"></i> Weather Forecast & Energy Prediction</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Next 24 Hours Weather Forecast</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Weather</th>
+                                                <th>Temp</th>
+                                                <th>Wind</th>
+                                                <th>Solar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="weatherForecast">
+                                            <tr>
+                                                <td>00:00</td>
+                                                <td>🌙 Clear</td>
+                                                <td>18°C</td>
+                                                <td>8 km/h</td>
+                                                <td>0 W/m²</td>
+                                            </tr>
+                                            <tr>
+                                                <td>06:00</td>
+                                                <td>🌅 Sunny</td>
+                                                <td>22°C</td>
+                                                <td>12 km/h</td>
+                                                <td>450 W/m²</td>
+                                            </tr>
+                                            <tr>
+                                                <td>12:00</td>
+                                                <td>☀️ Sunny</td>
+                                                <td>28°C</td>
+                                                <td>15 km/h</td>
+                                                <td>850 W/m²</td>
+                                            </tr>
+                                            <tr>
+                                                <td>18:00</td>
+                                                <td>🌤️ Partly Cloudy</td>
+                                                <td>25°C</td>
+                                                <td>10 km/h</td>
+                                                <td>300 W/m²</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Energy Generation Prediction</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Solar (kW)</th>
+                                                <th>Wind (kW)</th>
+                                                <th>Total (kW)</th>
+                                                <th>Efficiency</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="energyPrediction">
+                                            <tr>
+                                                <td>00:00</td>
+                                                <td>0.0</td>
+                                                <td>1.2</td>
+                                                <td>1.2</td>
+                                                <td>92%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>06:00</td>
+                                                <td>1.8</td>
+                                                <td>1.5</td>
+                                                <td>3.3</td>
+                                                <td>94%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>12:00</td>
+                                                <td>3.5</td>
+                                                <td>2.1</td>
+                                                <td>5.6</td>
+                                                <td>96%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>18:00</td>
+                                                <td>1.2</td>
+                                                <td>1.8</td>
+                                                <td>3.0</td>
+                                                <td>93%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -1459,6 +1692,40 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 document.getElementById('solarGeneration').textContent = solarGen + ' kW';
                 document.getElementById('windGeneration').textContent = windGen + ' kW';
                 document.getElementById('systemEfficiency').textContent = efficiency + '%';
+
+                // 날씨 데이터 업데이트
+                const temperature = (Math.random() * 15 + 15).toFixed(0);
+                const humidity = (Math.random() * 30 + 40).toFixed(0);
+                const windSpeed = (Math.random() * 20 + 5).toFixed(0);
+                const solarIrradiance = (Math.random() * 500 + 300).toFixed(0);
+                const precipitation = (Math.random() * 5).toFixed(1);
+                const visibility = (Math.random() * 5 + 8).toFixed(0);
+
+                document.getElementById('temperature').textContent = temperature + '°C';
+                document.getElementById('humidity').textContent = humidity + '%';
+                document.getElementById('windSpeed').textContent = windSpeed + ' km/h';
+                document.getElementById('solarIrradiance').textContent = solarIrradiance + ' W/m²';
+                document.getElementById('precipitation').textContent = precipitation + ' mm';
+                document.getElementById('visibility').textContent = visibility + ' km';
+
+                // 날씨 아이콘 업데이트
+                const weatherIcons = ['☀️', '⛅', '☁️', '🌧️', '⛈️', '🌩️'];
+                const randomIcon = weatherIcons[Math.floor(Math.random() * weatherIcons.length)];
+                document.getElementById('weatherIcon').textContent = randomIcon;
+
+                // 상관관계 업데이트
+                const solarCorr = (Math.random() * 0.2 + 0.8).toFixed(2);
+                const windCorr = (Math.random() * 0.2 + 0.8).toFixed(2);
+                const tempCorr = (Math.random() * 0.4 - 0.2).toFixed(2);
+
+                document.getElementById('solarCorrelation').textContent = solarCorr;
+                document.getElementById('windCorrelation').textContent = windCorr;
+                document.getElementById('tempCorrelation').textContent = tempCorr;
+
+                // 진행률 바 업데이트
+                document.querySelector('.progress-bar.bg-warning').style.width = (solarCorr * 100) + '%';
+                document.querySelector('.progress-bar.bg-info').style.width = (windCorr * 100) + '%';
+                document.querySelector('.progress-bar.bg-danger').style.width = (Math.abs(tempCorr) * 100) + '%';
             }}
 
             // 차트 초기화
@@ -1498,6 +1765,68 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                     }}
                 }});
 
+                // 날씨 조건 차트
+                const weatherCtx = document.getElementById('weatherChart').getContext('2d');
+                new Chart(weatherCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{{
+                            label: 'Temperature (°C)',
+                            data: [18, 16, 20, 25, 28, 22],
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }}, {{
+                            label: 'Wind Speed (km/h)',
+                            data: [8, 12, 15, 18, 12, 10],
+                            borderColor: '#17a2b8',
+                            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }}, {{
+                            label: 'Solar Irradiance (W/m²)',
+                            data: [0, 0, 300, 850, 600, 100],
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y2'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {{
+                                    display: true,
+                                    text: 'Temperature (°C)'
+                                }}
+                            }},
+                            y1: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {{
+                                    display: true,
+                                    text: 'Wind Speed (km/h)'
+                                }},
+                                grid: {{
+                                    drawOnChartArea: false,
+                                }},
+                            }},
+                            y2: {{
+                                type: 'linear',
+                                display: false,
+                            }}
+                        }}
+                    }}
+                }});
+
                 // 에너지 믹스 차트
                 const energyMixCtx = document.getElementById('energyMixChart').getContext('2d');
                 new Chart(energyMixCtx, {{
@@ -1515,6 +1844,33 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                         plugins: {{
                             legend: {{
                                 position: 'bottom'
+                            }}
+                        }}
+                    }}
+                }});
+
+                // 날씨 영향 분석 차트
+                const impactCtx = document.getElementById('impactChart').getContext('2d');
+                new Chart(impactCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Solar', 'Wind', 'Efficiency', 'Storage'],
+                        datasets: [{{
+                            label: 'Weather Impact (%)',
+                            data: [85, 92, -15, 5],
+                            backgroundColor: ['#ffc107', '#17a2b8', '#dc3545', '#28a745']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: 'Impact (%)'
+                                }}
                             }}
                         }}
                     }}
