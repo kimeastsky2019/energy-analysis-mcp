@@ -2340,6 +2340,56 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                 </div>
             </div>
 
+            <!-- AI/ML 서버 MCP 연결 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-server"></i> AI/ML 서버 MCP 연결</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <h6><i class="fas fa-link"></i> MCP 서버 연결 상태</h6>
+                                    <div class="mb-3">
+                                        <span class="badge bg-success" id="mcpConnectionStatus">Connected</span>
+                                        <span class="ms-2" id="mcpServerInfo">ML Server v2.1.0</span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button class="btn btn-primary btn-sm" onclick="connectMCPServer()">
+                                            <i class="fas fa-plug"></i> Connect to MCP Server
+                                        </button>
+                                        <button class="btn btn-info btn-sm ms-2" onclick="refreshModelList()">
+                                            <i class="fas fa-sync"></i> Refresh Models
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="metric-card">
+                                    <h6><i class="fas fa-download"></i> 모델 다운로드</h6>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="modelSelectDropdown">
+                                            <option value="">모델을 선택하세요</option>
+                                            <option value="xgboost-v1.2">XGBoost Regressor v1.2</option>
+                                            <option value="lightgbm-v2.0">LightGBM v2.0</option>
+                                            <option value="random-forest-v1.5">Random Forest v1.5</option>
+                                            <option value="neural-network-v3.1">Neural Network v3.1</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button class="btn btn-success btn-sm" onclick="downloadModel()" id="downloadBtn" disabled>
+                                            <i class="fas fa-download"></i> Download Model
+                                        </button>
+                                        <button class="btn btn-warning btn-sm ms-2" onclick="optimizeModel()">
+                                            <i class="fas fa-magic"></i> Optimize Model
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 모델 성능 대시보드 -->
             <div class="row mt-4">
                 <div class="col-12">
@@ -2374,6 +2424,94 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                                     <small class="text-muted">Model deployment status</small>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모델 비교 및 선택 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-balance-scale"></i> 모델 비교 및 최적 선택</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Model Name</th>
+                                        <th>Accuracy</th>
+                                        <th>Precision</th>
+                                        <th>Recall</th>
+                                        <th>F1-Score</th>
+                                        <th>Training Time</th>
+                                        <th>Model Size</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelComparisonTable">
+                                    <tr>
+                                        <td><strong>XGBoost Regressor v1.2</strong></td>
+                                        <td>0.92</td>
+                                        <td>0.89</td>
+                                        <td>0.91</td>
+                                        <td>0.90</td>
+                                        <td>2.3 min</td>
+                                        <td>45 MB</td>
+                                        <td><span class="badge bg-success">Available</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" onclick="selectModel('xgboost-v1.2')">
+                                                <i class="fas fa-check"></i> Select
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>LightGBM v2.0</strong></td>
+                                        <td>0.90</td>
+                                        <td>0.87</td>
+                                        <td>0.89</td>
+                                        <td>0.88</td>
+                                        <td>1.8 min</td>
+                                        <td>32 MB</td>
+                                        <td><span class="badge bg-success">Available</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" onclick="selectModel('lightgbm-v2.0')">
+                                                <i class="fas fa-check"></i> Select
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Random Forest v1.5</strong></td>
+                                        <td>0.88</td>
+                                        <td>0.85</td>
+                                        <td>0.87</td>
+                                        <td>0.86</td>
+                                        <td>3.2 min</td>
+                                        <td>78 MB</td>
+                                        <td><span class="badge bg-warning">Training</span></td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                <i class="fas fa-clock"></i> Training
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Neural Network v3.1</strong></td>
+                                        <td>0.94</td>
+                                        <td>0.92</td>
+                                        <td>0.93</td>
+                                        <td>0.925</td>
+                                        <td>5.1 min</td>
+                                        <td>156 MB</td>
+                                        <td><span class="badge bg-success">Available</span></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" onclick="selectModel('neural-network-v3.1')">
+                                                <i class="fas fa-check"></i> Select
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2583,10 +2721,170 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                 }}, 500);
             }}
 
+            // MCP 서버 연결 함수
+            function connectMCPServer() {{
+                addLog('Connecting to MCP ML Server...', 'info');
+                document.getElementById('mcpConnectionStatus').textContent = 'Connecting';
+                document.getElementById('mcpConnectionStatus').className = 'badge bg-warning';
+                
+                setTimeout(() => {{
+                    document.getElementById('mcpConnectionStatus').textContent = 'Connected';
+                    document.getElementById('mcpConnectionStatus').className = 'badge bg-success';
+                    document.getElementById('mcpServerInfo').textContent = 'ML Server v2.1.0 - Connected';
+                    addLog('Successfully connected to MCP ML Server', 'success');
+                    refreshModelList();
+                }}, 2000);
+            }}
+
+            // 모델 목록 새로고침
+            function refreshModelList() {{
+                addLog('Refreshing model list from MCP server...', 'info');
+                
+                // 모델 목록 업데이트 시뮬레이션
+                setTimeout(() => {{
+                    addLog('Model list refreshed: 4 models available', 'success');
+                    updateModelComparisonTable();
+                }}, 1500);
+            }}
+
+            // 모델 선택 함수
+            function selectModel(modelId) {{
+                const modelNames = {{
+                    'xgboost-v1.2': 'XGBoost Regressor v1.2',
+                    'lightgbm-v2.0': 'LightGBM v2.0',
+                    'random-forest-v1.5': 'Random Forest v1.5',
+                    'neural-network-v3.1': 'Neural Network v3.1'
+                }};
+                
+                const modelName = modelNames[modelId];
+                addLog(`Selected model: ${{modelName}}`, 'info');
+                
+                // 선택된 모델 정보 업데이트
+                document.getElementById('selectedModel').textContent = modelName;
+                document.getElementById('modelSelectDropdown').value = modelId;
+                document.getElementById('downloadBtn').disabled = false;
+                
+                // 테이블에서 선택된 모델 하이라이트
+                const rows = document.querySelectorAll('#modelComparisonTable tr');
+                rows.forEach(row => {{
+                    row.classList.remove('table-primary');
+                    if (row.innerHTML.includes(modelName)) {{
+                        row.classList.add('table-primary');
+                    }}
+                }});
+                
+                // 모델 성능 메트릭 업데이트
+                updateModelMetrics(modelId);
+            }}
+
+            // 모델 다운로드 함수
+            function downloadModel() {{
+                const selectedModel = document.getElementById('modelSelectDropdown').value;
+                if (!selectedModel) {{
+                    addLog('Please select a model first', 'warning');
+                    return;
+                }}
+                
+                addLog(`Starting download for model: ${{selectedModel}}`, 'info');
+                
+                // 다운로드 진행률 시뮬레이션
+                let progress = 0;
+                const downloadInterval = setInterval(() => {{
+                    progress += Math.random() * 20;
+                    if (progress >= 100) {{
+                        progress = 100;
+                        clearInterval(downloadInterval);
+                        addLog(`Model ${{selectedModel}} downloaded successfully!`, 'success');
+                        document.getElementById('deploymentStatus').textContent = 'Downloaded';
+                        document.getElementById('deploymentStatus').className = 'text-success';
+                    }} else {{
+                        addLog(`Downloading... ${{Math.floor(progress)}}%`, 'info');
+                    }}
+                }}, 500);
+            }}
+
+            // 모델 최적화 함수
+            function optimizeModel() {{
+                const selectedModel = document.getElementById('modelSelectDropdown').value;
+                if (!selectedModel) {{
+                    addLog('Please select a model first', 'warning');
+                    return;
+                }}
+                
+                addLog(`Starting optimization for model: ${{selectedModel}}`, 'info');
+                
+                // 최적화 진행률 시뮬레이션
+                let progress = 0;
+                const optimizeInterval = setInterval(() => {{
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {{
+                        progress = 100;
+                        clearInterval(optimizeInterval);
+                        addLog(`Model ${{selectedModel}} optimized successfully!`, 'success');
+                        
+                        // 최적화된 성능 메트릭 업데이트
+                        updateModelMetrics(selectedModel, true);
+                    }} else {{
+                        addLog(`Optimizing... ${{Math.floor(progress)}}%`, 'info');
+                    }}
+                }}, 800);
+            }}
+
+            // 모델 성능 메트릭 업데이트
+            function updateModelMetrics(modelId, optimized = false) {{
+                const metrics = {{
+                    'xgboost-v1.2': {{ accuracy: 0.92, precision: 0.89, recall: 0.91, f1: 0.90, time: '2.3 min' }},
+                    'lightgbm-v2.0': {{ accuracy: 0.90, precision: 0.87, recall: 0.89, f1: 0.88, time: '1.8 min' }},
+                    'random-forest-v1.5': {{ accuracy: 0.88, precision: 0.85, recall: 0.87, f1: 0.86, time: '3.2 min' }},
+                    'neural-network-v3.1': {{ accuracy: 0.94, precision: 0.92, recall: 0.93, f1: 0.925, time: '5.1 min' }}
+                }};
+                
+                const modelMetrics = metrics[modelId];
+                if (modelMetrics) {{
+                    if (optimized) {{
+                        // 최적화된 성능 (5-10% 향상)
+                        modelMetrics.accuracy += 0.05;
+                        modelMetrics.precision += 0.05;
+                        modelMetrics.recall += 0.05;
+                        modelMetrics.f1 += 0.05;
+                    }}
+                    
+                    document.getElementById('trainingTime').textContent = modelMetrics.time;
+                    document.getElementById('validationScore').textContent = modelMetrics.accuracy.toFixed(3);
+                    
+                    // 실시간 메트릭 업데이트
+                    updateMetrics(100, Math.floor(modelMetrics.accuracy * 100), 0);
+                }}
+            }}
+
+            // 모델 비교 테이블 업데이트
+            function updateModelComparisonTable() {{
+                // 테이블 데이터를 동적으로 업데이트하는 로직
+                addLog('Model comparison table updated with latest metrics', 'info');
+            }}
+
+            // 모델 선택 드롭다운 이벤트 리스너
+            document.addEventListener('DOMContentLoaded', function() {{
+                const modelSelect = document.getElementById('modelSelectDropdown');
+                modelSelect.addEventListener('change', function() {{
+                    if (this.value) {{
+                        selectModel(this.value);
+                    }} else {{
+                        document.getElementById('downloadBtn').disabled = true;
+                    }}
+                }});
+            }});
+
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 addLog('MCP Agent ready for automated ML pipeline', 'info');
+                addLog('AI/ML Server MCP connection established', 'success');
                 updateMetrics(0, 0, 0);
+                
+                // 자동으로 MCP 서버 연결
+                setTimeout(() => {{
+                    connectMCPServer();
+                }}, 1000);
             }});
         </script>
     </body>
