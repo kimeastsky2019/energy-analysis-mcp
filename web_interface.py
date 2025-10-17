@@ -686,27 +686,27 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
             <!-- 헤더 -->
             <div class="header-card">
                 <h1 class="display-4 mb-4">
-                    <i class="fas fa-brain"></i> Digital Experience Intelligence Platform
+                    <i class="fas fa-brain"></i> {t('health.title', lang)}
                 </h1>
-                <p class="lead mb-4">포괄적인 사용자 경험 분석 및 최적화 솔루션</p>
+                <p class="lead mb-4">{t('health.subtitle', lang)}</p>
                 
                 <!-- 실시간 통계 -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="totalInteractions">0</div>
-                        <div class="stat-label">총 상호작용</div>
+                        <div class="stat-label">{t('health.totalInteractions', lang)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="activeSessions">0</div>
-                        <div class="stat-label">활성 세션</div>
+                        <div class="stat-label">{t('health.activeSessions', lang)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="conversionRate">0%</div>
-                        <div class="stat-label">전환율</div>
+                        <div class="stat-label">{t('health.conversionRate', lang)}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="errorRate">0%</div>
-                        <div class="stat-label">오류율</div>
+                        <div class="stat-label">{t('health.errorRate', lang)}</div>
                     </div>
                 </div>
             </div>
@@ -715,50 +715,50 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
             <div class="system-status-grid">
                 <div class="system-card" onclick="window.location.href='/?lang={lang}'">
                     <i class="fas fa-server fa-3x text-success mb-3"></i>
-                    <h5>Web Server</h5>
+                    <h5>{t('health.webServer.title', lang)}</h5>
                     <p>
                         <span class="status-indicator status-online"></span>
-                        <strong>Online</strong>
+                        <strong>{t('health.webServer.status', lang)}</strong>
                     </p>
-                    <small class="text-muted">Port: 8000</small>
+                    <small class="text-muted">{t('health.webServer.port', lang)}</small>
                     <div class="link-indicator">
-                        🔗 메인 대시보드로 이동
+                        🔗 {t('health.webServer.link', lang)}
                     </div>
                 </div>
                 
                 <div class="system-card" onclick="window.location.href='/api/health'">
                     <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
-                    <h5>API Services</h5>
+                    <h5>{t('health.apiServices.title', lang)}</h5>
                     <p>
                         <span class="status-indicator status-online"></span>
-                        <strong>Healthy</strong>
+                        <strong>{t('health.apiServices.status', lang)}</strong>
                     </p>
-                    <small class="text-muted">All endpoints active</small>
+                    <small class="text-muted">{t('health.apiServices.description', lang)}</small>
                     <div class="link-indicator">
-                        🔗 API 상태 확인
+                        🔗 {t('health.apiServices.link', lang)}
                     </div>
                 </div>
                 
                 <div class="system-card" onclick="window.location.href='/data-collection?lang={lang}'">
                     <i class="fas fa-database fa-3x text-info mb-3"></i>
-                    <h5>Data Storage</h5>
+                    <h5>{t('health.dataStorage.title', lang)}</h5>
                     <p>
                         <span class="status-indicator status-online"></span>
-                        <strong>Connected</strong>
+                        <strong>{t('health.dataStorage.status', lang)}</strong>
                     </p>
-                    <small class="text-muted">SQLite Database</small>
+                    <small class="text-muted">{t('health.dataStorage.description', lang)}</small>
                     <div class="link-indicator">
-                        🔗 데이터 수집 페이지
+                        🔗 {t('health.dataStorage.link', lang)}
                     </div>
                 </div>
                 
                 <div class="system-card" onclick="window.location.href='/statistics?lang={lang}'">
                     <i class="fas fa-clock fa-3x text-warning mb-3"></i>
-                    <h5>Uptime</h5>
-                    <p class="uptime-display" id="uptime">Calculating...</p>
-                    <small class="text-muted">Last Update: <span id="lastUpdate"></span></small>
+                    <h5>{t('health.uptime.title', lang)}</h5>
+                    <p class="uptime-display" id="uptime">{t('health.uptime.status', lang)}</p>
+                    <small class="text-muted">{t('health.uptime.lastUpdate', lang)} <span id="lastUpdate"></span></small>
                     <div class="link-indicator">
-                        🔗 통계 페이지
+                        🔗 {t('health.uptime.link', lang)}
                     </div>
                 </div>
             </div>
@@ -770,22 +770,22 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-mouse-pointer"></i>
                     </div>
-                    <h3>실시간 이벤트 캡처</h3>
-                    <p>클릭, 스크롤, 폼 제출 등 모든 사용자 상호작용을 실시간으로 추적합니다.</p>
+                    <h3>{t('health.realTimeEventCapture.title', lang)}</h3>
+                    <p>{t('health.realTimeEventCapture.description', lang)}</p>
                     
                     <div class="progress-modern">
                         <div class="progress-bar-modern" style="width: 95%"></div>
                     </div>
-                    <small>프론트엔드 이벤트 캡처율: 95%</small>
+                    <small>{t('health.realTimeEventCapture.frontendCaptureRate', lang)}</small>
                     
                     <div class="progress-modern">
                         <div class="progress-bar-modern" style="width: 98%"></div>
                     </div>
-                    <small>백엔드 API 호출 캡처율: 98%</small>
+                    <small>{t('health.realTimeEventCapture.backendCaptureRate', lang)}</small>
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/data-analysis?lang={lang}'">
-                            <i class="fas fa-chart-line"></i> 데이터 분석 페이지
+                            <i class="fas fa-chart-line"></i> {t('health.realTimeEventCapture.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -795,24 +795,24 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-robot"></i>
                     </div>
-                    <h3>AI 인사이트 (SLM 기반)</h3>
-                    <p>Small Language Model 기반 대화형 분석 어시스턴트로 심층적인 인사이트를 제공합니다.</p>
+                    <h3>{t('health.aiInsights.title', lang)}</h3>
+                    <p>{t('health.aiInsights.description', lang)}</p>
                     
                     <div class="ai-chat" id="aiChat">
                         <div class="ai-message ai-assistant">
-                            <strong>AI Assistant:</strong> 안녕하세요! 사용자 경험 분석을 도와드리겠습니다.
+                            <strong>AI Assistant:</strong> {t('health.aiInsights.assistantGreeting', lang)}
                         </div>
                         <div class="ai-message ai-user">
-                            전환율을 개선하는 방법을 알려주세요
+                            {t('health.aiInsights.userQuestion', lang)}
                         </div>
                         <div class="ai-message ai-assistant">
-                            <strong>AI Assistant:</strong> 분석 결과, 3단계에서 이탈률이 높습니다. CTA 버튼 위치를 조정해보세요.
+                            <strong>AI Assistant:</strong> {t('health.aiInsights.assistantResponse', lang)}
                         </div>
                     </div>
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/llm-slm?lang={lang}'">
-                            <i class="fas fa-brain"></i> LLM-SLM 개발 페이지
+                            <i class="fas fa-brain"></i> {t('health.aiInsights.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -822,8 +822,8 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-video"></i>
                     </div>
-                    <h3>세션 리플레이</h3>
-                    <p>사용자 행동 패턴을 시각화하고 히트맵으로 마찰 지점을 분석합니다.</p>
+                    <h3>{t('health.sessionReplay.title', lang)}</h3>
+                    <p>{t('health.sessionReplay.description', lang)}</p>
                     
                     <div class="heatmap-container" id="heatmapContainer">
                         <div class="heatmap-point" style="top: 20px; left: 30px;"></div>
@@ -835,7 +835,7 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/weather-analysis?lang={lang}'">
-                            <i class="fas fa-cloud-sun"></i> 날씨 분석 페이지
+                            <i class="fas fa-cloud-sun"></i> {t('health.sessionReplay.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -845,22 +845,22 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3>프라이버시 보호</h3>
-                    <p>PII, PCI, PHI 등 민감한 데이터를 자동으로 마스킹하여 보안을 보장합니다.</p>
+                    <h3>{t('health.privacyProtection.title', lang)}</h3>
+                    <p>{t('health.privacyProtection.description', lang)}</p>
                     
                     <div class="alert alert-modern alert-success">
-                        <i class="fas fa-check-circle"></i> PII 데이터 마스킹: 100% 활성
+                        <i class="fas fa-check-circle"></i> {t('health.privacyProtection.piiMasking', lang)}
                     </div>
                     <div class="alert alert-modern alert-success">
-                        <i class="fas fa-check-circle"></i> PCI 데이터 마스킹: 100% 활성
+                        <i class="fas fa-check-circle"></i> {t('health.privacyProtection.pciMasking', lang)}
                     </div>
                     <div class="alert alert-modern alert-success">
-                        <i class="fas fa-check-circle"></i> PHI 데이터 마스킹: 100% 활성
+                        <i class="fas fa-check-circle"></i> {t('health.privacyProtection.phiMasking', lang)}
                     </div>
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/model-testing?lang={lang}'">
-                            <i class="fas fa-cogs"></i> ML/AI 엔진 페이지
+                            <i class="fas fa-cogs"></i> {t('health.privacyProtection.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -870,22 +870,22 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-bell"></i>
                     </div>
-                    <h3>실시간 모니터링</h3>
-                    <p>전환율 변화, 오류 감지, 사용자 불편을 실시간으로 모니터링하고 알림합니다.</p>
+                    <h3>{t('health.realTimeMonitoring.title', lang)}</h3>
+                    <p>{t('health.realTimeMonitoring.description', lang)}</p>
                     
                     <div class="alert alert-modern alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i> 전환율 15% 감소 감지
+                        <i class="fas fa-exclamation-triangle"></i> {t('health.realTimeMonitoring.conversionDrop', lang)}
                     </div>
                     <div class="alert alert-modern alert-info">
-                        <i class="fas fa-info-circle"></i> 새로운 사용자 세션 시작
+                        <i class="fas fa-info-circle"></i> {t('health.realTimeMonitoring.newSession', lang)}
                     </div>
                     <div class="alert alert-modern alert-success">
-                        <i class="fas fa-check-circle"></i> 시스템 정상 작동
+                        <i class="fas fa-check-circle"></i> {t('health.realTimeMonitoring.systemNormal', lang)}
                     </div>
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/weather-dashboard?lang={lang}'">
-                            <i class="fas fa-chart-area"></i> 날씨 대시보드
+                            <i class="fas fa-chart-area"></i> {t('health.realTimeMonitoring.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -895,30 +895,30 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="feature-icon">
                         <i class="fas fa-cloud"></i>
                     </div>
-                    <h3>유연한 배포</h3>
-                    <p>하이브리드, 싱글 테넌트, 멀티 테넌트 환경을 지원합니다.</p>
+                    <h3>{t('health.flexibleDeployment.title', lang)}</h3>
+                    <p>{t('health.flexibleDeployment.description', lang)}</p>
                     
                     <div class="row">
                         <div class="col-4 text-center">
                             <i class="fas fa-cloud fa-2x mb-2" style="color: #667eea;"></i>
-                            <div class="small">하이브리드</div>
-                            <span class="badge bg-primary">활성</span>
+                            <div class="small">{t('health.flexibleDeployment.hybrid', lang)}</div>
+                            <span class="badge bg-primary">{t('health.flexibleDeployment.hybridStatus', lang)}</span>
                         </div>
                         <div class="col-4 text-center">
                             <i class="fas fa-server fa-2x mb-2" style="color: #28a745;"></i>
-                            <div class="small">싱글 테넌트</div>
-                            <span class="badge bg-success">사용 가능</span>
+                            <div class="small">{t('health.flexibleDeployment.singleTenant', lang)}</div>
+                            <span class="badge bg-success">{t('health.flexibleDeployment.singleTenantStatus', lang)}</span>
                         </div>
                         <div class="col-4 text-center">
                             <i class="fas fa-users fa-2x mb-2" style="color: #17a2b8;"></i>
-                            <div class="small">멀티 테넌트</div>
-                            <span class="badge bg-info">사용 가능</span>
+                            <div class="small">{t('health.flexibleDeployment.multiTenant', lang)}</div>
+                            <span class="badge bg-info">{t('health.flexibleDeployment.multiTenantStatus', lang)}</span>
                         </div>
                     </div>
                     
                     <div class="mt-3">
                         <button class="btn btn-light btn-modern" onclick="event.stopPropagation(); window.location.href='/api/dashboard'">
-                            <i class="fas fa-chart-bar"></i> API 대시보드
+                            <i class="fas fa-chart-bar"></i> {t('health.flexibleDeployment.link', lang)}
                         </button>
                     </div>
                 </div>
@@ -3984,13 +3984,13 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                             <div class="col-md-6">
                                 <div class="alert alert-warning">
                                     <h6><i class="fas fa-user-check"></i> {t('crewai.safetyControls.humanApproval', lang)}</h6>
-                                    <p class="mb-2">제어 명령 적용 전 승인 대기 중...</p>
+                                    <p class="mb-2">{t('crewai.safetyControls.humanApproval', lang)} 대기 중...</p>
                                     <div class="mb-3">
                                         <label class="form-label">{t('crewai.safetyControls.policySelection', lang)}</label>
                                         <select class="form-select" id="policySelection">
-                                            <option value="peakSuppression">피크 억제 (Peak Suppression)</option>
-                                            <option value="loadBalancing">부하 분산 (Load Balancing)</option>
-                                            <option value="efficiencyOptimization">효율 최적화 (Efficiency Optimization)</option>
+                                            <option value="peakSuppression">{t('crewai.safetyControls.policySelection', lang)} - Peak Suppression</option>
+                                            <option value="loadBalancing">{t('crewai.safetyControls.policySelection', lang)} - Load Balancing</option>
+                                            <option value="efficiencyOptimization">{t('crewai.safetyControls.policySelection', lang)} - Efficiency Optimization</option>
                                         </select>
                                     </div>
                                     <div class="row">
@@ -4038,9 +4038,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="mb-2">
                                         <strong>Output:</strong> Load control commands, PV curtailment, Storage dispatch
                                     </div>
-                                    <button class="btn btn-outline-primary btn-sm" onclick="downloadSnapshot()">
-                                        <i class="fas fa-download"></i> 스냅샷 다운로드
-                                    </button>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="downloadSnapshot()">
+                                            <i class="fas fa-download"></i> {t('crewai.safetyControls.simulationSnapshot', lang)} 다운로드
+                                        </button>
                                 </div>
                             </div>
                         </div>
@@ -4058,11 +4058,11 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-success">
                                     <h6><i class="fas fa-bullseye"></i> {t('crewai.reliabilityGuards.accuracyThreshold', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>현재 정확도:</strong> 94.2% 
-                                        <span class="badge bg-success">정상</span>
+                                        <strong>{t('crewai.reliabilityGuards.accuracyThreshold', lang)}:</strong> 94.2% 
+                                        <span class="badge bg-success">{t('crewai.active', lang)}</span>
                                     </div>
                                     <div class="mb-2">
-                                        <strong>임계치:</strong> 90.0%
+                                        <strong>{t('crewai.reliabilityGuards.accuracyThreshold', lang)}:</strong> 90.0%
                                     </div>
                                     <div class="progress mb-2">
                                         <div class="progress-bar bg-success" style="width: 94.2%"></div>
@@ -4073,10 +4073,10 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-warning">
                                     <h6><i class="fas fa-undo"></i> {t('crewai.reliabilityGuards.fallbackModel', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>주 모델:</strong> XGBoost (94.2%)
+                                        <strong>{t('crewai.reliabilityGuards.fallbackModel', lang)}:</strong> XGBoost (94.2%)
                                     </div>
                                     <div class="mb-2">
-                                        <strong>폴백 모델:</strong> Rule-based (87.5%)
+                                        <strong>{t('crewai.reliabilityGuards.fallbackModel', lang)}:</strong> Rule-based (87.5%)
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="fallbackMode" id="autoFallback" checked>
@@ -4096,15 +4096,15 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-danger">
                                     <h6><i class="fas fa-exclamation-triangle"></i> {t('crewai.reliabilityGuards.errorBoundary', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>재시도:</strong> 3회 (Exponential backoff)
+                                        <strong>{t('crewai.reliabilityGuards.retryPolicy', lang)}:</strong> 3회 (Exponential backoff)
                                     </div>
                                     <div class="mb-2">
-                                        <strong>서킷브레이커:</strong> 5회 실패 시 30초 대기
+                                        <strong>{t('crewai.reliabilityGuards.circuitBreaker', lang)}:</strong> 5회 실패 시 30초 대기
                                     </div>
                                     <div class="mb-2">
-                                        <strong>헬스체크:</strong> 30초 간격
+                                        <strong>{t('crewai.reliabilityGuards.healthCheck', lang)}:</strong> 30초 간격
                                     </div>
-                                    <span class="badge bg-success">정상</span>
+                                    <span class="badge bg-success">{t('crewai.active', lang)}</span>
                                 </div>
                             </div>
                         </div>
@@ -4181,10 +4181,10 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-primary">
                                     <h6><i class="fas fa-code-branch"></i> {t('crewai.governance.modelVersioning', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>현재 버전:</strong> EnergySLM-v2.1 (Training: 65%)
+                                        <strong>{t('crewai.governance.modelVersioning', lang)}:</strong> EnergySLM-v2.1 (Training: 65%)
                                     </div>
                                     <div class="mb-2">
-                                        <strong>이전 버전:</strong> EnergySLM-v2.0 (Deployed)
+                                        <strong>{t('crewai.governance.modelVersioning', lang)}:</strong> EnergySLM-v2.0 (Deployed)
                                     </div>
                                     <div class="mb-3">
                                         <div class="btn-group" role="group">
@@ -4240,20 +4240,20 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-warning">
                                     <h6><i class="fas fa-users-cog"></i> {t('crewai.security.rbac', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>현재 사용자:</strong> admin@energy-system.com
+                                        <strong>{t('crewai.security.rbac', lang)}:</strong> admin@energy-system.com
                                     </div>
                                     <div class="mb-2">
-                                        <strong>권한:</strong> 
+                                        <strong>{t('crewai.security.rbac', lang)}:</strong> 
                                         <span class="badge bg-success">{t('crewai.security.readPermission', lang)}</span>
                                         <span class="badge bg-warning">{t('crewai.security.simulationPermission', lang)}</span>
                                         <span class="badge bg-danger">{t('crewai.security.applyPermission', lang)}</span>
                                     </div>
                                     <div class="mb-2">
-                                        <strong>크루별 권한:</strong>
+                                        <strong>{t('crewai.security.rbac', lang)}:</strong>
                                         <ul class="mb-0">
-                                            <li>Data Ingestion: 읽기/시뮬레이션</li>
-                                            <li>Forecasting: 읽기/시뮬레이션</li>
-                                            <li>Control: 읽기/시뮬레이션/적용</li>
+                                            <li>Data Ingestion: {t('crewai.security.readPermission', lang)}/{t('crewai.security.simulationPermission', lang)}</li>
+                                            <li>Forecasting: {t('crewai.security.readPermission', lang)}/{t('crewai.security.simulationPermission', lang)}</li>
+                                            <li>Control: {t('crewai.security.readPermission', lang)}/{t('crewai.security.simulationPermission', lang)}/{t('crewai.security.applyPermission', lang)}</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -4262,19 +4262,19 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                 <div class="alert alert-info">
                                     <h6><i class="fas fa-clipboard-list"></i> {t('crewai.security.auditLog', lang)}</h6>
                                     <div class="mb-2">
-                                        <strong>최근 승인:</strong> admin@energy-system.com
+                                        <strong>{t('crewai.security.whoApproved', lang)}:</strong> admin@energy-system.com
                                     </div>
                                     <div class="mb-2">
-                                        <strong>승인 시간:</strong> 2024-01-15 10:25:30
+                                        <strong>{t('crewai.security.whenApproved', lang)}:</strong> 2024-01-15 10:25:30
                                     </div>
                                     <div class="mb-2">
-                                        <strong>승인 내용:</strong> 피크 억제 정책 적용
+                                        <strong>{t('crewai.security.whatApproved', lang)}:</strong> 피크 억제 정책 적용
                                     </div>
                                     <div class="mb-2">
                                         <strong>IP 주소:</strong> 192.168.1.100
                                     </div>
                                     <button class="btn btn-outline-primary btn-sm" onclick="viewAuditLog()">
-                                        <i class="fas fa-eye"></i> 전체 감사 로그
+                                        <i class="fas fa-eye"></i> {t('crewai.security.auditLog', lang)}
                                     </button>
                                 </div>
                             </div>

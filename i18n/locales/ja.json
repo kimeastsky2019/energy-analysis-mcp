@@ -299,5 +299,84 @@
     "currentTask": "現在のタスク",
     "status": "状態",
     "modelStatus": "モデル状態"
+  },
+  "health": {
+    "title": "デジタルエクスペリエンスインテリジェンスプラットフォーム",
+    "subtitle": "包括的なユーザーエクスペリエンス分析と最適化ソリューション",
+    "totalInteractions": "総インタラクション",
+    "activeSessions": "アクティブセッション",
+    "conversionRate": "コンバージョン率",
+    "errorRate": "エラー率",
+    "webServer": {
+      "title": "Webサーバー",
+      "status": "オンライン",
+      "port": "ポート: 8000",
+      "link": "メインダッシュボードに移動"
+    },
+    "apiServices": {
+      "title": "APIサービス",
+      "status": "健全",
+      "description": "すべてのエンドポイントがアクティブ",
+      "link": "API状態確認"
+    },
+    "dataStorage": {
+      "title": "データストレージ",
+      "status": "接続済み",
+      "description": "SQLiteデータベース",
+      "link": "データ収集ページ"
+    },
+    "uptime": {
+      "title": "稼働時間",
+      "status": "計算中...",
+      "lastUpdate": "最終更新:",
+      "link": "統計ページ"
+    },
+    "realTimeEventCapture": {
+      "title": "リアルタイムイベントキャプチャ",
+      "description": "クリック、スクロール、フォーム送信など、すべてのユーザーインタラクションをリアルタイムで追跡します。",
+      "frontendCaptureRate": "フロントエンドイベントキャプチャ率: 95%",
+      "backendCaptureRate": "バックエンドAPI呼び出しキャプチャ率: 98%",
+      "link": "データ分析ページ"
+    },
+    "aiInsights": {
+      "title": "AIインサイト（SLMベース）",
+      "description": "Small Language Modelベースの対話型分析アシスタントを通じて深いインサイトを提供します。",
+      "assistantGreeting": "こんにちは！ユーザーエクスペリエンス分析をお手伝いします。",
+      "userQuestion": "コンバージョン率を改善する方法を教えてください",
+      "assistantResponse": "分析結果、ステップ3で離脱率が高いです。CTAボタンの位置を調整してみてください。",
+      "link": "LLM-SLM開発ページ"
+    },
+    "sessionReplay": {
+      "title": "セッションリプレイ",
+      "description": "ユーザー行動パターンを可視化し、ヒートマップで摩擦ポイントを分析します。",
+      "link": "天気分析ページ"
+    },
+    "privacyProtection": {
+      "title": "プライバシー保護",
+      "description": "PII、PCI、PHIなどの機密データを自動的にマスキングしてセキュリティを確保します。",
+      "piiMasking": "PIIデータマスキング: 100%アクティブ",
+      "pciMasking": "PCIデータマスキング: 100%アクティブ",
+      "phiMasking": "PHIデータマスキング: 100%アクティブ",
+      "link": "ML/AIエンジンページ"
+    },
+    "realTimeMonitoring": {
+      "title": "リアルタイムモニタリング",
+      "description": "コンバージョン率の変化、エラー検出、ユーザーの不満をリアルタイムでモニタリングし、アラートします。",
+      "conversionDrop": "コンバージョン率15%低下を検出",
+      "newSession": "新しいユーザーセッション開始",
+      "systemNormal": "システム正常動作",
+      "link": "天気ダッシュボード"
+    },
+    "flexibleDeployment": {
+      "title": "柔軟なデプロイメント",
+      "description": "ハイブリッド、シングルテナント、マルチテナント環境をサポートします。",
+      "hybrid": "ハイブリッド",
+      "hybridStatus": "アクティブ",
+      "singleTenant": "シングルテナント",
+      "singleTenantStatus": "利用可能",
+      "multiTenant": "マルチテナント",
+      "multiTenantStatus": "利用可能",
+      "link": "APIダッシュボード"
+    }
   }
 }

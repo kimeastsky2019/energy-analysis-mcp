@@ -379,5 +379,84 @@
       "dataAge": "Data Age",
       "freshnessIndicator": "Freshness Indicator"
     }
+  },
+  "health": {
+    "title": "Digital Experience Intelligence Platform",
+    "subtitle": "Comprehensive user experience analysis and optimization solution",
+    "totalInteractions": "Total Interactions",
+    "activeSessions": "Active Sessions",
+    "conversionRate": "Conversion Rate",
+    "errorRate": "Error Rate",
+    "webServer": {
+      "title": "Web Server",
+      "status": "Online",
+      "port": "Port: 8000",
+      "link": "Go to Main Dashboard"
+    },
+    "apiServices": {
+      "title": "API Services",
+      "status": "Healthy",
+      "description": "All endpoints active",
+      "link": "Check API Status"
+    },
+    "dataStorage": {
+      "title": "Data Storage",
+      "status": "Connected",
+      "description": "SQLite Database",
+      "link": "Data Collection Page"
+    },
+    "uptime": {
+      "title": "Uptime",
+      "status": "Calculating...",
+      "lastUpdate": "Last Update:",
+      "link": "Statistics Page"
+    },
+    "realTimeEventCapture": {
+      "title": "Real-time Event Capture",
+      "description": "Track all user interactions such as clicks, scrolls, and form submissions in real-time.",
+      "frontendCaptureRate": "Frontend Event Capture Rate: 95%",
+      "backendCaptureRate": "Backend API Call Capture Rate: 98%",
+      "link": "Data Analysis Page"
+    },
+    "aiInsights": {
+      "title": "AI Insights (SLM-based)",
+      "description": "Provides deep insights through Small Language Model-based conversational analysis assistant.",
+      "assistantGreeting": "Hello! I'll help you with user experience analysis.",
+      "userQuestion": "How can I improve conversion rates?",
+      "assistantResponse": "Analysis shows high drop-off rate at step 3. Try adjusting the CTA button position.",
+      "link": "LLM-SLM Development Page"
+    },
+    "sessionReplay": {
+      "title": "Session Replay",
+      "description": "Visualize user behavior patterns and analyze friction points with heatmaps.",
+      "link": "Weather Analysis Page"
+    },
+    "privacyProtection": {
+      "title": "Privacy Protection",
+      "description": "Ensures security by automatically masking sensitive data such as PII, PCI, and PHI.",
+      "piiMasking": "PII Data Masking: 100% Active",
+      "pciMasking": "PCI Data Masking: 100% Active",
+      "phiMasking": "PHI Data Masking: 100% Active",
+      "link": "ML/AI Engine Page"
+    },
+    "realTimeMonitoring": {
+      "title": "Real-time Monitoring",
+      "description": "Monitor and alert on conversion rate changes, error detection, and user discomfort in real-time.",
+      "conversionDrop": "15% conversion rate drop detected",
+      "newSession": "New user session started",
+      "systemNormal": "System operating normally",
+      "link": "Weather Dashboard"
+    },
+    "flexibleDeployment": {
+      "title": "Flexible Deployment",
+      "description": "Supports hybrid, single-tenant, and multi-tenant environments.",
+      "hybrid": "Hybrid",
+      "hybridStatus": "Active",
+      "singleTenant": "Single Tenant",
+      "singleTenantStatus": "Available",
+      "multiTenant": "Multi Tenant",
+      "multiTenantStatus": "Available",
+      "link": "API Dashboard"
+    }
   }
 }

@@ -379,5 +379,84 @@
       "dataAge": "데이터 연령",
       "freshnessIndicator": "신선도 지표"
     }
+  },
+  "health": {
+    "title": "Digital Experience Intelligence Platform",
+    "subtitle": "포괄적인 사용자 경험 분석 및 최적화 솔루션",
+    "totalInteractions": "총 상호작용",
+    "activeSessions": "활성 세션",
+    "conversionRate": "전환율",
+    "errorRate": "오류율",
+    "webServer": {
+      "title": "Web Server",
+      "status": "Online",
+      "port": "Port: 8000",
+      "link": "메인 대시보드로 이동"
+    },
+    "apiServices": {
+      "title": "API Services",
+      "status": "Healthy",
+      "description": "All endpoints active",
+      "link": "API 상태 확인"
+    },
+    "dataStorage": {
+      "title": "Data Storage",
+      "status": "Connected",
+      "description": "SQLite Database",
+      "link": "데이터 수집 페이지"
+    },
+    "uptime": {
+      "title": "Uptime",
+      "status": "Calculating...",
+      "lastUpdate": "Last Update:",
+      "link": "통계 페이지"
+    },
+    "realTimeEventCapture": {
+      "title": "실시간 이벤트 캡처",
+      "description": "클릭, 스크롤, 폼 제출 등 모든 사용자 상호작용을 실시간으로 추적합니다.",
+      "frontendCaptureRate": "프론트엔드 이벤트 캡처율: 95%",
+      "backendCaptureRate": "백엔드 API 호출 캡처율: 98%",
+      "link": "데이터 분석 페이지"
+    },
+    "aiInsights": {
+      "title": "AI 인사이트 (SLM 기반)",
+      "description": "Small Language Model 기반 대화형 분석 어시스턴트로 심층적인 인사이트를 제공합니다.",
+      "assistantGreeting": "안녕하세요! 사용자 경험 분석을 도와드리겠습니다.",
+      "userQuestion": "전환율을 개선하는 방법을 알려주세요",
+      "assistantResponse": "분석 결과, 3단계에서 이탈률이 높습니다. CTA 버튼 위치를 조정해보세요.",
+      "link": "LLM-SLM 개발 페이지"
+    },
+    "sessionReplay": {
+      "title": "세션 리플레이",
+      "description": "사용자 행동 패턴을 시각화하고 히트맵으로 마찰 지점을 분석합니다.",
+      "link": "날씨 분석 페이지"
+    },
+    "privacyProtection": {
+      "title": "프라이버시 보호",
+      "description": "PII, PCI, PHI 등 민감한 데이터를 자동으로 마스킹하여 보안을 보장합니다.",
+      "piiMasking": "PII 데이터 마스킹: 100% 활성",
+      "pciMasking": "PCI 데이터 마스킹: 100% 활성",
+      "phiMasking": "PHI 데이터 마스킹: 100% 활성",
+      "link": "ML/AI 엔진 페이지"
+    },
+    "realTimeMonitoring": {
+      "title": "실시간 모니터링",
+      "description": "전환율 변화, 오류 감지, 사용자 불편을 실시간으로 모니터링하고 알림합니다.",
+      "conversionDrop": "전환율 15% 감소 감지",
+      "newSession": "새로운 사용자 세션 시작",
+      "systemNormal": "시스템 정상 작동",
+      "link": "날씨 대시보드"
+    },
+    "flexibleDeployment": {
+      "title": "유연한 배포",
+      "description": "하이브리드, 싱글 테넌트, 멀티 테넌트 환경을 지원합니다.",
+      "hybrid": "하이브리드",
+      "hybridStatus": "활성",
+      "singleTenant": "싱글 테넌트",
+      "singleTenantStatus": "사용 가능",
+      "multiTenant": "멀티 테넌트",
+      "multiTenantStatus": "사용 가능",
+      "link": "API 대시보드"
+    }
   }
 }

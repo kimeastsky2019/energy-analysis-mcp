@@ -299,5 +299,84 @@
     "currentTask": "当前任务",
     "status": "状态",
     "modelStatus": "模型状态"
+  },
+  "health": {
+    "title": "数字体验智能平台",
+    "subtitle": "全面的用户体验分析和优化解决方案",
+    "totalInteractions": "总交互",
+    "activeSessions": "活跃会话",
+    "conversionRate": "转化率",
+    "errorRate": "错误率",
+    "webServer": {
+      "title": "Web服务器",
+      "status": "在线",
+      "port": "端口: 8000",
+      "link": "转到主仪表板"
+    },
+    "apiServices": {
+      "title": "API服务",
+      "status": "健康",
+      "description": "所有端点活跃",
+      "link": "检查API状态"
+    },
+    "dataStorage": {
+      "title": "数据存储",
+      "status": "已连接",
+      "description": "SQLite数据库",
+      "link": "数据收集页面"
+    },
+    "uptime": {
+      "title": "运行时间",
+      "status": "计算中...",
+      "lastUpdate": "最后更新:",
+      "link": "统计页面"
+    },
+    "realTimeEventCapture": {
+      "title": "实时事件捕获",
+      "description": "实时跟踪所有用户交互，如点击、滚动和表单提交。",
+      "frontendCaptureRate": "前端事件捕获率: 95%",
+      "backendCaptureRate": "后端API调用捕获率: 98%",
+      "link": "数据分析页面"
+    },
+    "aiInsights": {
+      "title": "AI洞察（基于SLM）",
+      "description": "通过基于小语言模型的对话分析助手提供深度洞察。",
+      "assistantGreeting": "您好！我将帮助您进行用户体验分析。",
+      "userQuestion": "如何提高转化率？",
+      "assistantResponse": "分析显示第3步的流失率较高。尝试调整CTA按钮位置。",
+      "link": "LLM-SLM开发页面"
+    },
+    "sessionReplay": {
+      "title": "会话回放",
+      "description": "可视化用户行为模式，并通过热图分析摩擦点。",
+      "link": "天气分析页面"
+    },
+    "privacyProtection": {
+      "title": "隐私保护",
+      "description": "通过自动屏蔽PII、PCI、PHI等敏感数据确保安全。",
+      "piiMasking": "PII数据屏蔽: 100%活跃",
+      "pciMasking": "PCI数据屏蔽: 100%活跃",
+      "phiMasking": "PHI数据屏蔽: 100%活跃",
+      "link": "ML/AI引擎页面"
+    },
+    "realTimeMonitoring": {
+      "title": "实时监控",
+      "description": "实时监控和警报转化率变化、错误检测和用户不适。",
+      "conversionDrop": "检测到转化率下降15%",
+      "newSession": "新用户会话开始",
+      "systemNormal": "系统正常运行",
+      "link": "天气仪表板"
+    },
+    "flexibleDeployment": {
+      "title": "灵活部署",
+      "description": "支持混合、单租户和多租户环境。",
+      "hybrid": "混合",
+      "hybridStatus": "活跃",
+      "singleTenant": "单租户",
+      "singleTenantStatus": "可用",
+      "multiTenant": "多租户",
+      "multiTenantStatus": "可用",
+      "link": "API仪表板"
+    }
   }
 }
