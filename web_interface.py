@@ -916,6 +916,624 @@ async def api_languages():
         "timestamp": datetime.now().isoformat()
     }
 
+@web_app.get("/statistics", response_class=HTMLResponse)
+async def statistics_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """Demand Control 페이지 - Smart Grid Service Overview 기반"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🎛️ Demand Control - Smart Grid Management</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .control-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .smart-ess-card {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }}
+            .control-value {{
+                font-size: 2rem;
+                font-weight: bold;
+                color: #2c3e50;
+            }}
+            .control-label {{
+                font-size: 0.9rem;
+                color: #7f8c8d;
+                margin-top: 5px;
+            }}
+            .device-item {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid #ecf0f1;
+            }}
+            .device-item:last-child {{
+                border-bottom: none;
+            }}
+            .chart-container {{
+                max-height: 200px;
+            }}
+            .status-badge {{
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }}
+            .status-active {{ background-color: #2ecc71; color: white; }}
+            .status-standby {{ background-color: #f39c12; color: white; }}
+            .status-offline {{ background-color: #e74c3c; color: white; }}
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="fas fa-sliders-h"></i> <span data-translate="demand_control_title">Demand Control</span>
+                </span>
+                <div class="navbar-nav ms-auto d-flex flex-row">
+                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
+                    </a>
+                    <!-- 언어 선택 드롭다운 -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
+                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
+                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <!-- Smart ESS 중앙 제어 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="control-card smart-ess-card">
+                        <h4><i class="fas fa-microchip"></i> <span data-translate="smart_ess_title">Smart ESS (Energy Storage System)</span></h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="control-value" id="essCapacity">85%</div>
+                                <div class="control-label" data-translate="smart_ess_capacity">Battery Capacity</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="control-value" id="essPower">2.3 kW</div>
+                                <div class="control-label" data-translate="smart_ess_power">Current Power</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="control-value" id="essEfficiency">94.2%</div>
+                                <div class="control-label" data-translate="smart_ess_efficiency">System Efficiency</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="control-value" id="essStatus" data-translate="online">Online</div>
+                                <div class="control-label" data-translate="smart_ess_status">System Status</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Peak/Night-time Power Supply & Environmental Sensors -->
+            <div class="row">
+                <!-- Peak/Night-time Power Supply -->
+                <div class="col-lg-6">
+                    <div class="control-card">
+                        <h5><i class="fas fa-solar-panel"></i> Peak/Night-time Power Supply</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="device-item">
+                                    <span><i class="fas fa-sun text-warning"></i> Solar Generation</span>
+                                    <span class="text-success" id="solarGen">3.2 kW</span>
+                                </div>
+                                <div class="device-item">
+                                    <span><i class="fas fa-wind text-info"></i> Small-scale Wind Energy</span>
+                                    <span class="text-info" id="windGen">1.8 kW</span>
+                                </div>
+                                <div class="device-item">
+                                    <span><i class="fas fa-battery-half text-primary"></i> Fuel Cells & Others</span>
+                                    <span class="text-primary" id="fuelCell">0.5 kW</span>
+                                </div>
+                                <div class="alert alert-info mt-3" role="alert">
+                                    <i class="fas fa-wifi"></i> <strong>WiFi Network:</strong> Connected to Supply-side Monitoring
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="supplyChart" class="chart-container"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wireless Integrated Environmental Sensors -->
+                <div class="col-lg-6">
+                    <div class="control-card sensor-card">
+                        <h5><i class="fas fa-thermometer-half"></i> Wireless Integrated Environmental Sensors</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="device-item">
+                                    <span><i class="fas fa-thermometer-half text-danger"></i> Temperature</span>
+                                    <span class="text-danger" id="temperature">23.5°C</span>
+                                </div>
+                                <div class="device-item">
+                                    <span><i class="fas fa-tint text-info"></i> Humidity</span>
+                                    <span class="text-info" id="humidity">65%</span>
+                                </div>
+                                <div class="device-item">
+                                    <span><i class="fas fa-wind text-success"></i> Wind Speed</span>
+                                    <span class="text-success" id="windSpeed">12 km/h</span>
+                                </div>
+                                <div class="device-item">
+                                    <span><i class="fas fa-sun text-warning"></i> Solar Irradiance</span>
+                                    <span class="text-warning" id="solarIrradiance">850 W/m²</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="sensorChart" class="chart-container"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Control Panel -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="control-card">
+                        <h5><i class="fas fa-cogs"></i> Device Control Panel</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Energy Storage System</h6>
+                                <div class="device-item">
+                                    <span>ESS Controller</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Battery Management</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Power Conversion</span>
+                                    <span class="status-badge status-standby">Standby</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Renewable Energy</h6>
+                                <div class="device-item">
+                                    <span>Solar Inverter</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Wind Turbine</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Fuel Cell System</span>
+                                    <span class="status-badge status-standby">Standby</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Monitoring Systems</h6>
+                                <div class="device-item">
+                                    <span>Environmental Sensors</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Power Meters</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                                <div class="device-item">
+                                    <span>Communication Hub</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 실시간 데이터 업데이트
+            function updateRealtimeData() {{
+                // ESS 데이터 업데이트
+                document.getElementById('essCapacity').textContent = (Math.random() * 20 + 80).toFixed(0) + '%';
+                document.getElementById('essPower').textContent = (Math.random() * 2 + 1.5).toFixed(1) + ' kW';
+                document.getElementById('essEfficiency').textContent = (Math.random() * 5 + 92).toFixed(1) + '%';
+
+                // 발전량 데이터 업데이트
+                document.getElementById('solarGen').textContent = (Math.random() * 2 + 2.5).toFixed(1) + ' kW';
+                document.getElementById('windGen').textContent = (Math.random() * 1.5 + 1.2).toFixed(1) + ' kW';
+                document.getElementById('fuelCell').textContent = (Math.random() * 0.5 + 0.3).toFixed(1) + ' kW';
+
+                // 환경 센서 데이터 업데이트
+                document.getElementById('temperature').textContent = (Math.random() * 10 + 20).toFixed(1) + '°C';
+                document.getElementById('humidity').textContent = (Math.random() * 20 + 50).toFixed(0) + '%';
+                document.getElementById('windSpeed').textContent = (Math.random() * 15 + 5).toFixed(0) + ' km/h';
+                document.getElementById('solarIrradiance').textContent = (Math.random() * 300 + 700).toFixed(0) + ' W/m²';
+            }}
+
+            // 차트 초기화
+            function initCharts() {{
+                // 공급 차트
+                const supplyCtx = document.getElementById('supplyChart').getContext('2d');
+                new Chart(supplyCtx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['Solar', 'Wind', 'Fuel Cell'],
+                        datasets: [{{
+                            data: [3.2, 1.8, 0.5],
+                            backgroundColor: ['#ffc107', '#17a2b8', '#007bff']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'bottom'
+                            }}
+                        }}
+                    }}
+                }});
+
+                // 센서 차트
+                const sensorCtx = document.getElementById('sensorChart').getContext('2d');
+                new Chart(sensorCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{{
+                            label: 'Temperature (°C)',
+                            data: [18, 16, 20, 25, 28, 22],
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4
+                        }}, {{
+                            label: 'Humidity (%)',
+                            data: [70, 75, 60, 55, 50, 65],
+                            borderColor: '#17a2b8',
+                            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                            tension: 0.4
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                beginAtZero: true
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initCharts();
+                updateRealtimeData();
+                
+                // 5초마다 데이터 업데이트
+                setInterval(updateRealtimeData, 5000);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/data-collection", response_class=HTMLResponse)
+async def data_collection_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """Energy Supply Monitoring 페이지"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>⚡ Energy Supply Monitoring Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .dashboard-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .metric-card {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .metric-value {{
+                font-size: 2rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }}
+            .metric-label {{
+                font-size: 0.9rem;
+                opacity: 0.9;
+            }}
+            .chart-container {{
+                max-height: 300px;
+            }}
+            .status-indicator {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+            }}
+            .status-online {{ background-color: #28a745; }}
+            .status-offline {{ background-color: #dc3545; }}
+            .status-warning {{ background-color: #ffc107; }}
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">Energy Supply Monitoring</span>
+                </span>
+                <div class="navbar-nav ms-auto d-flex flex-row">
+                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
+                    </a>
+                    <!-- 언어 선택 드롭다운 -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
+                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
+                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <!-- 실시간 에너지 공급 현황 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h4><i class="fas fa-chart-line"></i> Real-time Energy Supply Status</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" id="totalGeneration">5.2 kW</div>
+                                    <div class="metric-label">Total Generation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" id="solarGeneration">3.2 kW</div>
+                                    <div class="metric-label">Solar Generation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" id="windGeneration">1.8 kW</div>
+                                    <div class="metric-label">Wind Generation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card">
+                                    <div class="metric-value" id="systemEfficiency">94.2%</div>
+                                    <div class="metric-label">System Efficiency</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에너지 공급 차트 -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-chart-area"></i> Energy Generation Trends</h5>
+                        <canvas id="generationChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-chart-pie"></i> Energy Mix Distribution</h5>
+                        <canvas id="energyMixChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시스템 상태 모니터링 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h5><i class="fas fa-cogs"></i> System Status Monitoring</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Solar Panel Array</h6>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Panel 1-10: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Panel 11-20: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-warning"></span>
+                                    <span>Panel 21-25: <strong>Maintenance</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Wind Turbine System</h6>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Turbine 1: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Turbine 2: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-offline"></span>
+                                    <span>Turbine 3: <strong>Offline</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Energy Storage System</h6>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Battery Bank 1: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Battery Bank 2: <strong>Online</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>Inverter System: <strong>Online</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 실시간 데이터 업데이트
+            function updateRealtimeData() {{
+                // 발전량 데이터 업데이트
+                const solarGen = (Math.random() * 2 + 2.5).toFixed(1);
+                const windGen = (Math.random() * 1.5 + 1.2).toFixed(1);
+                const totalGen = (parseFloat(solarGen) + parseFloat(windGen)).toFixed(1);
+                const efficiency = (Math.random() * 5 + 92).toFixed(1);
+
+                document.getElementById('totalGeneration').textContent = totalGen + ' kW';
+                document.getElementById('solarGeneration').textContent = solarGen + ' kW';
+                document.getElementById('windGeneration').textContent = windGen + ' kW';
+                document.getElementById('systemEfficiency').textContent = efficiency + '%';
+            }}
+
+            // 차트 초기화
+            function initCharts() {{
+                // 발전량 트렌드 차트
+                const generationCtx = document.getElementById('generationChart').getContext('2d');
+                new Chart(generationCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{{
+                            label: 'Solar Generation',
+                            data: [0, 0, 1.5, 3.2, 2.8, 0.5],
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            tension: 0.4
+                        }}, {{
+                            label: 'Wind Generation',
+                            data: [1.2, 1.8, 1.5, 1.0, 1.5, 1.8],
+                            borderColor: '#17a2b8',
+                            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                            tension: 0.4
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: 'Power (kW)'
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                // 에너지 믹스 차트
+                const energyMixCtx = document.getElementById('energyMixChart').getContext('2d');
+                new Chart(energyMixCtx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['Solar', 'Wind', 'Storage'],
+                        datasets: [{{
+                            data: [3.2, 1.8, 0.2],
+                            backgroundColor: ['#ffc107', '#17a2b8', '#28a745']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'bottom'
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initCharts();
+                updateRealtimeData();
+                
+                // 5초마다 데이터 업데이트
+                setInterval(updateRealtimeData, 5000);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
 @web_app.get("/model-testing", response_class=HTMLResponse)
 async def model_testing_page(request: Request, lang: str = Query("ko", description="Language code")):
     """ML/AI Engine 페이지"""
