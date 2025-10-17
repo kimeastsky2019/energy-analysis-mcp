@@ -2360,7 +2360,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 const newEvent = document.createElement('div');
                 newEvent.className = 'event-item';
                 newEvent.innerHTML = `
-                    <div class="event-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
                     <div class="event-content">
                         <strong>새 일정 추가됨</strong><br>
                         <small>구글 일정에서 동기화된 새로운 일정</small>
@@ -2387,7 +2387,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 const newEvent = document.createElement('div');
                 newEvent.className = 'event-item';
                 newEvent.innerHTML = `
-                    <div class="event-time">${new Date().toLocaleString()}</div>
+                    <div class="event-time">${{new Date().toLocaleString()}}</div>
                     <div class="event-content">
                         <strong>새 사용자 이벤트</strong><br>
                         <small>사용자가 추가한 새로운 이벤트</small>
