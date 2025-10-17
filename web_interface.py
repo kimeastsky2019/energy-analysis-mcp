@@ -202,13 +202,13 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                                 <i class="fas fa-robot fa-4x"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <h1 class="card-title mb-2">{t('title', lang)}</h1>
-                                <h4 class="card-subtitle mb-3">{t('common.analysis', lang)}</h4>
-                                <p class="card-text">{t('common.monitoring', lang)}</p>
+                                <h1 class="card-title mb-2">LLM SLM Development</h1>
+                                <h4 class="card-subtitle mb-3">에너지 특화 언어 모델 개발</h4>
+                                <p class="card-text">Advanced AI language model specialized for energy management and analysis</p>
                             </div>
                             <div>
-                                <a href="/health?lang={lang}" class="btn btn-light btn-lg">
-                                    <i class="fas fa-arrow-right"></i> {t('navigation.health', lang)}
+                                <a href="/llm-slm?lang={lang}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-arrow-right"></i> LLM SLM
                                 </a>
                             </div>
                         </div>
@@ -3604,6 +3604,348 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                 setTimeout(() => {{
                     connectMCPServer();
                 }}, 1000);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/llm-slm", response_class=HTMLResponse)
+async def llm_slm_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """LLM SLM Development 페이지"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🤖 LLM SLM Development - Energy Specialized Language Model</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .llm-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin-bottom: 20px;
+                padding: 25px;
+            }}
+            .model-card {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                transition: transform 0.3s ease;
+            }}
+            .model-card:hover {{
+                transform: translateY(-5px);
+            }}
+            .training-progress {{
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                padding: 15px;
+                margin: 10px 0;
+            }}
+            .metric-card {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                margin: 10px 0;
+            }}
+            .status-indicator {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+            }}
+            .status-training {{ background-color: #ffc107; }}
+            .status-completed {{ background-color: #28a745; }}
+            .status-error {{ background-color: #dc3545; }}
+        </style>
+    </head>
+    <body>
+        {generate_navigation(lang)}
+
+        <div class="container-fluid mt-4">
+            <!-- 헤더 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="llm-card">
+                        <h1 class="mb-3">
+                            <i class="fas fa-robot text-primary"></i> LLM SLM Development
+                        </h1>
+                        <h4 class="text-muted mb-3">에너지 특화 언어 모델 개발</h4>
+                        <p class="lead">Advanced AI language model specialized for energy management and analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모델 개발 상태 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="model-card">
+                        <h5><i class="fas fa-brain"></i> 현재 개발 모델</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <h6>모델 이름</h6>
+                                    <strong>EnergySLM-v2.1</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <h6>개발 상태</h6>
+                                    <span class="status-indicator status-training"></span>
+                                    <strong>훈련 중</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="model-card">
+                        <h5><i class="fas fa-chart-line"></i> 훈련 진행률</h5>
+                        <div class="training-progress">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>전체 진행률</span>
+                                <span id="trainingProgress">65%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 65%" id="progressBar"></div>
+                            </div>
+                            <small class="text-light">Epoch 325/500</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모델 성능 지표 -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="llm-card text-center">
+                        <h6><i class="fas fa-bullseye"></i> 정확도</h6>
+                        <h3 class="text-success" id="accuracy">94.2%</h3>
+                        <small class="text-muted">Energy Prediction</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="llm-card text-center">
+                        <h6><i class="fas fa-tachometer-alt"></i> 처리 속도</h6>
+                        <h3 class="text-info" id="speed">1.2s</h3>
+                        <small class="text-muted">평균 응답 시간</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="llm-card text-center">
+                        <h6><i class="fas fa-database"></i> 데이터셋</h6>
+                        <h3 class="text-warning" id="dataset">2.3M</h3>
+                        <small class="text-muted">훈련 샘플</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="llm-card text-center">
+                        <h6><i class="fas fa-memory"></i> 모델 크기</h6>
+                        <h3 class="text-primary" id="modelSize">1.8GB</h3>
+                        <small class="text-muted">파라미터 수</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 훈련 로그 -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="llm-card">
+                        <h5><i class="fas fa-terminal"></i> 실시간 훈련 로그</h5>
+                        <div class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: monospace;" id="trainingLog">
+                            <div>[2024-01-15 10:30:15] 모델 초기화 완료</div>
+                            <div>[2024-01-15 10:30:16] 데이터셋 로딩 중...</div>
+                            <div>[2024-01-15 10:30:18] 훈련 시작 - Epoch 1/500</div>
+                            <div>[2024-01-15 10:35:22] Loss: 2.3456, Accuracy: 0.7234</div>
+                            <div>[2024-01-15 10:40:15] Epoch 2 완료 - Loss: 2.1234</div>
+                            <div>[2024-01-15 10:45:08] 검증 정확도: 0.7891</div>
+                            <div class="text-warning">[2024-01-15 10:50:12] 현재 Epoch 325/500 진행 중...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="llm-card">
+                        <h5><i class="fas fa-cogs"></i> 모델 설정</h5>
+                        <div class="mb-3">
+                            <label class="form-label">학습률 (Learning Rate)</label>
+                            <input type="range" class="form-range" min="0.001" max="0.1" step="0.001" value="0.01" id="learningRate">
+                            <small class="text-muted">현재: 0.01</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">배치 크기 (Batch Size)</label>
+                            <select class="form-select" id="batchSize">
+                                <option value="16">16</option>
+                                <option value="32" selected>32</option>
+                                <option value="64">64</option>
+                                <option value="128">128</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">에포크 수 (Epochs)</label>
+                            <input type="number" class="form-control" value="500" id="epochs">
+                        </div>
+                        <button class="btn btn-primary w-100 mb-2" onclick="startTraining()">
+                            <i class="fas fa-play"></i> 훈련 시작
+                        </button>
+                        <button class="btn btn-warning w-100 mb-2" onclick="pauseTraining()">
+                            <i class="fas fa-pause"></i> 훈련 일시정지
+                        </button>
+                        <button class="btn btn-danger w-100" onclick="stopTraining()">
+                            <i class="fas fa-stop"></i> 훈련 중지
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모델 비교 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="llm-card">
+                        <h5><i class="fas fa-balance-scale"></i> 모델 버전 비교</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>모델 버전</th>
+                                        <th>정확도</th>
+                                        <th>처리 속도</th>
+                                        <th>모델 크기</th>
+                                        <th>개발 상태</th>
+                                        <th>작업</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>EnergySLM-v2.1</strong></td>
+                                        <td>94.2%</td>
+                                        <td>1.2s</td>
+                                        <td>1.8GB</td>
+                                        <td><span class="status-indicator status-training"></span>훈련 중</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">상세보기</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>EnergySLM-v2.0</strong></td>
+                                        <td>91.8%</td>
+                                        <td>1.5s</td>
+                                        <td>1.6GB</td>
+                                        <td><span class="status-indicator status-completed"></span>완료</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success">배포</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>EnergySLM-v1.9</strong></td>
+                                        <td>89.3%</td>
+                                        <td>1.8s</td>
+                                        <td>1.4GB</td>
+                                        <td><span class="status-indicator status-completed"></span>완료</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary">아카이브</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 실시간 훈련 로그 업데이트
+            function addTrainingLog(message, type = 'info') {{
+                const logContainer = document.getElementById('trainingLog');
+                const timestamp = new Date().toLocaleString();
+                const logEntry = document.createElement('div');
+                logEntry.className = type === 'error' ? 'text-danger' : type === 'warning' ? 'text-warning' : '';
+                logEntry.innerHTML = `[${{timestamp}}] ${{message}}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }}
+
+            // 훈련 진행률 업데이트
+            function updateTrainingProgress() {{
+                const progress = Math.min(65 + Math.random() * 2, 100);
+                document.getElementById('trainingProgress').textContent = Math.round(progress) + '%';
+                document.getElementById('progressBar').style.width = progress + '%';
+            }}
+
+            // 성능 지표 업데이트
+            function updateMetrics() {{
+                const accuracy = (94.2 + Math.random() * 0.5).toFixed(1);
+                const speed = (1.2 + Math.random() * 0.1).toFixed(1);
+                const dataset = (2.3 + Math.random() * 0.1).toFixed(1);
+                const modelSize = (1.8 + Math.random() * 0.1).toFixed(1);
+
+                document.getElementById('accuracy').textContent = accuracy + '%';
+                document.getElementById('speed').textContent = speed + 's';
+                document.getElementById('dataset').textContent = dataset + 'M';
+                document.getElementById('modelSize').textContent = modelSize + 'GB';
+            }}
+
+            // 훈련 제어 함수들
+            function startTraining() {{
+                addTrainingLog('새로운 훈련 세션을 시작합니다...', 'info');
+                document.querySelector('.status-indicator').className = 'status-indicator status-training';
+                document.querySelector('.status-indicator').nextSibling.textContent = '훈련 중';
+            }}
+
+            function pauseTraining() {{
+                addTrainingLog('훈련을 일시정지합니다...', 'warning');
+            }}
+
+            function stopTraining() {{
+                addTrainingLog('훈련을 중지합니다...', 'error');
+                document.querySelector('.status-indicator').className = 'status-indicator status-error';
+                document.querySelector('.status-indicator').nextSibling.textContent = '중지됨';
+            }}
+
+            // 학습률 슬라이더 업데이트
+            document.getElementById('learningRate').addEventListener('input', function() {{
+                const value = this.value;
+                this.nextElementSibling.textContent = '현재: ' + value;
+            }});
+
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                // 5초마다 훈련 진행률 업데이트
+                setInterval(updateTrainingProgress, 5000);
+                
+                // 10초마다 성능 지표 업데이트
+                setInterval(updateMetrics, 10000);
+                
+                // 30초마다 훈련 로그 추가
+                setInterval(() => {{
+                    const messages = [
+                        'Loss: ' + (2.1 + Math.random() * 0.2).toFixed(4),
+                        'Validation Accuracy: ' + (0.94 + Math.random() * 0.01).toFixed(4),
+                        'Learning Rate: ' + (0.01 + Math.random() * 0.001).toFixed(4),
+                        'Batch Processing: ' + Math.floor(Math.random() * 100) + ' samples/sec'
+                    ];
+                    addTrainingLog(messages[Math.floor(Math.random() * messages.length)]);
+                }}, 30000);
             }});
         </script>
     </body>
