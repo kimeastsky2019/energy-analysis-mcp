@@ -3300,6 +3300,64 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 0% {{ transform: rotate(0deg); }}
                 100% {{ transform: rotate(360deg); }}
             }}
+            .heatmap-container {{
+                overflow-x: auto;
+            }}
+            .heatmap-grid {{
+                display: grid;
+                grid-template-columns: 60px repeat(5, 1fr);
+                gap: 2px;
+                font-size: 0.8rem;
+            }}
+            .heatmap-header {{
+                display: contents;
+            }}
+            .heatmap-row {{
+                display: contents;
+            }}
+            .heatmap-cell {{
+                padding: 8px 4px;
+                text-align: center;
+                border-radius: 4px;
+                font-weight: 500;
+            }}
+            .heatmap-cell.header {{
+                background-color: #343a40;
+                color: white;
+                font-weight: bold;
+            }}
+            .heatmap-cell.time {{
+                background-color: #f8f9fa;
+                font-weight: bold;
+            }}
+            .heatmap-cell.excellent {{
+                background-color: #d4edda;
+                color: #155724;
+            }}
+            .heatmap-cell.good {{
+                background-color: #fff3cd;
+                color: #856404;
+            }}
+            .heatmap-cell.warning {{
+                background-color: #f8d7da;
+                color: #721c24;
+            }}
+            .heatmap-cell.danger {{
+                background-color: #f5c6cb;
+                color: #721c24;
+            }}
+            .heatmap-legend {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 10px;
+                font-size: 0.8rem;
+            }}
+            .legend-item {{
+                padding: 2px 8px;
+                border-radius: 12px;
+                background-color: #f8f9fa;
+            }}
         </style>
     </head>
     <body>
@@ -3594,6 +3652,177 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 </div>
             </div>
 
+            <!-- 고급 시각화 및 패턴 분석 -->
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-fire"></i> 피크 타임 분석</h5>
+                        <div class="mb-3">
+                            <h6>📊 시간대별 수요 패턴 (이번 주)</h6>
+                            <canvas id="peakTimeChart" class="chart-container"></canvas>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6 class="text-danger">🔥 최고 피크</h6>
+                                    <p class="mb-0"><strong>18:00</strong></p>
+                                    <small class="text-muted">1,450 kW</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6 class="text-success">💤 최저 시간</h6>
+                                    <p class="mb-0"><strong>03:00</strong></p>
+                                    <small class="text-muted">720 kW</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-calendar-alt"></i> 매칭율 히트맵</h5>
+                        <div class="mb-3">
+                            <h6>🌡️ 시간대별 매칭율 패턴 (이번 주)</h6>
+                            <div class="heatmap-container">
+                                <div class="heatmap-grid">
+                                    <div class="heatmap-header">
+                                        <div class="heatmap-cell header">시간</div>
+                                        <div class="heatmap-cell header">월</div>
+                                        <div class="heatmap-cell header">화</div>
+                                        <div class="heatmap-cell header">수</div>
+                                        <div class="heatmap-cell header">목</div>
+                                        <div class="heatmap-cell header">금</div>
+                                    </div>
+                                    <div class="heatmap-row">
+                                        <div class="heatmap-cell time">00h</div>
+                                        <div class="heatmap-cell excellent">95%</div>
+                                        <div class="heatmap-cell excellent">94%</div>
+                                        <div class="heatmap-cell excellent">96%</div>
+                                        <div class="heatmap-cell excellent">93%</div>
+                                        <div class="heatmap-cell excellent">95%</div>
+                                    </div>
+                                    <div class="heatmap-row">
+                                        <div class="heatmap-cell time">06h</div>
+                                        <div class="heatmap-cell good">88%</div>
+                                        <div class="heatmap-cell good">87%</div>
+                                        <div class="heatmap-cell good">89%</div>
+                                        <div class="heatmap-cell good">86%</div>
+                                        <div class="heatmap-cell good">88%</div>
+                                    </div>
+                                    <div class="heatmap-row">
+                                        <div class="heatmap-cell time">12h</div>
+                                        <div class="heatmap-cell good">91%</div>
+                                        <div class="heatmap-cell good">90%</div>
+                                        <div class="heatmap-cell good">92%</div>
+                                        <div class="heatmap-cell good">89%</div>
+                                        <div class="heatmap-cell good">91%</div>
+                                    </div>
+                                    <div class="heatmap-row">
+                                        <div class="heatmap-cell time">18h</div>
+                                        <div class="heatmap-cell warning">78%</div>
+                                        <div class="heatmap-cell warning">79%</div>
+                                        <div class="heatmap-cell warning">77%</div>
+                                        <div class="heatmap-cell warning">76%</div>
+                                        <div class="heatmap-cell warning">78%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="heatmap-legend">
+                            <span class="legend-item excellent">🟢 90%+ (최적)</span>
+                            <span class="legend-item good">🟡 80-90% (양호)</span>
+                            <span class="legend-item warning">🟠 70-80% (주의)</span>
+                            <span class="legend-item danger">🔴 70% 미만 (경고)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 예측 범위 확대 및 과거 비교 -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-crystal-ball"></i> 확장된 예측 분석</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>12시간 후</h6>
+                                    <div class="metric-value" id="prediction12h">1,280 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
+                                    <small class="text-muted">신뢰도: 89%</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>24시간 후</h6>
+                                    <div class="metric-value" id="prediction24h">1,410 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
+                                    <small class="text-muted">신뢰도: 85%</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>1주일 후</h6>
+                                    <div class="metric-value" id="prediction7d">1,350 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
+                                    <small class="text-muted">신뢰도: 72%</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>예측 정확도</h6>
+                                    <div class="metric-value" id="predictionAccuracy">94.2%</div>
+                                    <div class="metric-label">AI 예측 정확도</div>
+                                    <small class="text-muted">지난 24시간</small>
+                                </div>
+                            </div>
+                        </div>
+                        <canvas id="extendedPredictionChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-chart-bar"></i> 과거 데이터 비교</h5>
+                        <div class="event-timeline">
+                            <div class="event-item">
+                                <div class="event-time">📊 어제 같은 시간</div>
+                                <div class="event-content">
+                                    <strong>수요: 1,268 kW</strong><br>
+                                    <small>오늘 대비: <span class="text-success">-1.4%</span></small>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">📈 지난주 같은 요일</div>
+                                <div class="event-content">
+                                    <strong>수요: 1,221 kW</strong><br>
+                                    <small>오늘 대비: <span class="text-warning">+2.4%</span></small>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">🗓️ 지난달 평균</div>
+                                <div class="event-content">
+                                    <strong>수요: 1,245 kW</strong><br>
+                                    <small>오늘 대비: <span class="text-info">+0.4%</span></small>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">📅 작년 같은 기간</div>
+                                <div class="event-content">
+                                    <strong>수요: 1,289 kW</strong><br>
+                                    <small>오늘 대비: <span class="text-success">-3.0%</span></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-info btn-sm" onclick="showDetailedComparison()">
+                                <i class="fas fa-chart-line"></i> 상세 비교 분석
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 전자기기 시뮬레이션 및 동적 제어 -->
             <div class="row mb-4">
                 <div class="col-lg-6">
@@ -3800,6 +4029,166 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
             // 데이터 필터링
             function filterData(period) {{
                 alert(`데이터 필터링: ${{period}}\\n\\n지원 기간:\\n- 1H: 최근 1시간\\n- 6H: 최근 6시간\\n- 24H: 최근 24시간\\n- 7D: 최근 7일`);
+            }}
+
+            // 피크 타임 차트 초기화
+            function initPeakTimeChart() {{
+                const ctx = document.getElementById('peakTimeChart').getContext('2d');
+                const hours = [];
+                const demandData = [];
+                const peakThreshold = 1400;
+                
+                for (let i = 0; i < 24; i++) {{
+                    hours.push(i.toString().padStart(2, '0') + ':00');
+                    // 실제적인 수요 패턴 시뮬레이션
+                    let demand;
+                    if (i >= 0 && i <= 5) {{
+                        demand = 700 + Math.random() * 100; // 새벽 최저
+                    }} else if (i >= 6 && i <= 8) {{
+                        demand = 1000 + Math.random() * 200; // 출근 시간 증가
+                    }} else if (i >= 9 && i <= 17) {{
+                        demand = 1200 + Math.random() * 300; // 업무 시간
+                    }} else if (i >= 18 && i <= 20) {{
+                        demand = 1400 + Math.random() * 200; // 저녁 피크
+                    }} else {{
+                        demand = 900 + Math.random() * 200; // 밤 시간
+                    }}
+                    demandData.push(demand);
+                }}
+                
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: hours,
+                        datasets: [{{
+                            label: '수요 (kW)',
+                            data: demandData,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}, {{
+                            label: '피크 임계값',
+                            data: Array(24).fill(peakThreshold),
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            borderDash: [5, 5],
+                            fill: false
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                beginAtZero: false,
+                                min: 600,
+                                max: 1600,
+                                title: {{
+                                    display: true,
+                                    text: '수요 (kW)'
+                                }}
+                            }}
+                        }},
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top'
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    afterLabel: function(context) {{
+                                        if (context.datasetIndex === 0) {{
+                                            const value = context.parsed.y;
+                                            if (value > peakThreshold) {{
+                                                return '⚠️ 피크 시간대';
+                                            }}
+                                        }}
+                                        return '';
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 확장된 예측 차트 초기화
+            function initExtendedPredictionChart() {{
+                const ctx = document.getElementById('extendedPredictionChart').getContext('2d');
+                const timeLabels = ['현재', '1시간', '6시간', '12시간', '24시간', '1주일'];
+                const demandData = [1250, 1320, 1180, 1280, 1410, 1350];
+                const supplyData = [1432, 1434, 1503, 1450, 1520, 1480];
+                const confidenceData = [100, 95, 92, 89, 85, 72];
+                
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: timeLabels,
+                        datasets: [{{
+                            label: '수요 예측 (kW)',
+                            data: demandData,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }}, {{
+                            label: '공급 예측 (kW)',
+                            data: supplyData,
+                            borderColor: '#4ecdc4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }}, {{
+                            label: '예측 신뢰도 (%)',
+                            data: confidenceData,
+                            borderColor: '#ffa726',
+                            backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {{
+                                    display: true,
+                                    text: '에너지 (kW)'
+                                }}
+                            }},
+                            y1: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {{
+                                    display: true,
+                                    text: '신뢰도 (%)'
+                                }},
+                                min: 0,
+                                max: 100,
+                                grid: {{
+                                    drawOnChartArea: false,
+                                }},
+                            }}
+                        }},
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top'
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 상세 비교 분석
+            function showDetailedComparison() {{
+                alert('상세 비교 분석\\n\\n📊 비교 항목:\\n- 시간대별 수요 패턴\\n- 요일별 평균 수요\\n- 계절별 트렌드\\n- 특이사항 분석\\n\\n📈 인사이트:\\n- 목요일 18시 피크 패턴\\n- 지난주 대비 +2.4% 증가\\n- 작년 동기 대비 -3.0% 개선');
             }}
 
             // 실시간 데이터 업데이트
@@ -4012,6 +4401,8 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
             document.addEventListener('DOMContentLoaded', function() {{
                 initDemandSupplyChart();
                 initMatchingGaugeChart();
+                initPeakTimeChart();
+                initExtendedPredictionChart();
                 updateRealtimeData();
                 updateTimestamps();
                 updateRawDataTable();
