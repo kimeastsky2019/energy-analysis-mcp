@@ -929,7 +929,7 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🎛️ Demand Control - Smart Grid Management</title>
+        <title>🎛️ Demand Control & Demo Sites Management</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -1156,6 +1156,182 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
                     </div>
                 </div>
             </div>
+
+            <!-- 실증 사이트 관리 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="control-card">
+                        <h5><i class="fas fa-globe"></i> 실증 사이트 관리 (Demo Sites)</h5>
+                        <div class="row">
+                            <!-- Demo 1: Finland -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100" style="border: 2px solid #007bff;">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-university"></i> Demo 1: Oulu University</h6>
+                                        <small>🇫🇮 Finland - 대학/공공</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Academic Buildings</h6>
+                                        <p class="card-text">
+                                            <strong>특징:</strong> 극한 기후, 스마트 빌딩<br>
+                                            <strong>연구 분야:</strong> 극한 환경 에너지 관리<br>
+                                            <strong>시스템 상태:</strong> 
+                                            <span class="status-badge status-active">Active</span>
+                                        </p>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <small>에너지 효율</small><br>
+                                                <strong>92.3%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>절약률</small><br>
+                                                <strong>15.7%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>연결 상태</small><br>
+                                                <span class="status-badge status-active">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Demo 2: Sweden -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100" style="border: 2px solid #28a745;">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-flask"></i> Demo 2: KTH University</h6>
+                                        <small>🇸🇪 Sweden - 대학</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Living Lab</h6>
+                                        <p class="card-text">
+                                            <strong>특징:</strong> 실증 연구, 지속가능성<br>
+                                            <strong>연구 분야:</strong> 지속가능 에너지 시스템<br>
+                                            <strong>시스템 상태:</strong> 
+                                            <span class="status-badge status-active">Active</span>
+                                        </p>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <small>에너지 효율</small><br>
+                                                <strong>94.8%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>절약률</small><br>
+                                                <strong>18.2%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>연결 상태</small><br>
+                                                <span class="status-badge status-active">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Demo 3: Romania -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100" style="border: 2px solid #ffc107;">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-microchip"></i> Demo 3: BEIA</h6>
+                                        <small>🇷🇴 Romania - 연구소</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Research Institute</h6>
+                                        <p class="card-text">
+                                            <strong>특징:</strong> IoT, 스마트 시스템<br>
+                                            <strong>연구 분야:</strong> IoT 기반 에너지 관리<br>
+                                            <strong>시스템 상태:</strong> 
+                                            <span class="status-badge status-active">Active</span>
+                                        </p>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <small>에너지 효율</small><br>
+                                                <strong>89.5%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>절약률</small><br>
+                                                <strong>12.4%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>연결 상태</small><br>
+                                                <span class="status-badge status-active">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Demo 4: Greece -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100" style="border: 2px solid #dc3545;">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0"><i class="fas fa-building"></i> Demo 4: Triaena/OTE</h6>
+                                        <small>🇬🇷 Greece - 기업</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Commercial Buildings</h6>
+                                        <p class="card-text">
+                                            <strong>특징:</strong> 상업 빌딩, 통신 인프라<br>
+                                            <strong>연구 분야:</strong> 상업용 에너지 최적화<br>
+                                            <strong>시스템 상태:</strong> 
+                                            <span class="status-badge status-active">Active</span>
+                                        </p>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <small>에너지 효율</small><br>
+                                                <strong>91.7%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>절약률</small><br>
+                                                <strong>16.9%</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <small>연결 상태</small><br>
+                                                <span class="status-badge status-active">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 실증 사이트 통합 모니터링 -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> 실증 사이트 통합 모니터링</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-md-3">
+                                                <h4 class="text-primary">4</h4>
+                                                <small>활성 사이트</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h4 class="text-success">92.1%</h4>
+                                                <small>평균 효율</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h4 class="text-warning">15.8%</h4>
+                                                <small>평균 절약률</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h4 class="text-info">100%</h4>
+                                                <small>연결률</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <canvas id="demoSitesChart" class="chart-container"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -1229,6 +1405,58 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
                         scales: {{
                             y: {{
                                 beginAtZero: true
+                            }}
+                        }}
+                    }}
+                }});
+
+                // 실증 사이트 차트
+                const demoSitesCtx = document.getElementById('demoSitesChart').getContext('2d');
+                new Chart(demoSitesCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Oulu University', 'KTH University', 'BEIA', 'Triaena/OTE'],
+                        datasets: [{{
+                            label: '에너지 효율 (%)',
+                            data: [92.3, 94.8, 89.5, 91.7],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
+                            borderColor: ['#0056b3', '#1e7e34', '#e0a800', '#bd2130'],
+                            borderWidth: 2
+                        }}, {{
+                            label: '절약률 (%)',
+                            data: [15.7, 18.2, 12.4, 16.9],
+                            backgroundColor: ['rgba(0, 123, 255, 0.6)', 'rgba(40, 167, 69, 0.6)', 'rgba(255, 193, 7, 0.6)', 'rgba(220, 53, 69, 0.6)'],
+                            borderColor: ['#0056b3', '#1e7e34', '#e0a800', '#bd2130'],
+                            borderWidth: 2
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                max: 100,
+                                title: {{
+                                    display: true,
+                                    text: '성능 지표 (%)'
+                                }}
+                            }},
+                            x: {{
+                                title: {{
+                                    display: true,
+                                    text: '실증 사이트'
+                                }}
+                            }}
+                        }},
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top'
+                            }},
+                            title: {{
+                                display: true,
+                                text: '실증 사이트별 성능 비교'
                             }}
                         }}
                     }}
