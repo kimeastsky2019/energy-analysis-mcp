@@ -226,8 +226,78 @@
   },
   "languages": {
     "korean": "한국어",
-    "english": "English",
+    "english": "English", 
     "japanese": "日本語",
     "chinese": "中文"
+  },
+  "crewai": {
+    "title": "CrewAI专业化代理团队",
+    "subtitle": "通过专业化代理团队实现自动化能源管理",
+    "description": "将MCP服务器功能分解为专业化代理团队，构建基于事件的自动化系统",
+    "crewStatusOverview": "团队状态概览",
+    "workflowControl": "工作流控制",
+    "systemMetrics": "系统指标",
+    "activeCrews": "活跃团队",
+    "eventsProcessed": "已处理事件",
+    "successRate": "成功率",
+    "avgResponseTime": "平均响应时间",
+    "workflowType": "工作流类型",
+    "triggerEvent": "触发事件",
+    "startWorkflow": "启动工作流",
+    "pauseWorkflow": "暂停工作流",
+    "stopWorkflow": "停止工作流",
+    "sequentialWorkflow": "顺序工作流",
+    "parallelWorkflow": "并行工作流",
+    "hybridWorkflow": "混合工作流",
+    "optionalTriggerEvent": "可选触发事件",
+    "dataIngestionCrew": {
+      "title": "数据采集团队",
+      "role": "传感器/天气/发电/电池/电价数据采集、精炼和模式验证",
+      "tools": "MCP外部数据/天气工具、HTTP/API包装器、健康/API状态检查",
+      "currentTask": "实时传感器数据采集",
+      "status": "从15个源收集数据"
+    },
+    "forecastingCrew": {
+      "title": "预测与气候团队",
+      "role": "短期/中期需求和发电时间序列预测，气候即时预报集成",
+      "tools": "模型比较/AutoML管道、XGBoost/LGBM/RF/NN模型",
+      "currentTask": "24小时能源需求预测",
+      "status": "模型精度: 94.2%"
+    },
+    "anomalyCrew": {
+      "title": "异常检测与质量团队",
+      "role": "数据质量/预测误差/设备异常检测，动态警报阈值调整",
+      "tools": "异常检测和质量报告例程，5分钟周期监控",
+      "currentTask": "实时异常检测",
+      "status": "检测到3个异常"
+    },
+    "demandControlCrew": {
+      "title": "需求响应与控制团队",
+      "role": "需求-供应匹配率/峰值抑制/负载切换模拟，控制建议和命令生成",
+      "tools": "需求控制/模拟/匹配率仪表板，运营策略选项化",
+      "currentTask": "需求-供应匹配优化",
+      "status": "匹配率: 96.8%"
+    },
+    "reportingCrew": {
+      "title": "LLM-SLM运营与报告团队",
+      "role": "运营报告生成、摘要/解释、自然语言问答、LLM-SLM开发仪表板集成",
+      "tools": "模型治理（部署/回滚）自动化、学习率/进度/版本管理",
+      "currentTask": "每日运营报告生成",
+      "modelStatus": "EnergySLM-v2.1（训练: 65%）",
+      "status": "报告生成进行中"
+    },
+    "eventLog": "事件日志",
+    "dataIngestion": "数据采集",
+    "forecasting": "预测",
+    "anomalyDetection": "异常检测",
+    "demandControl": "需求控制",
+    "reporting": "报告",
+    "orchestrator": "编排器",
+    "active": "活跃",
+    "role": "角色",
+    "tools": "工具",
+    "currentTask": "当前任务",
+    "status": "状态",
+    "modelStatus": "模型状态"
   }
 }

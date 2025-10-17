@@ -3706,15 +3706,41 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
         {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
+            <!-- 데이터 신선도 표시 -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-clock"></i> 
+                            <strong>{t('crewai.dataFreshness.lastUpdate', lang)}:</strong> 
+                            <span id="lastUpdateTime">2024-01-15 10:30:45 KST</span>
+                        </div>
+                        <div>
+                            <span class="badge bg-success" id="freshnessIndicator">
+                                <i class="fas fa-circle"></i> {t('crewai.dataFreshness.realtime', lang)}
+                            </span>
+                            <div class="btn-group ms-2" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setTimezone('KST')">
+                                    {t('crewai.dataFreshness.kst', lang)}
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setTimezone('Local')">
+                                    {t('crewai.dataFreshness.local', lang)}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 헤더 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="crew-card">
                         <h1 class="mb-3">
-                            <i class="fas fa-users-cog text-primary"></i> CrewAI Specialized Agent Teams
+                            <i class="fas fa-users-cog text-primary"></i> {t('crewai.title', lang)}
                         </h1>
-                        <h4 class="text-muted mb-3">전문화된 에이전트 팀을 통한 자동화된 에너지 관리</h4>
-                        <p class="lead">MCP 서버 기능을 전문화된 에이전트 팀으로 분해하여 이벤트 기반 자동화 시스템 구축</p>
+                        <h4 class="text-muted mb-3">{t('crewai.subtitle', lang)}</h4>
+                        <p class="lead">{t('crewai.description', lang)}</p>
                     </div>
                 </div>
             </div>
@@ -3723,16 +3749,16 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="crew-card">
-                        <h5><i class="fas fa-chart-pie"></i> Crew Status Overview</h5>
+                        <h5><i class="fas fa-chart-pie"></i> {t('crewai.crewStatusOverview', lang)}</h5>
                         <div class="row">
                             <div class="col-md-2">
                                 <div class="text-center">
                                     <div class="agent-avatar">
                                         <i class="fas fa-database"></i>
                                     </div>
-                                    <h6>Data Ingestion</h6>
+                                    <h6>{t('crewai.dataIngestion', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -3740,9 +3766,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="agent-avatar">
                                         <i class="fas fa-chart-line"></i>
                                     </div>
-                                    <h6>Forecasting</h6>
+                                    <h6>{t('crewai.forecasting', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -3750,9 +3776,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="agent-avatar">
                                         <i class="fas fa-exclamation-triangle"></i>
                                     </div>
-                                    <h6>Anomaly Detection</h6>
+                                    <h6>{t('crewai.anomalyDetection', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -3760,9 +3786,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="agent-avatar">
                                         <i class="fas fa-sliders-h"></i>
                                     </div>
-                                    <h6>Demand Control</h6>
+                                    <h6>{t('crewai.demandControl', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -3770,9 +3796,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="agent-avatar">
                                         <i class="fas fa-file-alt"></i>
                                     </div>
-                                    <h6>Reporting</h6>
+                                    <h6>{t('crewai.reporting', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -3780,9 +3806,9 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="agent-avatar">
                                         <i class="fas fa-cogs"></i>
                                     </div>
-                                    <h6>Orchestrator</h6>
+                                    <h6>{t('crewai.orchestrator', lang)}</h6>
                                     <span class="status-indicator status-active"></span>
-                                    <small>Active</small>
+                                    <small>{t('crewai.active', lang)}</small>
                                 </div>
                             </div>
                         </div>
@@ -3794,43 +3820,43 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="crew-card">
-                        <h5><i class="fas fa-play-circle"></i> Workflow Control</h5>
+                        <h5><i class="fas fa-play-circle"></i> {t('crewai.workflowControl', lang)}</h5>
                         <div class="mb-3">
-                            <label class="form-label">Workflow Type</label>
+                            <label class="form-label">{t('crewai.workflowType', lang)}</label>
                             <select class="form-select" id="workflowType">
-                                <option value="sequential">Sequential Workflow</option>
-                                <option value="parallel">Parallel Workflow</option>
-                                <option value="hybrid">Hybrid Workflow</option>
+                                <option value="sequential">{t('crewai.sequentialWorkflow', lang)}</option>
+                                <option value="parallel">{t('crewai.parallelWorkflow', lang)}</option>
+                                <option value="hybrid">{t('crewai.hybridWorkflow', lang)}</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Trigger Event</label>
-                            <input type="text" class="form-control" id="triggerEvent" placeholder="Optional trigger event">
+                            <label class="form-label">{t('crewai.triggerEvent', lang)}</label>
+                            <input type="text" class="form-control" id="triggerEvent" placeholder="{t('crewai.optionalTriggerEvent', lang)}">
                         </div>
                         <button class="btn btn-primary w-100 mb-2" onclick="startWorkflow()">
-                            <i class="fas fa-play"></i> Start Workflow
+                            <i class="fas fa-play"></i> {t('crewai.startWorkflow', lang)}
                         </button>
                         <button class="btn btn-warning w-100 mb-2" onclick="pauseWorkflow()">
-                            <i class="fas fa-pause"></i> Pause Workflow
+                            <i class="fas fa-pause"></i> {t('crewai.pauseWorkflow', lang)}
                         </button>
                         <button class="btn btn-danger w-100" onclick="stopWorkflow()">
-                            <i class="fas fa-stop"></i> Stop Workflow
+                            <i class="fas fa-stop"></i> {t('crewai.stopWorkflow', lang)}
                         </button>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="crew-card">
-                        <h5><i class="fas fa-chart-bar"></i> System Metrics</h5>
+                        <h5><i class="fas fa-chart-bar"></i> {t('crewai.systemMetrics', lang)}</h5>
                         <div class="row">
                             <div class="col-6">
                                 <div class="text-center">
-                                    <h6>Active Crews</h6>
+                                    <h6>{t('crewai.activeCrews', lang)}</h6>
                                     <h3 class="text-success" id="activeCrews">5</h3>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="text-center">
-                                    <h6>Events Processed</h6>
+                                    <h6>{t('crewai.eventsProcessed', lang)}</h6>
                                     <h3 class="text-info" id="eventsProcessed">1,247</h3>
                                 </div>
                             </div>
@@ -3838,13 +3864,13 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                         <div class="row mt-3">
                             <div class="col-6">
                                 <div class="text-center">
-                                    <h6>Success Rate</h6>
+                                    <h6>{t('crewai.successRate', lang)}</h6>
                                     <h3 class="text-success" id="successRate">98.5%</h3>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="text-center">
-                                    <h6>Avg Response Time</h6>
+                                    <h6>{t('crewai.avgResponseTime', lang)}</h6>
                                     <h3 class="text-warning" id="avgResponseTime">2.3s</h3>
                                 </div>
                             </div>
@@ -3858,30 +3884,30 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                 <div class="col-md-6">
                     <div class="crew-card">
                         <div class="crew-header">
-                            <h5><i class="fas fa-database"></i> Data Ingestion Crew</h5>
+                            <h5><i class="fas fa-database"></i> {t('crewai.dataIngestionCrew.title', lang)}</h5>
                         </div>
-                        <p><strong>Role:</strong> 센서/기상/발전/배터리/요금 데이터 수집·정제·스키마 검증</p>
-                        <p><strong>Tools:</strong> MCP 외부데이터/날씨 도구, HTTP/API 래퍼, Health/API 상태 체크</p>
+                        <p><strong>{t('crewai.role', lang)}:</strong> {t('crewai.dataIngestionCrew.role', lang)}</p>
+                        <p><strong>{t('crewai.tools', lang)}:</strong> {t('crewai.dataIngestionCrew.tools', lang)}</p>
                         <div class="workflow-step">
-                            <strong>Current Task:</strong> Real-time sensor data collection
+                            <strong>{t('crewai.currentTask', lang)}:</strong> {t('crewai.dataIngestionCrew.currentTask', lang)}
                         </div>
                         <div class="workflow-step">
-                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Collecting data from 15 sources
+                            <strong>{t('crewai.status', lang)}:</strong> <span class="status-indicator status-active"></span> {t('crewai.dataIngestionCrew.status', lang)}
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="crew-card">
                         <div class="crew-header">
-                            <h5><i class="fas fa-chart-line"></i> Forecasting & Climate Crew</h5>
+                            <h5><i class="fas fa-chart-line"></i> {t('crewai.forecastingCrew.title', lang)}</h5>
                         </div>
-                        <p><strong>Role:</strong> 단기/중기 수요·발전 시계열 예측, 기후 Nowcasting 연계</p>
-                        <p><strong>Tools:</strong> 모델 비교/AutoML 파이프라인, XGBoost/LGBM/RF/NN 모델</p>
+                        <p><strong>{t('crewai.role', lang)}:</strong> {t('crewai.forecastingCrew.role', lang)}</p>
+                        <p><strong>{t('crewai.tools', lang)}:</strong> {t('crewai.forecastingCrew.tools', lang)}</p>
                         <div class="workflow-step">
-                            <strong>Current Task:</strong> 24-hour energy demand prediction
+                            <strong>{t('crewai.currentTask', lang)}:</strong> {t('crewai.forecastingCrew.currentTask', lang)}
                         </div>
                         <div class="workflow-step">
-                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Model accuracy: 94.2%
+                            <strong>{t('crewai.status', lang)}:</strong> <span class="status-indicator status-active"></span> {t('crewai.forecastingCrew.status', lang)}
                         </div>
                     </div>
                 </div>
@@ -3891,30 +3917,30 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                 <div class="col-md-6">
                     <div class="crew-card">
                         <div class="crew-header">
-                            <h5><i class="fas fa-exclamation-triangle"></i> Anomaly & Quality Crew</h5>
+                            <h5><i class="fas fa-exclamation-triangle"></i> {t('crewai.anomalyCrew.title', lang)}</h5>
                         </div>
-                        <p><strong>Role:</strong> 데이터 품질/예측 오차/장비 이상 탐지, 경보 임계치 동적 조정</p>
-                        <p><strong>Tools:</strong> 이상치 탐지·품질 리포트 루틴, 5분 주기 모니터링</p>
+                        <p><strong>{t('crewai.role', lang)}:</strong> {t('crewai.anomalyCrew.role', lang)}</p>
+                        <p><strong>{t('crewai.tools', lang)}:</strong> {t('crewai.anomalyCrew.tools', lang)}</p>
                         <div class="workflow-step">
-                            <strong>Current Task:</strong> Real-time anomaly detection
+                            <strong>{t('crewai.currentTask', lang)}:</strong> {t('crewai.anomalyCrew.currentTask', lang)}
                         </div>
                         <div class="workflow-step">
-                            <strong>Status:</strong> <span class="status-indicator status-active"></span> 3 anomalies detected
+                            <strong>{t('crewai.status', lang)}:</strong> <span class="status-indicator status-active"></span> {t('crewai.anomalyCrew.status', lang)}
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="crew-card">
                         <div class="crew-header">
-                            <h5><i class="fas fa-sliders-h"></i> Demand Response & Control Crew</h5>
+                            <h5><i class="fas fa-sliders-h"></i> {t('crewai.demandControlCrew.title', lang)}</h5>
                         </div>
-                        <p><strong>Role:</strong> 수요-공급 매칭율/피크 억제/부하전환 시뮬레이션, 제어 권고·명령 생성</p>
-                        <p><strong>Tools:</strong> 수요 제어/시뮬레이션/매칭율 대시보드, 운영 정책 옵션화</p>
+                        <p><strong>{t('crewai.role', lang)}:</strong> {t('crewai.demandControlCrew.role', lang)}</p>
+                        <p><strong>{t('crewai.tools', lang)}:</strong> {t('crewai.demandControlCrew.tools', lang)}</p>
                         <div class="workflow-step">
-                            <strong>Current Task:</strong> Demand-supply matching optimization
+                            <strong>{t('crewai.currentTask', lang)}:</strong> {t('crewai.demandControlCrew.currentTask', lang)}
                         </div>
                         <div class="workflow-step">
-                            <strong>Status:</strong> <span class="status-indicator status-active"></span> Matching rate: 96.8%
+                            <strong>{t('crewai.status', lang)}:</strong> <span class="status-indicator status-active"></span> {t('crewai.demandControlCrew.status', lang)}
                         </div>
                     </div>
                 </div>
@@ -3924,24 +3950,24 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                 <div class="col-12">
                     <div class="crew-card">
                         <div class="crew-header">
-                            <h5><i class="fas fa-file-alt"></i> LLM-SLM Ops & Reporting Crew</h5>
+                            <h5><i class="fas fa-file-alt"></i> {t('crewai.reportingCrew.title', lang)}</h5>
                         </div>
-                        <p><strong>Role:</strong> 운영 리포트 생성, 요약/설명, 자연어 질의 응답, LLM-SLM 개발보드 연동</p>
-                        <p><strong>Tools:</strong> 모델 거버넌스(배포/롤백) 자동화, 학습률/진행률/버전 관리</p>
+                        <p><strong>{t('crewai.role', lang)}:</strong> {t('crewai.reportingCrew.role', lang)}</p>
+                        <p><strong>{t('crewai.tools', lang)}:</strong> {t('crewai.reportingCrew.tools', lang)}</p>
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="workflow-step">
-                                    <strong>Current Task:</strong> Daily operational report generation
+                                    <strong>{t('crewai.currentTask', lang)}:</strong> {t('crewai.reportingCrew.currentTask', lang)}
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="workflow-step">
-                                    <strong>Model Status:</strong> EnergySLM-v2.1 (Training: 65%)
+                                    <strong>{t('crewai.modelStatus', lang)}:</strong> {t('crewai.reportingCrew.modelStatus', lang)}
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="workflow-step">
-                                    <strong>Status:</strong> <span class="status-indicator status-active"></span> Report generation in progress
+                                    <strong>{t('crewai.status', lang)}:</strong> <span class="status-indicator status-active"></span> {t('crewai.reportingCrew.status', lang)}
                                 </div>
                             </div>
                         </div>
@@ -3949,18 +3975,309 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                 </div>
             </div>
 
-            <!-- Event Log -->
+            <!-- 워크플로우 실행 안전장치 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="crew-card">
-                        <h5><i class="fas fa-list"></i> Event Log</h5>
+                        <h5><i class="fas fa-shield-alt text-warning"></i> {t('crewai.safetyControls.title', lang)}</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-warning">
+                                    <h6><i class="fas fa-user-check"></i> {t('crewai.safetyControls.humanApproval', lang)}</h6>
+                                    <p class="mb-2">제어 명령 적용 전 승인 대기 중...</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">{t('crewai.safetyControls.policySelection', lang)}</label>
+                                        <select class="form-select" id="policySelection">
+                                            <option value="peakSuppression">피크 억제 (Peak Suppression)</option>
+                                            <option value="loadBalancing">부하 분산 (Load Balancing)</option>
+                                            <option value="efficiencyOptimization">효율 최적화 (Efficiency Optimization)</option>
+                                        </select>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <div class="text-center">
+                                                <h6 class="text-danger">{t('crewai.safetyControls.costImpact', lang)}</h6>
+                                                <span class="badge bg-danger">-12.5%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="text-center">
+                                                <h6 class="text-success">{t('crewai.safetyControls.emissionImpact', lang)}</h6>
+                                                <span class="badge bg-success">-8.3%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="text-center">
+                                                <h6 class="text-info">{t('crewai.safetyControls.comfortImpact', lang)}</h6>
+                                                <span class="badge bg-info">+2.1%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-success me-2" onclick="approveControl()">
+                                            <i class="fas fa-check"></i> {t('crewai.safetyControls.approveControl', lang)}
+                                        </button>
+                                        <button class="btn btn-danger" onclick="rejectControl()">
+                                            <i class="fas fa-times"></i> {t('crewai.safetyControls.rejectControl', lang)}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-camera"></i> {t('crewai.safetyControls.simulationSnapshot', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>Trace ID:</strong> <code>trace_20240115_103045_abc123</code>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Version:</strong> EnergySLM-v2.1 (Training: 65%)
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Input:</strong> 15 sensors, 3 weather APIs, 2 tariff sources
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Output:</strong> Load control commands, PV curtailment, Storage dispatch
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="downloadSnapshot()">
+                                        <i class="fas fa-download"></i> 스냅샷 다운로드
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 신뢰도·품질 가드레일 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-shield-alt text-info"></i> {t('crewai.reliabilityGuards.title', lang)}</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="alert alert-success">
+                                    <h6><i class="fas fa-bullseye"></i> {t('crewai.reliabilityGuards.accuracyThreshold', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>현재 정확도:</strong> 94.2% 
+                                        <span class="badge bg-success">정상</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>임계치:</strong> 90.0%
+                                    </div>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-success" style="width: 94.2%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-warning">
+                                    <h6><i class="fas fa-undo"></i> {t('crewai.reliabilityGuards.fallbackModel', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>주 모델:</strong> XGBoost (94.2%)
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>폴백 모델:</strong> Rule-based (87.5%)
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="fallbackMode" id="autoFallback" checked>
+                                        <label class="form-check-label" for="autoFallback">
+                                            {t('crewai.reliabilityGuards.autoFallback', lang)}
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="fallbackMode" id="manualFallback">
+                                        <label class="form-check-label" for="manualFallback">
+                                            {t('crewai.reliabilityGuards.manualFallback', lang)}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-danger">
+                                    <h6><i class="fas fa-exclamation-triangle"></i> {t('crewai.reliabilityGuards.errorBoundary', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>재시도:</strong> 3회 (Exponential backoff)
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>서킷브레이커:</strong> 5회 실패 시 30초 대기
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>헬스체크:</strong> 30초 간격
+                                    </div>
+                                    <span class="badge bg-success">정상</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Log with Enhanced Observability -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-list"></i> {t('crewai.eventLog', lang)}</h5>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary btn-sm" onclick="filterLogs('all')">전체</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="filterLogs('data')">데이터 수집</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="filterLogs('forecast')">예측</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="filterLogs('anomaly')">이상 탐지</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="filterLogs('control')">제어</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="exportLogs()">
+                                    <i class="fas fa-download"></i> CSV
+                                </button>
+                            </div>
+                        </div>
                         <div class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: monospace;" id="eventLog">
-                            <div>[2024-01-15 10:30:15] Data Ingestion Crew: Started sensor data collection</div>
-                            <div>[2024-01-15 10:30:18] Forecasting Crew: Generated 24h demand prediction</div>
-                            <div>[2024-01-15 10:30:22] Anomaly Crew: Detected 3 anomalies in generation data</div>
-                            <div>[2024-01-15 10:30:25] Control Crew: Optimized demand-supply matching</div>
-                            <div>[2024-01-15 10:30:28] Reporting Crew: Generated operational summary</div>
-                            <div class="text-warning">[2024-01-15 10:30:30] System: All crews operating normally</div>
+                            <div class="log-entry" data-crew="data" data-trace="trace_001">
+                                <span class="text-info">[2024-01-15 10:30:15]</span> 
+                                <span class="text-warning">[Data Ingestion]</span> 
+                                <span class="text-light">Started sensor data collection</span>
+                                <span class="text-muted">(Trace: trace_001)</span>
+                            </div>
+                            <div class="log-entry" data-crew="forecast" data-trace="trace_002">
+                                <span class="text-info">[2024-01-15 10:30:18]</span> 
+                                <span class="text-warning">[Forecasting]</span> 
+                                <span class="text-light">Generated 24h demand prediction</span>
+                                <span class="text-muted">(Trace: trace_002)</span>
+                            </div>
+                            <div class="log-entry" data-crew="anomaly" data-trace="trace_003">
+                                <span class="text-info">[2024-01-15 10:30:22]</span> 
+                                <span class="text-warning">[Anomaly Detection]</span> 
+                                <span class="text-light">Detected 3 anomalies in generation data</span>
+                                <span class="text-muted">(Trace: trace_003)</span>
+                            </div>
+                            <div class="log-entry" data-crew="control" data-trace="trace_004">
+                                <span class="text-info">[2024-01-15 10:30:25]</span> 
+                                <span class="text-warning">[Demand Control]</span> 
+                                <span class="text-light">Optimized demand-supply matching</span>
+                                <span class="text-muted">(Trace: trace_004)</span>
+                            </div>
+                            <div class="log-entry" data-crew="reporting" data-trace="trace_005">
+                                <span class="text-info">[2024-01-15 10:30:28]</span> 
+                                <span class="text-warning">[Reporting]</span> 
+                                <span class="text-light">Generated operational summary</span>
+                                <span class="text-muted">(Trace: trace_005)</span>
+                            </div>
+                            <div class="log-entry text-warning" data-crew="system" data-trace="trace_006">
+                                <span class="text-info">[2024-01-15 10:30:30]</span> 
+                                <span class="text-warning">[System]</span> 
+                                <span class="text-light">All crews operating normally</span>
+                                <span class="text-muted">(Trace: trace_006)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 거버넌스 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-cogs text-primary"></i> {t('crewai.governance.title', lang)}</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-primary">
+                                    <h6><i class="fas fa-code-branch"></i> {t('crewai.governance.modelVersioning', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>현재 버전:</strong> EnergySLM-v2.1 (Training: 65%)
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>이전 버전:</strong> EnergySLM-v2.0 (Deployed)
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="shadowDeploy()">
+                                                {t('crewai.governance.shadowDeployment', lang)}
+                                            </button>
+                                            <button class="btn btn-outline-warning btn-sm" onclick="canaryDeploy()">
+                                                {t('crewai.governance.canaryDeployment', lang)}
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="rollbackModel()">
+                                                {t('crewai.governance.rollback', lang)}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-success">
+                                    <h6><i class="fas fa-chart-bar"></i> {t('crewai.governance.performanceComparison', lang)}</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="text-center">
+                                                <h6 class="text-danger">{t('crewai.governance.errorCost', lang)}</h6>
+                                                <span class="badge bg-danger">v2.1: -15%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-center">
+                                                <h6 class="text-success">{t('crewai.governance.energyCost', lang)}</h6>
+                                                <span class="badge bg-success">v2.1: -8%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button class="btn btn-outline-info btn-sm" onclick="viewReleaseNotes()">
+                                            <i class="fas fa-file-alt"></i> {t('crewai.governance.releaseNotes', lang)}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 권한/감사 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="crew-card">
+                        <h5><i class="fas fa-lock text-danger"></i> {t('crewai.security.title', lang)}</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-warning">
+                                    <h6><i class="fas fa-users-cog"></i> {t('crewai.security.rbac', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>현재 사용자:</strong> admin@energy-system.com
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>권한:</strong> 
+                                        <span class="badge bg-success">{t('crewai.security.readPermission', lang)}</span>
+                                        <span class="badge bg-warning">{t('crewai.security.simulationPermission', lang)}</span>
+                                        <span class="badge bg-danger">{t('crewai.security.applyPermission', lang)}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>크루별 권한:</strong>
+                                        <ul class="mb-0">
+                                            <li>Data Ingestion: 읽기/시뮬레이션</li>
+                                            <li>Forecasting: 읽기/시뮬레이션</li>
+                                            <li>Control: 읽기/시뮬레이션/적용</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-clipboard-list"></i> {t('crewai.security.auditLog', lang)}</h6>
+                                    <div class="mb-2">
+                                        <strong>최근 승인:</strong> admin@energy-system.com
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>승인 시간:</strong> 2024-01-15 10:25:30
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>승인 내용:</strong> 피크 억제 정책 적용
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>IP 주소:</strong> 192.168.1.100
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="viewAuditLog()">
+                                        <i class="fas fa-eye"></i> 전체 감사 로그
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3969,6 +4286,90 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // Timezone management
+            function setTimezone(tz) {{
+                const now = new Date();
+                let timeString;
+                if (tz === 'KST') {{
+                    timeString = now.toLocaleString('ko-KR', {{timeZone: 'Asia/Seoul'}}) + ' KST';
+                }} else {{
+                    timeString = now.toLocaleString() + ' Local';
+                }}
+                document.getElementById('lastUpdateTime').textContent = timeString;
+            }}
+
+            // Safety control functions
+            function approveControl() {{
+                const policy = document.getElementById('policySelection').value;
+                addEventLog(`제어 명령 승인됨: ${{policy}}`, 'success');
+                // Simulate approval process
+                setTimeout(() => {{
+                    addEventLog('제어 명령이 성공적으로 적용되었습니다.', 'success');
+                }}, 2000);
+            }}
+
+            function rejectControl() {{
+                addEventLog('제어 명령이 거부되었습니다.', 'warning');
+            }}
+
+            function downloadSnapshot() {{
+                addEventLog('시뮬레이션 스냅샷을 다운로드합니다...', 'info');
+                // Simulate download
+                setTimeout(() => {{
+                    addEventLog('스냅샷 다운로드 완료: trace_20240115_103045_abc123.json', 'success');
+                }}, 1000);
+            }}
+
+            // Governance functions
+            function shadowDeploy() {{
+                addEventLog('Shadow 배포를 시작합니다...', 'info');
+                setTimeout(() => {{
+                    addEventLog('Shadow 배포 완료: EnergySLM-v2.1', 'success');
+                }}, 3000);
+            }}
+
+            function canaryDeploy() {{
+                addEventLog('Canary 배포를 시작합니다...', 'info');
+                setTimeout(() => {{
+                    addEventLog('Canary 배포 완료: 10% 트래픽', 'success');
+                }}, 2000);
+            }}
+
+            function rollbackModel() {{
+                addEventLog('모델 롤백을 시작합니다...', 'warning');
+                setTimeout(() => {{
+                    addEventLog('롤백 완료: EnergySLM-v2.0으로 복원', 'success');
+                }}, 2000);
+            }}
+
+            function viewReleaseNotes() {{
+                addEventLog('릴리즈 노트를 표시합니다...', 'info');
+            }}
+
+            // Security functions
+            function viewAuditLog() {{
+                addEventLog('감사 로그를 표시합니다...', 'info');
+            }}
+
+            // Enhanced log filtering
+            function filterLogs(crew) {{
+                const logEntries = document.querySelectorAll('.log-entry');
+                logEntries.forEach(entry => {{
+                    if (crew === 'all' || entry.dataset.crew === crew) {{
+                        entry.style.display = 'block';
+                    }} else {{
+                        entry.style.display = 'none';
+                    }}
+                }});
+            }}
+
+            function exportLogs() {{
+                addEventLog('CSV 내보내기를 시작합니다...', 'info');
+                setTimeout(() => {{
+                    addEventLog('CSV 내보내기 완료: event_log_20240115.csv', 'success');
+                }}, 1000);
+            }}
+
             // Workflow control functions
             function startWorkflow() {{
                 const workflowType = document.getElementById('workflowType').value;

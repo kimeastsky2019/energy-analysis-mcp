@@ -226,8 +226,78 @@
   },
   "languages": {
     "korean": "한국어",
-    "english": "English",
+    "english": "English", 
     "japanese": "日本語",
     "chinese": "中文"
+  },
+  "crewai": {
+    "title": "CrewAI専門エージェントチーム",
+    "subtitle": "専門化されたエージェントチームによる自動化されたエネルギー管理",
+    "description": "MCPサーバー機能を専門化されたエージェントチームに分解し、イベントベースの自動化システムを構築",
+    "crewStatusOverview": "クルー状態概要",
+    "workflowControl": "ワークフロー制御",
+    "systemMetrics": "システムメトリクス",
+    "activeCrews": "アクティブクルー",
+    "eventsProcessed": "処理されたイベント",
+    "successRate": "成功率",
+    "avgResponseTime": "平均応答時間",
+    "workflowType": "ワークフロータイプ",
+    "triggerEvent": "トリガーイベント",
+    "startWorkflow": "ワークフロー開始",
+    "pauseWorkflow": "ワークフロー一時停止",
+    "stopWorkflow": "ワークフロー停止",
+    "sequentialWorkflow": "シーケンシャルワークフロー",
+    "parallelWorkflow": "パラレルワークフロー",
+    "hybridWorkflow": "ハイブリッドワークフロー",
+    "optionalTriggerEvent": "オプショントリガーイベント",
+    "dataIngestionCrew": {
+      "title": "データ取り込みクルー",
+      "role": "センサー/気象/発電/バッテリー/料金データの収集・精製・スキーマ検証",
+      "tools": "MCP外部データ/天気ツール、HTTP/APIラッパー、Health/API状態チェック",
+      "currentTask": "リアルタイムセンサーデータ収集",
+      "status": "15のソースからデータ収集中"
+    },
+    "forecastingCrew": {
+      "title": "予測・気候クルー",
+      "role": "短期/中期需要・発電時系列予測、気候Nowcasting連携",
+      "tools": "モデル比較/AutoMLパイプライン、XGBoost/LGBM/RF/NNモデル",
+      "currentTask": "24時間エネルギー需要予測",
+      "status": "モデル精度: 94.2%"
+    },
+    "anomalyCrew": {
+      "title": "異常検知・品質クルー",
+      "role": "データ品質/予測誤差/設備異常検知、アラート閾値動的調整",
+      "tools": "異常値検知・品質レポートルーチン、5分周期モニタリング",
+      "currentTask": "リアルタイム異常検知",
+      "status": "3つの異常を検知"
+    },
+    "demandControlCrew": {
+      "title": "需要応答・制御クルー",
+      "role": "需要-供給マッチング率/ピーク抑制/負荷切り替えシミュレーション、制御推奨・命令生成",
+      "tools": "需要制御/シミュレーション/マッチング率ダッシュボード、運用ポリシーオプション化",
+      "currentTask": "需要-供給マッチング最適化",
+      "status": "マッチング率: 96.8%"
+    },
+    "reportingCrew": {
+      "title": "LLM-SLM運用・レポートクルー",
+      "role": "運用レポート生成、要約/説明、自然言語Q&A、LLM-SLM開発ダッシュボード連携",
+      "tools": "モデルガバナンス（デプロイ/ロールバック）自動化、学習率/進捗/バージョン管理",
+      "currentTask": "日次運用レポート生成",
+      "modelStatus": "EnergySLM-v2.1（訓練: 65%）",
+      "status": "レポート生成進行中"
+    },
+    "eventLog": "イベントログ",
+    "dataIngestion": "データ取り込み",
+    "forecasting": "予測",
+    "anomalyDetection": "異常検知",
+    "demandControl": "需要制御",
+    "reporting": "レポート",
+    "orchestrator": "オーケストレーター",
+    "active": "アクティブ",
+    "role": "役割",
+    "tools": "ツール",
+    "currentTask": "現在のタスク",
+    "status": "状態",
+    "modelStatus": "モデル状態"
   }
 }
