@@ -14,7 +14,142 @@ web_app = FastAPI(title="Digital Experience Intelligence Platform", version="2.0
 
 def get_available_languages():
     """사용 가능한 언어 목록 반환"""
-    return ["ko", "en", "zh"]
+    return ["ko", "en", "ja", "zh"]
+
+def load_translations():
+    """번역 파일 로드"""
+    import json
+    import os
+    
+    translations = {}
+    locales_dir = os.path.join(os.path.dirname(__file__), 'i18n', 'locales')
+    
+    for lang in get_available_languages():
+        try:
+            with open(os.path.join(locales_dir, f'{lang}.json'), 'r', encoding='utf-8') as f:
+                translations[lang] = json.load(f)
+        except FileNotFoundError:
+            # 기본 한국어 번역 사용
+            translations[lang] = {}
+    
+    return translations
+
+def t(key, lang='ko', variables=None):
+    """번역 함수"""
+    if variables is None:
+        variables = {}
+    
+    translations = load_translations()
+    lang_data = translations.get(lang, translations.get('ko', {}))
+    
+    # 점 표기법으로 중첩된 키 탐색
+    keys = key.split('.')
+    value = lang_data
+    
+    for k in keys:
+        if value and isinstance(value, dict) and k in value:
+            value = value[k]
+        else:
+            # 한국어로 폴백
+            ko_data = translations.get('ko', {})
+            fallback_value = ko_data
+            for fallback_key in keys:
+                if fallback_value and isinstance(fallback_value, dict) and fallback_key in fallback_value:
+                    fallback_value = fallback_value[fallback_key]
+                else:
+                    return key  # 키를 찾을 수 없으면 키 자체 반환
+            value = fallback_value
+            break
+    
+    # 문자열 보간 처리
+    if isinstance(value, str) and variables:
+        for var_name, var_value in variables.items():
+            value = value.replace(f'{{{{{var_name}}}}}', str(var_value))
+    
+    return value if value else key
+
+def generate_language_selector(current_lang='ko'):
+    """언어 선택기 HTML 생성"""
+    languages = {
+        'ko': {'name': '한국어', 'flag': '🇰🇷'},
+        'en': {'name': 'English', 'flag': '🇺🇸'},
+        'ja': {'name': '日本語', 'flag': '🇯🇵'},
+        'zh': {'name': '中文', 'flag': '🇨🇳'}
+    }
+    
+    buttons = []
+    for code, info in languages.items():
+        active_class = 'btn-primary' if code == current_lang else 'btn-outline-primary'
+        buttons.append(f'''
+            <a href="?lang={code}" 
+               class="btn btn-sm {active_class}"
+               title="{info['name']}">
+                {info['flag']}
+            </a>
+        ''')
+    
+    return f'''
+        <div class="language-selector">
+            <div class="btn-group" role="group">
+                {''.join(buttons)}
+            </div>
+        </div>
+    '''
+
+def generate_navigation(current_lang='ko'):
+    """네비게이션 메뉴 HTML 생성"""
+    return f'''
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/?lang={current_lang}">
+                    <i class="fas fa-bolt"></i> {t('title', current_lang)}
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/?lang={current_lang}">
+                                <i class="fas fa-home"></i> {t('navigation.home', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/data-collection?lang={current_lang}">
+                                <i class="fas fa-solar-panel"></i> {t('navigation.energySupply', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/data-analysis?lang={current_lang}">
+                                <i class="fas fa-chart-line"></i> {t('navigation.energyDemand', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/model-testing?lang={current_lang}">
+                                <i class="fas fa-brain"></i> {t('navigation.modelTesting', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/statistics?lang={current_lang}">
+                                <i class="fas fa-cogs"></i> {t('navigation.demandControl', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/health?lang={current_lang}">
+                                <i class="fas fa-heartbeat"></i> {t('navigation.health', current_lang)}
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="navbar-nav">
+                        {generate_language_selector(current_lang)}
+                    </div>
+                </div>
+            </div>
+        </nav>
+    '''
 
 @web_app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request, lang: str = Query("ko", description="Language code")):
@@ -29,7 +164,7 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🔋 Energy Management System</title>
+        <title>{t('title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -55,50 +190,7 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
         </style>
     </head>
     <body class="bg-light">
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-bolt"></i> <span data-translate="dashboard_title">Energy Management System</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a class="nav-link me-2" href="/health?lang={lang}">
-                        <i class="fas fa-heartbeat"></i> <span data-translate="nav_health">Health</span>
-                    </a>
-                    <a class="nav-link me-2" href="/model-testing?lang={lang}">
-                        <i class="fas fa-brain"></i> <span data-translate="nav_ml_ai">ML/AI Engine</span>
-                    </a>
-                    <a class="nav-link me-2" href="/data-collection?lang={lang}">
-                        <i class="fas fa-chart-bar"></i> <span data-translate="nav_demand">Demand</span>
-                    </a>
-                    <a class="nav-link me-2" href="/data-collection?lang={lang}">
-                        <i class="fas fa-bolt"></i> <span data-translate="nav_supply">Supply</span>
-                    </a>
-                    <a class="nav-link me-2" href="/statistics?lang={lang}">
-                        <i class="fas fa-cogs"></i> <span data-translate="nav_control">Control</span>
-                    </a>
-                    <a class="nav-link me-2" href="/llm-slm?lang={lang}">
-                        <i class="fas fa-lightbulb"></i> <span data-translate="nav_llm_slm">LLM SLM</span>
-                    </a>
-                    <a class="nav-link me-2" href="/api/docs">
-                        <i class="fas fa-file-alt"></i> <span data-translate="nav_api_docs">API Docs</span>
-                    </a>
-                    <span class="badge bg-success ms-2">
-                        <i class="fas fa-circle"></i> <span data-translate="system_online">System Online</span>
-                    </span>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown ms-2">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe"></i> <span data-translate="current_language">한국어</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
             <!-- 메인 배너 -->
@@ -110,13 +202,13 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                                 <i class="fas fa-robot fa-4x"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <h1 class="card-title mb-2">LLM SLM Development</h1>
-                                <h4 class="card-subtitle mb-3">에너지 특화 언어 모델 개발</h4>
-                                <p class="card-text">Advanced AI language model specialized for energy management and analysis</p>
+                                <h1 class="card-title mb-2">{t('title', lang)}</h1>
+                                <h4 class="card-subtitle mb-3">{t('common.analysis', lang)}</h4>
+                                <p class="card-text">{t('common.monitoring', lang)}</p>
                             </div>
                             <div>
-                                <a href="/llm-slm?lang={lang}" class="btn btn-light btn-lg">
-                                    <i class="fas fa-arrow-right"></i> LLM SLM
+                                <a href="/health?lang={lang}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-arrow-right"></i> {t('navigation.health', lang)}
                                 </a>
                             </div>
                         </div>
@@ -133,12 +225,12 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <div class="mb-3">
                                 <i class="fas fa-heartbeat text-success" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h6 class="card-title">System Health</h6>
+                            <h6 class="card-title">{t('navigation.health', lang)}</h6>
                             <p class="card-text small text-muted mb-3">
-                                Real-time system status monitoring
+                                {t('common.realTime', lang)} {t('common.monitoring', lang)}
                             </p>
                             <a href="/health?lang={lang}" class="btn btn-success btn-sm w-100">
-                                <i class="fas fa-arrow-right"></i> Health
+                                <i class="fas fa-arrow-right"></i> {t('navigation.health', lang)}
                             </a>
                         </div>
                     </div>
@@ -151,12 +243,12 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <div class="mb-3">
                                 <i class="fas fa-brain text-primary" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h6 class="card-title">ML/AI Engine</h6>
+                            <h6 class="card-title">{t('navigation.modelTesting', lang)}</h6>
                             <p class="card-text small text-muted mb-3">
-                                ML/AI model management and testing
+                                {t('modelTesting.title', lang)}
                             </p>
                             <a href="/model-testing?lang={lang}" class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-arrow-right"></i> ML/AI Engine
+                                <i class="fas fa-arrow-right"></i> {t('navigation.modelTesting', lang)}
                             </a>
                         </div>
                     </div>
@@ -169,12 +261,12 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <div class="mb-3">
                                 <i class="fas fa-chart-bar text-info" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h6 class="card-title">Energy Demand Monitoring</h6>
+                            <h6 class="card-title">{t('navigation.energyDemand', lang)}</h6>
                             <p class="card-text small text-muted mb-3">
-                                Energy demand analysis and quality management
+                                {t('energyDemand.title', lang)}
                             </p>
                             <a href="/data-analysis?lang={lang}" class="btn btn-info btn-sm w-100">
-                                <i class="fas fa-arrow-right"></i> Demand
+                                <i class="fas fa-arrow-right"></i> {t('navigation.energyDemand', lang)}
                             </a>
                         </div>
                     </div>
@@ -187,12 +279,12 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <div class="mb-3">
                                 <i class="fas fa-sun text-warning" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h6 class="card-title">Energy Supply Monitoring</h6>
+                            <h6 class="card-title">{t('navigation.energySupply', lang)}</h6>
                             <p class="card-text small text-muted mb-3">
-                                Energy supply monitoring and management
+                                {t('energySupply.title', lang)}
                             </p>
                             <a href="/data-collection?lang={lang}" class="btn btn-warning btn-sm w-100">
-                                <i class="fas fa-arrow-right"></i> Supply
+                                <i class="fas fa-arrow-right"></i> {t('navigation.energySupply', lang)}
                             </a>
                         </div>
                     </div>
@@ -205,12 +297,12 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <div class="mb-3">
                                 <i class="fas fa-sliders-h text-danger" style="font-size: 2.5rem;"></i>
                             </div>
-                            <h6 class="card-title">Demand Control</h6>
+                            <h6 class="card-title">{t('navigation.demandControl', lang)}</h6>
                             <p class="card-text small text-muted mb-3">
-                                Demand control and system management
+                                {t('demandControl.title', lang)}
                             </p>
                             <a href="/statistics?lang={lang}" class="btn btn-danger btn-sm w-100">
-                                <i class="fas fa-arrow-right"></i> Control
+                                <i class="fas fa-arrow-right"></i> {t('navigation.demandControl', lang)}
                             </a>
                         </div>
                     </div>
