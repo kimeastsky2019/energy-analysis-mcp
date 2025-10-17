@@ -173,7 +173,7 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             <p class="card-text small text-muted mb-3">
                                 Energy demand analysis and quality management
                             </p>
-                            <a href="/data-collection?lang={lang}" class="btn btn-info btn-sm w-100">
+                            <a href="/data-analysis?lang={lang}" class="btn btn-info btn-sm w-100">
                                 <i class="fas fa-arrow-right"></i> Demand
                             </a>
                         </div>
@@ -1886,6 +1886,133 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 setInterval(updateRealtimeData, 5000);
             }});
         </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/data-analysis", response_class=HTMLResponse)
+async def data_analysis_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """Energy Demand Monitoring 페이지"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>📊 Energy Demand Monitoring</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <style>
+            .analysis-card {{
+                transition: transform 0.2s;
+                border: none;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .analysis-card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            }}
+        </style>
+    </head>
+    <body class="bg-light">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="fas fa-chart-bar"></i> <span data-translate="card_demand">Energy Demand Monitoring</span>
+                </span>
+                <div class="navbar-nav ms-auto d-flex flex-row">
+                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
+                    </a>
+                    <!-- 언어 선택 드롭다운 -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
+                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
+                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <!-- 데이터 품질 카드들 -->
+                <div class="col-md-3 mb-4">
+                    <div class="card analysis-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Data Completeness</h5>
+                            <h2 class="text-success">98.5%</h2>
+                            <p class="card-text">완전성</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card analysis-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bullseye fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Data Accuracy</h5>
+                            <h2 class="text-primary">96.2%</h2>
+                            <p class="card-text">정확성</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card analysis-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sync-alt fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Data Consistency</h5>
+                            <h2 class="text-info">94.8%</h2>
+                            <p class="card-text">일관성</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card analysis-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Data Freshness</h5>
+                            <h2 class="text-warning">99.1%</h2>
+                            <p class="card-text">신선도</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에너지 수요 분석 차트 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card analysis-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> Energy Demand Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">에너지 수요 패턴 분석 및 예측</p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>분석 결과:</strong> 현재 에너지 수요는 정상 범위 내에 있으며, 예측 모델에 따르면 향후 24시간 내 안정적인 패턴을 유지할 것으로 예상됩니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
     </html>
     """
