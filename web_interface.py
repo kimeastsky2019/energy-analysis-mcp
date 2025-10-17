@@ -1035,17 +1035,17 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 const now = new Date();
                 const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
                 let timeString;
-                if (lang === 'ko') {
+                if (lang === 'ko') {{
                     timeString = now.toLocaleString('ko-KR');
-                } else if (lang === 'en') {
+                }} else if (lang === 'en') {{
                     timeString = now.toLocaleString('en-US');
-                } else if (lang === 'ja') {
+                }} else if (lang === 'ja') {{
                     timeString = now.toLocaleString('ja-JP');
-                } else if (lang === 'zh') {
+                }} else if (lang === 'zh') {{
                     timeString = now.toLocaleString('zh-CN');
-                } else {
+                }} else {{
                     timeString = now.toLocaleString();
-                }
+                }}
                 document.getElementById('lastUpdate').textContent = timeString;
             }});
         </script>
@@ -4454,7 +4454,7 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
             }}
 
             function stopSessionReplay() {{
-                const sessionData = JSON.parse(localStorage.getItem('currentSession') || '{}');
+                const sessionData = JSON.parse(localStorage.getItem('currentSession') || '{{}}');
                 sessionData.endTime = new Date().toISOString();
                 sessionData.duration = new Date(sessionData.endTime) - new Date(sessionData.startTime);
                 
