@@ -916,5 +916,415 @@ async def api_languages():
         "timestamp": datetime.now().isoformat()
     }
 
+@web_app.get("/model-testing", response_class=HTMLResponse)
+async def model_testing_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """ML/AI Engine 페이지"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🧠 ML/AI Engine</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <style>
+            .model-card {{
+                transition: transform 0.2s;
+                border: none;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .model-card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            }}
+            .performance-controls {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .model-selection {{
+                margin-bottom: 20px;
+            }}
+            .form-check {{
+                padding: 10px;
+                border: 2px solid transparent;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }}
+            .form-check:hover {{
+                background: #f8f9fa;
+                border-color: #e9ecef;
+            }}
+            .form-check-input:checked + .form-check-label {{
+                color: #007bff;
+            }}
+            .form-check:has(.form-check-input:checked) {{
+                background: #e3f2fd;
+                border-color: #2196f3;
+            }}
+            .model-actions .btn {{
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+            }}
+            .model-actions .btn:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }}
+            .selected-model-info {{
+                animation: fadeIn 0.5s ease-in;
+            }}
+            @keyframes fadeIn {{
+                from {{ opacity: 0; transform: translateY(10px); }}
+                to {{ opacity: 1; transform: translateY(0); }}
+            }}
+            .metric-card {{
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }}
+            .metric-card h6 {{
+                color: #333;
+                margin-bottom: 15px;
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body class="bg-light">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="fas fa-brain"></i> <span data-translate="ml_ai_engine">ML/AI Engine</span>
+                </span>
+                <div class="navbar-nav ms-auto d-flex flex-row">
+                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
+                    </a>
+                    <a href="/health?lang={lang}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-heartbeat"></i> <span data-translate="nav_health">Health</span>
+                    </a>
+                    <!-- 언어 선택 드롭다운 -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe"></i> <span data-translate="current_language">한국어</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
+                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
+                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <!-- 헤더 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h1 class="card-title mb-2">
+                                <i class="fas fa-brain"></i> ML/AI Engine
+                            </h1>
+                            <p class="card-text">Machine Learning and Artificial Intelligence Model Management and Testing Platform</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- 모델 선택 및 제어 -->
+                <div class="col-md-4">
+                    <div class="performance-controls">
+                        <h5 class="mb-4">
+                            <i class="fas fa-cogs"></i> Model Selection & Control
+                        </h5>
+                        
+                        <!-- 모델 선택 -->
+                        <div class="model-selection">
+                            <h6 class="mb-3">Available Models:</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="modelSelect" id="model1" value="energy-forecast-v1" checked>
+                                <label class="form-check-label" for="model1">
+                                    <strong>Energy Forecast v1.0</strong><br>
+                                    <small class="text-muted">Time series forecasting for energy consumption</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="modelSelect" id="model2" value="demand-predict-v2">
+                                <label class="form-check-label" for="model2">
+                                    <strong>Demand Predict v2.0</strong><br>
+                                    <small class="text-muted">Advanced demand prediction with weather integration</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="modelSelect" id="model3" value="anomaly-detection-v1">
+                                <label class="form-check-label" for="model3">
+                                    <strong>Anomaly Detection v1.0</strong><br>
+                                    <small class="text-muted">Real-time anomaly detection for energy systems</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 모델 액션 -->
+                        <div class="model-actions">
+                            <button class="btn btn-primary w-100" onclick="loadModel()">
+                                <i class="fas fa-download"></i> Load Model
+                            </button>
+                            <button class="btn btn-success w-100" onclick="trainModel()">
+                                <i class="fas fa-play"></i> Train Model
+                            </button>
+                            <button class="btn btn-warning w-100" onclick="testModel()">
+                                <i class="fas fa-vial"></i> Test Model
+                            </button>
+                            <button class="btn btn-info w-100" onclick="evaluateModel()">
+                                <i class="fas fa-chart-line"></i> Evaluate Performance
+                            </button>
+                            <button class="btn btn-secondary w-100" onclick="exportModel()">
+                                <i class="fas fa-download"></i> Export Model
+                            </button>
+                        </div>
+
+                        <!-- 선택된 모델 정보 -->
+                        <div id="selectedModelInfo" class="selected-model-info mt-4" style="display: none;">
+                            <h6>Selected Model Information:</h6>
+                            <div class="alert alert-info">
+                                <strong>Model:</strong> <span id="selectedModelName">-</span><br>
+                                <strong>Version:</strong> <span id="selectedModelVersion">-</span><br>
+                                <strong>Status:</strong> <span id="selectedModelStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 모델 성능 메트릭 -->
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h6><i class="fas fa-chart-line"></i> Model Performance</h6>
+                                <div class="mb-2">
+                                    <small>Accuracy: <strong id="modelAccuracy">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" id="accuracyBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <small>Precision: <strong id="modelPrecision">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" id="precisionBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <small>Recall: <strong id="modelRecall">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" id="recallBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <small>F1-Score: <strong id="modelF1">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" id="f1Bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h6><i class="fas fa-clock"></i> Training Status</h6>
+                                <div class="mb-2">
+                                    <small>Epoch: <strong id="currentEpoch">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" id="epochBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <small>Loss: <strong id="currentLoss">-</strong></small>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-secondary" id="lossBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <small>Learning Rate: <strong id="learningRate">-</strong></small>
+                                </div>
+                                <div class="mb-2">
+                                    <small>Status: <span class="badge bg-success" id="trainingStatus">Ready</span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 모델 테스트 결과 -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-vial"></i> Model Test Results
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="testResults">
+                                <p class="text-muted">No test results available. Please run a test first.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 모델 선택 이벤트
+            document.querySelectorAll('input[name="modelSelect"]').forEach(radio => {{
+                radio.addEventListener('change', function() {{
+                    updateSelectedModelInfo(this.value);
+                }});
+            }});
+
+            // 모델 정보 업데이트
+            function updateSelectedModelInfo(modelId) {{
+                const modelInfo = {{
+                    'energy-forecast-v1': {{ name: 'Energy Forecast', version: 'v1.0', status: 'Ready' }},
+                    'demand-predict-v2': {{ name: 'Demand Predict', version: 'v2.0', status: 'Training' }},
+                    'anomaly-detection-v1': {{ name: 'Anomaly Detection', version: 'v1.0', status: 'Ready' }}
+                }};
+
+                const info = modelInfo[modelId];
+                if (info) {{
+                    document.getElementById('selectedModelName').textContent = info.name;
+                    document.getElementById('selectedModelVersion').textContent = info.version;
+                    document.getElementById('selectedModelStatus').textContent = info.status;
+                    document.getElementById('selectedModelInfo').style.display = 'block';
+                }}
+            }}
+
+            // 모델 로드
+            function loadModel() {{
+                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
+                showNotification(`Loading model: ${{selectedModel}}`, 'info');
+                updateMetrics();
+            }}
+
+            // 모델 훈련
+            function trainModel() {{
+                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
+                showNotification(`Training model: ${{selectedModel}}`, 'warning');
+                simulateTraining();
+            }}
+
+            // 모델 테스트
+            function testModel() {{
+                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
+                showNotification(`Testing model: ${{selectedModel}}`, 'info');
+                simulateTest();
+            }}
+
+            // 모델 평가
+            function evaluateModel() {{
+                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
+                showNotification(`Evaluating model: ${{selectedModel}}`, 'success');
+                updateMetrics();
+            }}
+
+            // 모델 내보내기
+            function exportModel() {{
+                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
+                showNotification(`Exporting model: ${{selectedModel}}`, 'info');
+            }}
+
+            // 메트릭 업데이트
+            function updateMetrics() {{
+                // 랜덤 메트릭 생성
+                const accuracy = (Math.random() * 0.3 + 0.7).toFixed(3);
+                const precision = (Math.random() * 0.3 + 0.7).toFixed(3);
+                const recall = (Math.random() * 0.3 + 0.7).toFixed(3);
+                const f1 = (Math.random() * 0.3 + 0.7).toFixed(3);
+
+                document.getElementById('modelAccuracy').textContent = accuracy;
+                document.getElementById('modelPrecision').textContent = precision;
+                document.getElementById('modelRecall').textContent = recall;
+                document.getElementById('modelF1').textContent = f1;
+
+                document.getElementById('accuracyBar').style.width = (accuracy * 100) + '%';
+                document.getElementById('precisionBar').style.width = (precision * 100) + '%';
+                document.getElementById('recallBar').style.width = (recall * 100) + '%';
+                document.getElementById('f1Bar').style.width = (f1 * 100) + '%';
+            }}
+
+            // 훈련 시뮬레이션
+            function simulateTraining() {{
+                let epoch = 0;
+                const maxEpochs = 100;
+                const trainingInterval = setInterval(() => {{
+                    epoch++;
+                    const progress = (epoch / maxEpochs) * 100;
+                    const loss = Math.max(0.1, 1.0 - (epoch / maxEpochs) * 0.8);
+
+                    document.getElementById('currentEpoch').textContent = epoch;
+                    document.getElementById('currentLoss').textContent = loss.toFixed(4);
+                    document.getElementById('epochBar').style.width = progress + '%';
+                    document.getElementById('lossBar').style.width = (loss * 100) + '%';
+                    document.getElementById('trainingStatus').textContent = 'Training';
+                    document.getElementById('trainingStatus').className = 'badge bg-warning';
+
+                    if (epoch >= maxEpochs) {{
+                        clearInterval(trainingInterval);
+                        document.getElementById('trainingStatus').textContent = 'Completed';
+                        document.getElementById('trainingStatus').className = 'badge bg-success';
+                        showNotification('Training completed successfully!', 'success');
+                    }}
+                }}, 100);
+            }}
+
+            // 테스트 시뮬레이션
+            function simulateTest() {{
+                const testResults = document.getElementById('testResults');
+                testResults.innerHTML = `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle"></i> Test Results</h6>
+                        <ul class="mb-0">
+                            <li>Test Accuracy: <strong>${{(Math.random() * 0.2 + 0.8).toFixed(3)}}</strong></li>
+                            <li>Test Loss: <strong>${{(Math.random() * 0.1 + 0.05).toFixed(4)}}</strong></li>
+                            <li>Inference Time: <strong>${{(Math.random() * 50 + 10).toFixed(1)}}ms</strong></li>
+                            <li>Memory Usage: <strong>${{(Math.random() * 200 + 100).toFixed(1)}}MB</strong></li>
+                        </ul>
+                    </div>
+                `;
+            }}
+
+            // 알림 표시
+            function showNotification(message, type) {{
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${{type}} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const container = document.querySelector('.container-fluid');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                setTimeout(() => {{
+                    alertDiv.remove();
+                }}, 3000);
+            }}
+
+            // 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                updateSelectedModelInfo('energy-forecast-v1');
+                updateMetrics();
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
 if __name__ == "__main__":
     uvicorn.run(web_app, host="0.0.0.0", port=8000)
