@@ -430,7 +430,7 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🔍 Digital Experience Intelligence Platform</title>
+        <title>{t('health.title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <style>
@@ -1021,7 +1021,7 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🎛️ Demand Control & Demo Sites Management</title>
+        <title>{t('demandControl.title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -1079,29 +1079,7 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
         </style>
     </head>
     <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-sliders-h"></i> <span data-translate="demand_control_title">Demand Control</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
-                    </a>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
             <!-- Smart ESS 중앙 제어 -->
@@ -1581,7 +1559,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>⚡ 에너지 공급 분석 및 예측 대시보드</title>
+        <title>{t('energySupply.title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -1650,29 +1628,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
         </style>
     </head>
     <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">에너지 공급 분석 및 예측</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
-                    </a>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
             <!-- 실시간 에너지 공급 현황 -->
@@ -2273,7 +2229,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>📊 에너지 수요 분석 및 예측 대시보드</title>
+        <title>{t('energyDemand.title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -2379,29 +2335,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         </style>
     </head>
     <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-chart-line"></i> <span data-translate="energy_demand_analysis">에너지 수요 분석 및 예측</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
-                    </a>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe"></i> <span data-translate="current_language">한국어</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
             <!-- 에너지 수요 현황 -->
@@ -2840,7 +2774,7 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🤖 MCP 기반 자동화 ML/AI Engine</title>
+        <title>{t('modelTesting.title', lang)}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -2940,32 +2874,7 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
         </style>
     </head>
     <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-robot"></i> <span data-translate="mcp_ai_engine">MCP 기반 자동화 ML/AI Engine</span>
-                </span>
-                <div class="navbar-nav ms-auto d-flex flex-row">
-                    <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-home"></i> <span data-translate="nav_home">Dashboard</span>
-                    </a>
-                    <a href="/health?lang={lang}" class="btn btn-outline-light btn-sm me-2">
-                        <i class="fas fa-heartbeat"></i> <span data-translate="nav_health">Health</span>
-                    </a>
-                    <!-- 언어 선택 드롭다운 -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe"></i> <span data-translate="current_language">한국어</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                            <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
             <!-- 헤더 -->
@@ -2973,9 +2882,9 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                 <div class="col-12">
                     <div class="mcp-card">
                         <h1 class="mb-2">
-                            <i class="fas fa-robot"></i> MCP 기반 자동화 ML/AI Engine
+                            <i class="fas fa-robot"></i> {t('modelTesting.title', lang)}
                         </h1>
-                        <p class="mb-0">Model Context Protocol을 활용한 지능형 에이전트 기반 머신러닝 파이프라인 자동화 시스템</p>
+                        <p class="mb-0">{t('modelTesting.pipeline', lang)}</p>
                     </div>
                 </div>
             </div>
@@ -2984,33 +2893,33 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="agent-status">
-                        <h5><i class="fas fa-brain"></i> MCP 에이전트 상태</h5>
+                        <h5><i class="fas fa-brain"></i> {t('modelTesting.agentStatus', lang)}</h5>
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="text-center">
-                                    <h6>Agent Status</h6>
-                                    <span class="badge bg-success fs-6" id="agentStatus">Active</span>
+                                    <h6>{t('common.status', lang)}</h6>
+                                    <span class="badge bg-success fs-6" id="agentStatus">{t('common.active', lang)}</span>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
-                                    <h6>Current Task</h6>
-                                    <span id="currentTask">Data Collection</span>
+                                    <h6>{t('modelTesting.currentTask', lang)}</h6>
+                                    <span id="currentTask">{t('modelTesting.dataCollection', lang)}</span>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
-                                    <h6>Progress</h6>
+                                    <h6>{t('modelTesting.progress', lang)}</h6>
                                     <div class="progress-step">
                                         <div class="progress-fill" id="overallProgress" style="width: 20%"></div>
                                     </div>
-                                    <small id="progressText">20% Complete</small>
+                                    <small id="progressText">20% {t('modelTesting.complete', lang)}</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="text-center">
                                     <button class="btn btn-primary" onclick="startMCPPipeline()">
-                                        <i class="fas fa-play"></i> Start Pipeline
+                                        <i class="fas fa-play"></i> {t('modelTesting.startPipeline', lang)}
                                     </button>
                                 </div>
                             </div>
