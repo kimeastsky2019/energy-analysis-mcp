@@ -2534,6 +2534,10 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 padding: 15px;
                 margin-bottom: 15px;
             }}
+            @keyframes spin {{
+                0% {{ transform: rotate(0deg); }}
+                100% {{ transform: rotate(360deg); }}
+            }}
         </style>
     </head>
     <body>
@@ -2618,50 +2622,62 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-12">
                     <div class="dashboard-card">
-                        <h4><i class="fas fa-cloud-sun"></i> Advanced Weather Analysis System</h4>
+                        <h4><i class="fas fa-cloud-sun"></i> {t('energySupply.advancedWeatherAnalysis', lang)}</h4>
                         <div class="row">
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon" id="weatherIcon">☀️</div>
                                     <div class="metric-value" id="temperature">23°C</div>
-                                    <div class="metric-label">Temperature</div>
+                                    <div class="metric-label">{t('energySupply.temperature', lang)}</div>
+                                    <small class="text-muted" id="tempTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="tempTime"></span></small>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon">💧</div>
                                     <div class="metric-value" id="humidity">65%</div>
-                                    <div class="metric-label">Humidity</div>
+                                    <div class="metric-label">{t('energySupply.humidity', lang)}</div>
+                                    <small class="text-muted" id="humidityTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="humidityTime"></span></small>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon">💨</div>
                                     <div class="metric-value" id="windSpeed">12 km/h</div>
-                                    <div class="metric-label">Wind Speed</div>
+                                    <div class="metric-label">{t('energySupply.windSpeed', lang)}</div>
+                                    <small class="text-muted" id="windTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="windTime"></span></small>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon">☀️</div>
                                     <div class="metric-value" id="solarIrradiance">850 W/m²</div>
-                                    <div class="metric-label">Solar Irradiance</div>
+                                    <div class="metric-label">{t('energySupply.solarIrradiance', lang)}</div>
+                                    <small class="text-muted" id="solarTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="solarTime"></span></small>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon">🌧️</div>
                                     <div class="metric-value" id="precipitation">0 mm</div>
-                                    <div class="metric-label">Precipitation</div>
+                                    <div class="metric-label">{t('energySupply.precipitation', lang)}</div>
+                                    <small class="text-muted" id="precipTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="precipTime"></span></small>
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="weather-card text-center">
                                     <div class="weather-icon">👁️</div>
                                     <div class="metric-value" id="visibility">10 km</div>
-                                    <div class="metric-label">Visibility</div>
+                                    <div class="metric-label">{t('energySupply.visibility', lang)}</div>
+                                    <small class="text-muted" id="visTimestamp">{t('energySupply.lastUpdate', lang)}: <span id="visTime"></span></small>
                                 </div>
                             </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-primary btn-sm" onclick="refreshWeatherData()">
+                                <i class="fas fa-sync-alt"></i> {t('energySupply.refresh', lang)}
+                            </button>
+                            <small class="text-muted ms-3">{t('energySupply.autoRefresh', lang)}: 30초</small>
                         </div>
                     </div>
                 </div>
@@ -2671,13 +2687,13 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-lg-6">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-chart-area"></i> Energy Generation Trends</h5>
+                        <h5><i class="fas fa-chart-area"></i> {t('energySupply.energyGenerationTrends', lang)}</h5>
                         <canvas id="generationChart" class="chart-container"></canvas>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-thermometer-half"></i> Weather Conditions</h5>
+                        <h5><i class="fas fa-thermometer-half"></i> {t('energySupply.weatherConditions', lang)}</h5>
                         <canvas id="weatherChart" class="chart-container"></canvas>
                     </div>
                 </div>
@@ -2687,31 +2703,31 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-lg-4">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-chart-pie"></i> Energy Mix Distribution</h5>
+                        <h5><i class="fas fa-chart-pie"></i> {t('energySupply.energyMixDistribution', lang)}</h5>
                         <canvas id="energyMixChart" class="chart-container"></canvas>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-link"></i> Energy-Weather Correlation</h5>
+                        <h5><i class="fas fa-link"></i> {t('energySupply.energyWeatherCorrelation', lang)}</h5>
                         <div class="correlation-card">
-                            <h6><i class="fas fa-sun"></i> Solar vs Irradiance</h6>
+                            <h6><i class="fas fa-sun"></i> {t('energySupply.solarVsIrradiance', lang)}</h6>
                             <div class="mb-2">
-                                <small>Correlation: <strong id="solarCorrelation">0.87</strong></small>
+                                <small>{t('energySupply.correlation', lang)}: <strong id="solarCorrelation">0.87</strong></small>
                                 <div class="progress">
                                     <div class="progress-bar bg-warning" style="width: 87%"></div>
                                 </div>
                             </div>
-                            <h6><i class="fas fa-battery-half"></i> ESS vs Efficiency</h6>
+                            <h6><i class="fas fa-battery-half"></i> {t('energySupply.essVsEfficiency', lang)}</h6>
                             <div class="mb-2">
-                                <small>Correlation: <strong id="essCorrelation">0.92</strong></small>
+                                <small>{t('energySupply.correlation', lang)}: <strong id="essCorrelation">0.92</strong></small>
                                 <div class="progress">
                                     <div class="progress-bar bg-info" style="width: 92%"></div>
                                 </div>
                             </div>
-                            <h6><i class="fas fa-thermometer-half"></i> Efficiency vs Temperature</h6>
+                            <h6><i class="fas fa-thermometer-half"></i> {t('energySupply.efficiencyVsTemperature', lang)}</h6>
                             <div class="mb-2">
-                                <small>Correlation: <strong id="tempCorrelation">-0.34</strong></small>
+                                <small>{t('energySupply.correlation', lang)}: <strong id="tempCorrelation">-0.34</strong></small>
                                 <div class="progress">
                                     <div class="progress-bar bg-danger" style="width: 34%"></div>
                                 </div>
@@ -2731,66 +2747,69 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-12">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-cogs"></i> System Status Monitoring</h5>
+                        <h5><i class="fas fa-cogs"></i> {t('energySupply.systemStatusMonitoring', lang)}</h5>
                         <div class="row">
                             <div class="col-md-3">
-                                <h6>Solar Panel Array</h6>
+                                <h6>{t('energySupply.solarPanelArray', lang)}</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Panel 1-10: <strong>Online</strong></span>
+                                    <span>{t('energySupply.panel', lang)} 1-10: <strong>{t('energySupply.online', lang)}</strong></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Panel 11-20: <strong>Online</strong></span>
+                                    <span>{t('energySupply.panel', lang)} 11-20: <strong>{t('energySupply.online', lang)}</strong></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="status-indicator status-warning"></span>
-                                    <span>Panel 21-25: <strong>Maintenance</strong></span>
+                                    <span>{t('energySupply.panel', lang)} 21-25: <strong>{t('energySupply.maintenance', lang)}</strong></span>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <h6>Wind Turbine System</h6>
+                                <h6>🔋 {t('energySupply.energyStorageSystem', lang)} (ESS)</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Turbine 1: <strong>Online</strong></span>
+                                    <span>{t('energySupply.batteryBank', lang)} 1: <strong>🟢 충전 중 (87% SOC)</strong></span>
+                                    <small class="text-muted d-block">충전 속도: +2.3 kW</small>
                                 </div>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Turbine 2: <strong>Online</strong></span>
+                                    <span>{t('energySupply.batteryBank', lang)} 2: <strong>🟢 방전 중 (88% SOC)</strong></span>
+                                    <small class="text-muted d-block">방전 속도: -1.8 kW</small>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="status-indicator status-offline"></span>
-                                    <span>Turbine 3: <strong>Offline</strong></span>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <h6>Energy Storage System</h6>
-                                <div class="mb-2">
-                                    <span class="status-indicator status-online"></span>
-                                    <span>Battery Bank 1: <strong>Online</strong></span>
-                                </div>
-                                <div class="mb-2">
-                                    <span class="status-indicator status-online"></span>
-                                    <span>Battery Bank 2: <strong>Online</strong></span>
-                                </div>
-                                <div class="mb-2">
-                                    <span class="status-indicator status-online"></span>
-                                    <span>Inverter System: <strong>Online</strong></span>
+                                    <span class="status-indicator status-warning"></span>
+                                    <span>{t('energySupply.batteryBank', lang)} 3: <strong>🟡 정비 중</strong></span>
+                                    <small class="text-muted d-block">완료 예정: 17:00</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <h6>Weather Sensors</h6>
+                                <h6>⚡ {t('energySupply.inverterSystem', lang)}</h6>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Temperature: <strong>Online</strong></span>
+                                    <span>인버터 1: <strong>{t('energySupply.online', lang)}</strong></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Wind Speed: <strong>Online</strong></span>
+                                    <span>인버터 2: <strong>{t('energySupply.online', lang)}</strong></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="status-indicator status-online"></span>
-                                    <span>Solar Sensor: <strong>Online</strong></span>
+                                    <span>제어 시스템: <strong>{t('energySupply.online', lang)}</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>{t('energySupply.weatherSensors', lang)}</h6>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>{t('energySupply.temperature', lang)}: <strong>{t('energySupply.online', lang)}</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>{t('energySupply.windSpeed', lang)}: <strong>{t('energySupply.online', lang)}</strong></span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-indicator status-online"></span>
+                                    <span>태양 센서: <strong>{t('energySupply.online', lang)}</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -2802,10 +2821,10 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-12">
                     <div class="dashboard-card">
-                        <h5><i class="fas fa-crystal-ball"></i> Weather Forecast & Energy Prediction</h5>
+                        <h5><i class="fas fa-crystal-ball"></i> {t('energySupply.weatherForecast', lang)} & {t('energySupply.energyGenerationPrediction', lang)}</h5>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Next 24 Hours Weather Forecast</h6>
+                                <h6>다음 24시간 {t('energySupply.weatherForecast', lang)}</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
@@ -2904,6 +2923,39 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // 타임스탬프 업데이트
+            function updateTimestamps() {{
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR', {{ 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit' 
+                }});
+                
+                // 모든 센서 타임스탬프 업데이트
+                const timestampElements = ['tempTime', 'humidityTime', 'windTime', 'solarTime', 'precipTime', 'visTime'];
+                timestampElements.forEach(id => {{
+                    const element = document.getElementById(id);
+                    if (element) {{
+                        element.textContent = timeString;
+                    }}
+                }});
+            }}
+
+            // 날씨 데이터 새로고침
+            function refreshWeatherData() {{
+                const button = event.target;
+                const icon = button.querySelector('i');
+                icon.style.animation = 'spin 1s linear infinite';
+                
+                updateRealtimeData();
+                updateTimestamps();
+                
+                setTimeout(() => {{
+                    icon.style.animation = '';
+                }}, 1000);
+            }}
+
             // 실시간 데이터 업데이트
             function updateRealtimeData() {{
                 // 발전량 데이터 업데이트
@@ -3116,9 +3168,12 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             document.addEventListener('DOMContentLoaded', function() {{
                 initCharts();
                 updateRealtimeData();
+                updateTimestamps();
                 
                 // 5초마다 데이터 업데이트
                 setInterval(updateRealtimeData, 5000);
+                // 1초마다 타임스탬프 업데이트
+                setInterval(updateTimestamps, 1000);
             }});
         </script>
     </body>
