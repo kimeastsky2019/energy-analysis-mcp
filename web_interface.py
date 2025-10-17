@@ -2019,7 +2019,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
 
 @web_app.get("/model-testing", response_class=HTMLResponse)
 async def model_testing_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """ML/AI Engine 페이지"""
+    """MCP 기반 자동화 ML/AI Engine 페이지"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -2030,59 +2030,62 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🧠 ML/AI Engine</title>
+        <title>🤖 MCP 기반 자동화 ML/AI Engine</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
         <style>
-            .model-card {{
-                transition: transform 0.2s;
-                border: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }}
-            .model-card:hover {{
-                transform: translateY(-5px);
-                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            }}
-            .performance-controls {{
+            .mcp-card {{
                 background: rgba(255, 255, 255, 0.95);
                 border-radius: 15px;
                 padding: 20px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }}
-            .model-selection {{
                 margin-bottom: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }}
-            .form-check {{
-                padding: 10px;
-                border: 2px solid transparent;
-                border-radius: 8px;
-                transition: all 0.3s ease;
+            .process-step {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                position: relative;
+                overflow: hidden;
             }}
-            .form-check:hover {{
-                background: #f8f9fa;
-                border-color: #e9ecef;
+            .process-step::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+                pointer-events: none;
             }}
-            .form-check-input:checked + .form-check-label {{
-                color: #007bff;
+            .process-step.active {{
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                animation: pulse 2s infinite;
             }}
-            .form-check:has(.form-check-input:checked) {{
-                background: #e3f2fd;
-                border-color: #2196f3;
+            .process-step.completed {{
+                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
             }}
-            .model-actions .btn {{
-                margin-bottom: 10px;
-                transition: all 0.3s ease;
+            @keyframes pulse {{
+                0% {{ transform: scale(1); }}
+                50% {{ transform: scale(1.02); }}
+                100% {{ transform: scale(1); }}
             }}
-            .model-actions .btn:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            }}
-            .selected-model-info {{
-                animation: fadeIn 0.5s ease-in;
-            }}
-            @keyframes fadeIn {{
-                from {{ opacity: 0; transform: translateY(10px); }}
-                to {{ opacity: 1; transform: translateY(0); }}
+            .agent-status {{
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                color: #333;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
             }}
             .metric-card {{
                 background: rgba(255, 255, 255, 0.9);
@@ -2091,18 +2094,46 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
                 margin-bottom: 15px;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }}
-            .metric-card h6 {{
-                color: #333;
-                margin-bottom: 15px;
-                font-weight: bold;
+            .progress-step {{
+                height: 8px;
+                border-radius: 4px;
+                background: rgba(255, 255, 255, 0.3);
+                overflow: hidden;
             }}
+            .progress-fill {{
+                height: 100%;
+                background: linear-gradient(90deg, #28a745, #20c997);
+                border-radius: 4px;
+                transition: width 0.5s ease;
+            }}
+            .log-container {{
+                background: #1e1e1e;
+                color: #00ff00;
+                border-radius: 10px;
+                padding: 15px;
+                font-family: 'Courier New', monospace;
+                font-size: 0.9rem;
+                max-height: 300px;
+                overflow-y: auto;
+            }}
+            .log-entry {{
+                margin-bottom: 5px;
+                padding: 2px 0;
+            }}
+            .log-timestamp {{
+                color: #888;
+            }}
+            .log-info {{ color: #00ff00; }}
+            .log-warning {{ color: #ffaa00; }}
+            .log-error {{ color: #ff0000; }}
+            .log-success {{ color: #00ff88; }}
         </style>
     </head>
-    <body class="bg-light">
+    <body>
         <nav class="navbar navbar-dark bg-dark">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-brain"></i> <span data-translate="ml_ai_engine">ML/AI Engine</span>
+                    <i class="fas fa-robot"></i> <span data-translate="mcp_ai_engine">MCP 기반 자동화 ML/AI Engine</span>
                 </span>
                 <div class="navbar-nav ms-auto d-flex flex-row">
                     <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
@@ -2130,149 +2161,218 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
             <!-- 헤더 -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <h1 class="card-title mb-2">
-                                <i class="fas fa-brain"></i> ML/AI Engine
-                            </h1>
-                            <p class="card-text">Machine Learning and Artificial Intelligence Model Management and Testing Platform</p>
+                    <div class="mcp-card">
+                        <h1 class="mb-2">
+                            <i class="fas fa-robot"></i> MCP 기반 자동화 ML/AI Engine
+                        </h1>
+                        <p class="mb-0">Model Context Protocol을 활용한 지능형 에이전트 기반 머신러닝 파이프라인 자동화 시스템</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP 에이전트 상태 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="agent-status">
+                        <h5><i class="fas fa-brain"></i> MCP 에이전트 상태</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6>Agent Status</h6>
+                                    <span class="badge bg-success fs-6" id="agentStatus">Active</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6>Current Task</h6>
+                                    <span id="currentTask">Data Collection</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6>Progress</h6>
+                                    <div class="progress-step">
+                                        <div class="progress-fill" id="overallProgress" style="width: 20%"></div>
+                                    </div>
+                                    <small id="progressText">20% Complete</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <button class="btn btn-primary" onclick="startMCPPipeline()">
+                                        <i class="fas fa-play"></i> Start Pipeline
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- MCP 자동화 프로세스 -->
             <div class="row">
-                <!-- 모델 선택 및 제어 -->
-                <div class="col-md-4">
-                    <div class="performance-controls">
-                        <h5 class="mb-4">
-                            <i class="fas fa-cogs"></i> Model Selection & Control
-                        </h5>
+                <div class="col-lg-8">
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-cogs"></i> MCP 자동화 프로세스</h5>
                         
-                        <!-- 모델 선택 -->
-                        <div class="model-selection">
-                            <h6 class="mb-3">Available Models:</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="modelSelect" id="model1" value="energy-forecast-v1" checked>
-                                <label class="form-check-label" for="model1">
-                                    <strong>Energy Forecast v1.0</strong><br>
-                                    <small class="text-muted">Time series forecasting for energy consumption</small>
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="modelSelect" id="model2" value="demand-predict-v2">
-                                <label class="form-check-label" for="model2">
-                                    <strong>Demand Predict v2.0</strong><br>
-                                    <small class="text-muted">Advanced demand prediction with weather integration</small>
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="modelSelect" id="model3" value="anomaly-detection-v1">
-                                <label class="form-check-label" for="model3">
-                                    <strong>Anomaly Detection v1.0</strong><br>
-                                    <small class="text-muted">Real-time anomaly detection for energy systems</small>
-                                </label>
+                        <!-- 1단계: 데이터 자동 정제 -->
+                        <div class="process-step" id="step1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-broom"></i> 1. 수집된 데이터 자동 정제</h6>
+                                    <small>이상치 제거, 결측값 처리, 데이터 타입 변환</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary" id="step1Status">Pending</span>
+                                    <div class="progress-step mt-2" style="width: 100px;">
+                                        <div class="progress-fill" id="step1Progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 모델 액션 -->
-                        <div class="model-actions">
-                            <button class="btn btn-primary w-100" onclick="loadModel()">
-                                <i class="fas fa-download"></i> Load Model
-                            </button>
-                            <button class="btn btn-success w-100" onclick="trainModel()">
-                                <i class="fas fa-play"></i> Train Model
-                            </button>
-                            <button class="btn btn-warning w-100" onclick="testModel()">
-                                <i class="fas fa-vial"></i> Test Model
-                            </button>
-                            <button class="btn btn-info w-100" onclick="evaluateModel()">
-                                <i class="fas fa-chart-line"></i> Evaluate Performance
-                            </button>
-                            <button class="btn btn-secondary w-100" onclick="exportModel()">
-                                <i class="fas fa-download"></i> Export Model
-                            </button>
+                        <!-- 2단계: 메타데이터 라벨링 -->
+                        <div class="process-step" id="step2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-tags"></i> 2. 메타데이터 시계열 데이터 라벨링</h6>
+                                    <small>시계열 특성 분석, 패턴 인식, 라벨 자동 생성</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary" id="step2Status">Pending</span>
+                                    <div class="progress-step mt-2" style="width: 100px;">
+                                        <div class="progress-fill" id="step2Progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- 선택된 모델 정보 -->
-                        <div id="selectedModelInfo" class="selected-model-info mt-4" style="display: none;">
-                            <h6>Selected Model Information:</h6>
-                            <div class="alert alert-info">
-                                <strong>Model:</strong> <span id="selectedModelName">-</span><br>
-                                <strong>Version:</strong> <span id="selectedModelVersion">-</span><br>
-                                <strong>Status:</strong> <span id="selectedModelStatus">-</span>
+                        <!-- 3단계: 모델 선택과 학습 -->
+                        <div class="process-step" id="step3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-brain"></i> 3. 학습 데이터 예측 모델 선택과 학습</h6>
+                                    <small>AutoML 기반 모델 선택, 하이퍼파라미터 최적화, 자동 학습</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary" id="step3Status">Pending</span>
+                                    <div class="progress-step mt-2" style="width: 100px;">
+                                        <div class="progress-fill" id="step3Progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4단계: 데이터 품질 검증 -->
+                        <div class="process-step" id="step4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-shield-alt"></i> 4. 데이터 품질 검증 리포트</h6>
+                                    <small>모델 성능 평가, 데이터 품질 메트릭, 검증 리포트 생성</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary" id="step4Status">Pending</span>
+                                    <div class="progress-step mt-2" style="width: 100px;">
+                                        <div class="progress-fill" id="step4Progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5단계: 최종 모델 확정 -->
+                        <div class="process-step" id="step5">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-check-circle"></i> 5. 최종 모델 확정</h6>
+                                    <small>모델 배포, 성능 모니터링, 자동 재학습 설정</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary" id="step5Status">Pending</span>
+                                    <div class="progress-step mt-2" style="width: 100px;">
+                                        <div class="progress-fill" id="step5Progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 모델 성능 메트릭 -->
-                <div class="col-md-8">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="metric-card">
-                                <h6><i class="fas fa-chart-line"></i> Model Performance</h6>
-                                <div class="mb-2">
-                                    <small>Accuracy: <strong id="modelAccuracy">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" id="accuracyBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <small>Precision: <strong id="modelPrecision">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-info" id="precisionBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <small>Recall: <strong id="modelRecall">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" id="recallBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <small>F1-Score: <strong id="modelF1">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" id="f1Bar" style="width: 0%"></div>
-                                    </div>
-                                </div>
+                <!-- 실시간 로그 및 메트릭 -->
+                <div class="col-lg-4">
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-terminal"></i> 실시간 로그</h5>
+                        <div class="log-container" id="logContainer">
+                            <div class="log-entry">
+                                <span class="log-timestamp">[2024-01-15 10:30:15]</span>
+                                <span class="log-info">MCP Agent initialized</span>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="metric-card">
-                                <h6><i class="fas fa-clock"></i> Training Status</h6>
-                                <div class="mb-2">
-                                    <small>Epoch: <strong id="currentEpoch">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" id="epochBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <small>Loss: <strong id="currentLoss">-</strong></small>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-secondary" id="lossBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <small>Learning Rate: <strong id="learningRate">-</strong></small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>Status: <span class="badge bg-success" id="trainingStatus">Ready</span></small>
-                                </div>
+                            <div class="log-entry">
+                                <span class="log-timestamp">[2024-01-15 10:30:16]</span>
+                                <span class="log-info">Waiting for pipeline start...</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 모델 테스트 결과 -->
-                    <div class="card mt-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-vial"></i> Model Test Results
-                            </h5>
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-chart-line"></i> 실시간 메트릭</h5>
+                        <div class="metric-card">
+                            <h6>Data Quality Score</h6>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-success" id="dataQuality" style="width: 0%"></div>
+                            </div>
+                            <small id="dataQualityText">0%</small>
                         </div>
-                        <div class="card-body">
-                            <div id="testResults">
-                                <p class="text-muted">No test results available. Please run a test first.</p>
+                        <div class="metric-card">
+                            <h6>Model Accuracy</h6>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-info" id="modelAccuracy" style="width: 0%"></div>
+                            </div>
+                            <small id="modelAccuracyText">0%</small>
+                        </div>
+                        <div class="metric-card">
+                            <h6>Processing Speed</h6>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-warning" id="processingSpeed" style="width: 0%"></div>
+                            </div>
+                            <small id="processingSpeedText">0 records/sec</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모델 성능 대시보드 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="mcp-card">
+                        <h5><i class="fas fa-chart-bar"></i> 모델 성능 대시보드</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="metric-card text-center">
+                                    <h6>Selected Model</h6>
+                                    <h4 id="selectedModel">AutoML Selected</h4>
+                                    <small class="text-muted">Best performing model</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card text-center">
+                                    <h6>Training Time</h6>
+                                    <h4 id="trainingTime">-</h4>
+                                    <small class="text-muted">Total training duration</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card text-center">
+                                    <h6>Validation Score</h6>
+                                    <h4 id="validationScore">-</h4>
+                                    <small class="text-muted">Cross-validation score</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-card text-center">
+                                    <h6>Deployment Status</h6>
+                                    <h4 id="deploymentStatus">-</h4>
+                                    <small class="text-muted">Model deployment status</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2282,145 +2382,211 @@ async def model_testing_page(request: Request, lang: str = Query("ko", descripti
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            // 모델 선택 이벤트
-            document.querySelectorAll('input[name="modelSelect"]').forEach(radio => {{
-                radio.addEventListener('change', function() {{
-                    updateSelectedModelInfo(this.value);
-                }});
-            }});
+            let currentStep = 0;
+            let pipelineRunning = false;
+            let logEntries = 0;
 
-            // 모델 정보 업데이트
-            function updateSelectedModelInfo(modelId) {{
-                const modelInfo = {{
-                    'energy-forecast-v1': {{ name: 'Energy Forecast', version: 'v1.0', status: 'Ready' }},
-                    'demand-predict-v2': {{ name: 'Demand Predict', version: 'v2.0', status: 'Training' }},
-                    'anomaly-detection-v1': {{ name: 'Anomaly Detection', version: 'v1.0', status: 'Ready' }}
-                }};
-
-                const info = modelInfo[modelId];
-                if (info) {{
-                    document.getElementById('selectedModelName').textContent = info.name;
-                    document.getElementById('selectedModelVersion').textContent = info.version;
-                    document.getElementById('selectedModelStatus').textContent = info.status;
-                    document.getElementById('selectedModelInfo').style.display = 'block';
+            // 로그 추가 함수
+            function addLog(message, type = 'info') {{
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.innerHTML = `
+                    <span class="log-timestamp">[${{timestamp}}]</span>
+                    <span class="log-${{type}}">${{message}}</span>
+                `;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                logEntries++;
+                
+                // 로그가 너무 많아지면 오래된 것 제거
+                if (logEntries > 50) {{
+                    logContainer.removeChild(logContainer.firstChild);
+                    logEntries--;
                 }}
             }}
 
-            // 모델 로드
-            function loadModel() {{
-                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
-                showNotification(`Loading model: ${{selectedModel}}`, 'info');
-                updateMetrics();
-            }}
-
-            // 모델 훈련
-            function trainModel() {{
-                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
-                showNotification(`Training model: ${{selectedModel}}`, 'warning');
-                simulateTraining();
-            }}
-
-            // 모델 테스트
-            function testModel() {{
-                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
-                showNotification(`Testing model: ${{selectedModel}}`, 'info');
-                simulateTest();
-            }}
-
-            // 모델 평가
-            function evaluateModel() {{
-                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
-                showNotification(`Evaluating model: ${{selectedModel}}`, 'success');
-                updateMetrics();
-            }}
-
-            // 모델 내보내기
-            function exportModel() {{
-                const selectedModel = document.querySelector('input[name="modelSelect"]:checked').value;
-                showNotification(`Exporting model: ${{selectedModel}}`, 'info');
-            }}
-
-            // 메트릭 업데이트
-            function updateMetrics() {{
-                // 랜덤 메트릭 생성
-                const accuracy = (Math.random() * 0.3 + 0.7).toFixed(3);
-                const precision = (Math.random() * 0.3 + 0.7).toFixed(3);
-                const recall = (Math.random() * 0.3 + 0.7).toFixed(3);
-                const f1 = (Math.random() * 0.3 + 0.7).toFixed(3);
-
-                document.getElementById('modelAccuracy').textContent = accuracy;
-                document.getElementById('modelPrecision').textContent = precision;
-                document.getElementById('modelRecall').textContent = recall;
-                document.getElementById('modelF1').textContent = f1;
-
-                document.getElementById('accuracyBar').style.width = (accuracy * 100) + '%';
-                document.getElementById('precisionBar').style.width = (precision * 100) + '%';
-                document.getElementById('recallBar').style.width = (recall * 100) + '%';
-                document.getElementById('f1Bar').style.width = (f1 * 100) + '%';
-            }}
-
-            // 훈련 시뮬레이션
-            function simulateTraining() {{
-                let epoch = 0;
-                const maxEpochs = 100;
-                const trainingInterval = setInterval(() => {{
-                    epoch++;
-                    const progress = (epoch / maxEpochs) * 100;
-                    const loss = Math.max(0.1, 1.0 - (epoch / maxEpochs) * 0.8);
-
-                    document.getElementById('currentEpoch').textContent = epoch;
-                    document.getElementById('currentLoss').textContent = loss.toFixed(4);
-                    document.getElementById('epochBar').style.width = progress + '%';
-                    document.getElementById('lossBar').style.width = (loss * 100) + '%';
-                    document.getElementById('trainingStatus').textContent = 'Training';
-                    document.getElementById('trainingStatus').className = 'badge bg-warning';
-
-                    if (epoch >= maxEpochs) {{
-                        clearInterval(trainingInterval);
-                        document.getElementById('trainingStatus').textContent = 'Completed';
-                        document.getElementById('trainingStatus').className = 'badge bg-success';
-                        showNotification('Training completed successfully!', 'success');
-                    }}
-                }}, 100);
-            }}
-
-            // 테스트 시뮬레이션
-            function simulateTest() {{
-                const testResults = document.getElementById('testResults');
-                testResults.innerHTML = `
-                    <div class="alert alert-success">
-                        <h6><i class="fas fa-check-circle"></i> Test Results</h6>
-                        <ul class="mb-0">
-                            <li>Test Accuracy: <strong>${{(Math.random() * 0.2 + 0.8).toFixed(3)}}</strong></li>
-                            <li>Test Loss: <strong>${{(Math.random() * 0.1 + 0.05).toFixed(4)}}</strong></li>
-                            <li>Inference Time: <strong>${{(Math.random() * 50 + 10).toFixed(1)}}ms</strong></li>
-                            <li>Memory Usage: <strong>${{(Math.random() * 200 + 100).toFixed(1)}}MB</strong></li>
-                        </ul>
-                    </div>
-                `;
-            }}
-
-            // 알림 표시
-            function showNotification(message, type) {{
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${{type}} alert-dismissible fade show`;
-                alertDiv.innerHTML = `
-                    ${{message}}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
+            // 단계 업데이트 함수
+            function updateStep(stepNumber, status, progress) {{
+                const stepElement = document.getElementById(`step${{stepNumber}}`);
+                const statusElement = document.getElementById(`step${{stepNumber}}Status`);
+                const progressElement = document.getElementById(`step${{stepNumber}}Progress`);
                 
-                const container = document.querySelector('.container-fluid');
-                container.insertBefore(alertDiv, container.firstChild);
+                // 이전 단계 완료 처리
+                if (stepNumber > 1) {{
+                    const prevStep = document.getElementById(`step${{stepNumber - 1}}`);
+                    prevStep.classList.remove('active');
+                    prevStep.classList.add('completed');
+                    document.getElementById(`step${{stepNumber - 1}}Status`).textContent = 'Completed';
+                    document.getElementById(`step${{stepNumber - 1}}Status`).className = 'badge bg-success';
+                }}
                 
+                // 현재 단계 활성화
+                stepElement.classList.add('active');
+                statusElement.textContent = status;
+                statusElement.className = `badge bg-${{status === 'Running' ? 'warning' : status === 'Completed' ? 'success' : 'secondary'}}`;
+                progressElement.style.width = progress + '%';
+            }}
+
+            // 메트릭 업데이트 함수
+            function updateMetrics(dataQuality, modelAccuracy, processingSpeed) {{
+                document.getElementById('dataQuality').style.width = dataQuality + '%';
+                document.getElementById('dataQualityText').textContent = dataQuality + '%';
+                document.getElementById('modelAccuracy').style.width = modelAccuracy + '%';
+                document.getElementById('modelAccuracyText').textContent = modelAccuracy + '%';
+                document.getElementById('processingSpeed').style.width = Math.min(processingSpeed / 10, 100) + '%';
+                document.getElementById('processingSpeedText').textContent = processingSpeed + ' records/sec';
+            }}
+
+            // MCP 파이프라인 시작
+            function startMCPPipeline() {{
+                if (pipelineRunning) return;
+                
+                pipelineRunning = true;
+                document.getElementById('agentStatus').textContent = 'Running';
+                document.getElementById('agentStatus').className = 'badge bg-warning fs-6';
+                document.getElementById('currentTask').textContent = 'Data Processing';
+                
+                addLog('Starting MCP automated pipeline...', 'info');
+                
+                // 1단계: 데이터 자동 정제
                 setTimeout(() => {{
-                    alertDiv.remove();
-                }}, 3000);
+                    updateStep(1, 'Running', 0);
+                    addLog('Step 1: Starting data cleaning and preprocessing...', 'info');
+                    
+                    let progress = 0;
+                    const interval1 = setInterval(() => {{
+                        progress += Math.random() * 15;
+                        if (progress >= 100) {{
+                            progress = 100;
+                            clearInterval(interval1);
+                            updateStep(1, 'Completed', 100);
+                            addLog('Step 1: Data cleaning completed successfully', 'success');
+                            updateMetrics(95, 0, 0);
+                            startStep2();
+                        }} else {{
+                            document.getElementById('step1Progress').style.width = progress + '%';
+                            updateMetrics(Math.floor(progress * 0.95), 0, Math.floor(progress * 2));
+                        }}
+                    }}, 200);
+                }}, 1000);
+            }}
+
+            // 2단계: 메타데이터 라벨링
+            function startStep2() {{
+                setTimeout(() => {{
+                    updateStep(2, 'Running', 0);
+                    addLog('Step 2: Starting metadata labeling and time series analysis...', 'info');
+                    
+                    let progress = 0;
+                    const interval2 = setInterval(() => {{
+                        progress += Math.random() * 12;
+                        if (progress >= 100) {{
+                            progress = 100;
+                            clearInterval(interval2);
+                            updateStep(2, 'Completed', 100);
+                            addLog('Step 2: Metadata labeling completed', 'success');
+                            updateMetrics(98, 0, 0);
+                            startStep3();
+                        }} else {{
+                            document.getElementById('step2Progress').style.width = progress + '%';
+                            updateMetrics(95 + Math.floor(progress * 0.03), 0, 2 + Math.floor(progress * 1.5));
+                        }}
+                    }}, 300);
+                }}, 500);
+            }}
+
+            // 3단계: 모델 선택과 학습
+            function startStep3() {{
+                setTimeout(() => {{
+                    updateStep(3, 'Running', 0);
+                    addLog('Step 3: Starting AutoML model selection and training...', 'info');
+                    
+                    let progress = 0;
+                    const interval3 = setInterval(() => {{
+                        progress += Math.random() * 8;
+                        if (progress >= 100) {{
+                            progress = 100;
+                            clearInterval(interval3);
+                            updateStep(3, 'Completed', 100);
+                            addLog('Step 3: Model training completed', 'success');
+                            updateMetrics(98, 87, 0);
+                            document.getElementById('selectedModel').textContent = 'XGBoost Regressor';
+                            document.getElementById('trainingTime').textContent = '2.3 min';
+                            document.getElementById('validationScore').textContent = '0.87';
+                            startStep4();
+                        }} else {{
+                            document.getElementById('step3Progress').style.width = progress + '%';
+                            updateMetrics(98, Math.floor(progress * 0.87), 0);
+                        }}
+                    }}, 400);
+                }}, 500);
+            }}
+
+            // 4단계: 데이터 품질 검증
+            function startStep4() {{
+                setTimeout(() => {{
+                    updateStep(4, 'Running', 0);
+                    addLog('Step 4: Starting data quality validation and reporting...', 'info');
+                    
+                    let progress = 0;
+                    const interval4 = setInterval(() => {{
+                        progress += Math.random() * 20;
+                        if (progress >= 100) {{
+                            progress = 100;
+                            clearInterval(interval4);
+                            updateStep(4, 'Completed', 100);
+                            addLog('Step 4: Quality validation completed', 'success');
+                            updateMetrics(99, 89, 0);
+                            startStep5();
+                        }} else {{
+                            document.getElementById('step4Progress').style.width = progress + '%';
+                            updateMetrics(98 + Math.floor(progress * 0.01), 87 + Math.floor(progress * 0.02), 0);
+                        }}
+                    }}, 150);
+                }}, 500);
+            }}
+
+            // 5단계: 최종 모델 확정
+            function startStep5() {{
+                setTimeout(() => {{
+                    updateStep(5, 'Running', 0);
+                    addLog('Step 5: Finalizing model and setting up deployment...', 'info');
+                    
+                    let progress = 0;
+                    const interval5 = setInterval(() => {{
+                        progress += Math.random() * 25;
+                        if (progress >= 100) {{
+                            progress = 100;
+                            clearInterval(interval5);
+                            updateStep(5, 'Completed', 100);
+                            addLog('Step 5: Model deployment completed successfully!', 'success');
+                            updateMetrics(100, 92, 0);
+                            document.getElementById('deploymentStatus').textContent = 'Deployed';
+                            document.getElementById('deploymentStatus').className = 'text-success';
+                            
+                            // 파이프라인 완료
+                            document.getElementById('agentStatus').textContent = 'Completed';
+                            document.getElementById('agentStatus').className = 'badge bg-success fs-6';
+                            document.getElementById('currentTask').textContent = 'Pipeline Complete';
+                            document.getElementById('overallProgress').style.width = '100%';
+                            document.getElementById('progressText').textContent = '100% Complete';
+                            
+                            pipelineRunning = false;
+                            addLog('MCP automated pipeline completed successfully!', 'success');
+                        }} else {{
+                            document.getElementById('step5Progress').style.width = progress + '%';
+                            updateMetrics(99 + Math.floor(progress * 0.01), 89 + Math.floor(progress * 0.03), 0);
+                        }}
+                    }}, 100);
+                }}, 500);
             }}
 
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
-                updateSelectedModelInfo('energy-forecast-v1');
-                updateMetrics();
+                addLog('MCP Agent ready for automated ML pipeline', 'info');
+                updateMetrics(0, 0, 0);
             }});
         </script>
     </body>
