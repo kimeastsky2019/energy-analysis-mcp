@@ -1261,7 +1261,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>⚡ Energy Supply & Weather Analysis Dashboard</title>
+        <title>⚡ 에너지 공급 분석 및 예측 대시보드</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -1333,7 +1333,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
         <nav class="navbar navbar-dark bg-dark">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">Energy Supply & Weather Analysis</span>
+                    <i class="fas fa-bolt"></i> <span data-translate="energy_supply_title">에너지 공급 분석 및 예측</span>
                 </span>
                 <div class="navbar-nav ms-auto d-flex flex-row">
                     <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
@@ -1359,30 +1359,69 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             <div class="row">
                 <div class="col-12">
                     <div class="dashboard-card">
-                        <h4><i class="fas fa-chart-line"></i> Real-time Energy Supply Status</h4>
+                        <h4><i class="fas fa-chart-line"></i> 실시간 에너지 공급 현황</h4>
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="metric-card">
                                     <div class="metric-value" id="totalGeneration">5.2 kW</div>
-                                    <div class="metric-label">Total Generation</div>
+                                    <div class="metric-label">총 발전량</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="metric-card">
                                     <div class="metric-value" id="solarGeneration">3.2 kW</div>
-                                    <div class="metric-label">Solar Generation</div>
+                                    <div class="metric-label">태양광 발전</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="metric-card">
                                     <div class="metric-value" id="essGeneration">2.1 kW</div>
-                                    <div class="metric-label">ESS Generation</div>
+                                    <div class="metric-label">ESS 발전</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="metric-card">
                                     <div class="metric-value" id="systemEfficiency">94.2%</div>
-                                    <div class="metric-label">System Efficiency</div>
+                                    <div class="metric-label">시스템 효율</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에너지 공급 예측 분석 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h4><i class="fas fa-crystal-ball"></i> 에너지 공급 예측 분석</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="weather-card text-center">
+                                    <h6>1시간 후 예측</h6>
+                                    <div class="metric-value" id="supplyPrediction1h">5.8 kW</div>
+                                    <div class="metric-label">예측 공급량</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="weather-card text-center">
+                                    <h6>6시간 후 예측</h6>
+                                    <div class="metric-value" id="supplyPrediction6h">4.2 kW</div>
+                                    <div class="metric-label">예측 공급량</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="weather-card text-center">
+                                    <h6>24시간 후 예측</h6>
+                                    <div class="metric-value" id="supplyPrediction24h">6.1 kW</div>
+                                    <div class="metric-label">예측 공급량</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="weather-card text-center">
+                                    <h6>예측 정확도</h6>
+                                    <div class="metric-value" id="supplyPredictionAccuracy">96.8%</div>
+                                    <div class="metric-label">AI 예측 정확도</div>
                                 </div>
                             </div>
                         </div>
@@ -1693,6 +1732,17 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 document.getElementById('essGeneration').textContent = essGen + ' kW';
                 document.getElementById('systemEfficiency').textContent = efficiency + '%';
 
+                // 공급 예측 데이터 업데이트
+                const supplyPrediction1h = (Math.random() * 1.5 + 5.0).toFixed(1);
+                const supplyPrediction6h = (Math.random() * 2.0 + 3.5).toFixed(1);
+                const supplyPrediction24h = (Math.random() * 2.5 + 5.5).toFixed(1);
+                const supplyPredictionAccuracy = (Math.random() * 3 + 95).toFixed(1);
+
+                document.getElementById('supplyPrediction1h').textContent = supplyPrediction1h + ' kW';
+                document.getElementById('supplyPrediction6h').textContent = supplyPrediction6h + ' kW';
+                document.getElementById('supplyPrediction24h').textContent = supplyPrediction24h + ' kW';
+                document.getElementById('supplyPredictionAccuracy').textContent = supplyPredictionAccuracy + '%';
+
                 // 날씨 데이터 업데이트
                 const temperature = (Math.random() * 15 + 15).toFixed(0);
                 const humidity = (Math.random() * 30 + 40).toFixed(0);
@@ -1903,7 +1953,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🏭 시설 모니터링 및 데이터 분석</title>
+        <title>📊 에너지 수요 분석 및 예측 대시보드</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
@@ -2012,7 +2062,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         <nav class="navbar navbar-dark bg-dark">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-industry"></i> <span data-translate="facility_monitoring">시설 모니터링 및 데이터 분석</span>
+                    <i class="fas fa-chart-line"></i> <span data-translate="energy_demand_analysis">에너지 수요 분석 및 예측</span>
                 </span>
                 <div class="navbar-nav ms-auto d-flex flex-row">
                     <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
@@ -2034,65 +2084,65 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         </nav>
 
         <div class="container-fluid mt-4">
-            <!-- 시설 정보 -->
+            <!-- 에너지 수요 현황 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="facility-info">
-                        <h4><i class="fas fa-map-marker-alt"></i> 시설 위치 및 정보</h4>
+                        <h4><i class="fas fa-bolt"></i> 실시간 에너지 수요 현황</h4>
                         <div class="row">
                             <div class="col-md-3">
-                                <h6>시설명</h6>
-                                <p><strong>서울 에너지 센터</strong></p>
+                                <h6>현재 수요</h6>
+                                <p><strong id="currentDemand">1,250 kW</strong></p>
                             </div>
                             <div class="col-md-3">
-                                <h6>위치</h6>
-                                <p><strong>서울특별시 강남구 테헤란로 123</strong></p>
+                                <h6>피크 수요</h6>
+                                <p><strong id="peakDemand">1,450 kW</strong></p>
                             </div>
                             <div class="col-md-3">
-                                <h6>시설 유형</h6>
-                                <p><strong>스마트 그리드 시설</strong></p>
+                                <h6>예측 수요 (1시간 후)</h6>
+                                <p><strong id="predictedDemand">1,320 kW</strong></p>
                             </div>
                             <div class="col-md-3">
-                                <h6>운영 상태</h6>
-                                <p><span class="status-indicator status-online"></span><strong>정상 운영</strong></p>
+                                <h6>수요 증가율</h6>
+                                <p><span class="status-indicator status-warning"></span><strong id="demandGrowth">+5.6%</strong></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 센서링 데이터 모니터링 -->
+            <!-- 전자기기별 수요 분석 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-microchip"></i> 센서링 데이터 실시간 모니터링</h5>
+                        <h5><i class="fas fa-microchip"></i> 전자기기별 에너지 수요 분석</h5>
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="sensor-card text-center">
-                                    <h6>온도 센서</h6>
-                                    <div class="metric-value" id="temperature">23.5°C</div>
-                                    <div class="metric-label">실내 온도</div>
+                                    <h6>HVAC 시스템</h6>
+                                    <div class="metric-value" id="hvacDemand">450 kW</div>
+                                    <div class="metric-label">냉난방 수요</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="sensor-card text-center">
-                                    <h6>습도 센서</h6>
-                                    <div class="metric-value" id="humidity">65%</div>
-                                    <div class="metric-label">실내 습도</div>
+                                    <h6>조명 시스템</h6>
+                                    <div class="metric-value" id="lightingDemand">180 kW</div>
+                                    <div class="metric-label">조명 수요</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="sensor-card text-center">
-                                    <h6>진동 센서</h6>
-                                    <div class="metric-value" id="vibration">0.2g</div>
-                                    <div class="metric-label">기계 진동</div>
+                                    <h6>IT 장비</h6>
+                                    <div class="metric-value" id="itDemand">320 kW</div>
+                                    <div class="metric-label">IT 장비 수요</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="sensor-card text-center">
-                                    <h6>압력 센서</h6>
-                                    <div class="metric-value" id="pressure">101.3 kPa</div>
-                                    <div class="metric-label">기압</div>
+                                    <h6>기타 장비</h6>
+                                    <div class="metric-value" id="otherDemand">300 kW</div>
+                                    <div class="metric-label">기타 장비 수요</div>
                                 </div>
                             </div>
                         </div>
@@ -2100,38 +2150,38 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 </div>
             </div>
 
-            <!-- 전력 데이터 실시간 모니터링 -->
+            <!-- 수요 예측 분석 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-bolt"></i> 전력 데이터 실시간 모니터링</h5>
+                        <h5><i class="fas fa-crystal-ball"></i> 에너지 수요 예측 분석</h5>
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="power-card text-center">
-                                    <h6>총 전력 소비</h6>
-                                    <div class="metric-value" id="totalPower">1,250 kW</div>
-                                    <div class="metric-label">현재 소비량</div>
+                                    <h6>1시간 후 예측</h6>
+                                    <div class="metric-value" id="prediction1h">1,320 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="power-card text-center">
-                                    <h6>피크 전력</h6>
-                                    <div class="metric-value" id="peakPower">1,450 kW</div>
-                                    <div class="metric-label">최대 소비량</div>
+                                    <h6>6시간 후 예측</h6>
+                                    <div class="metric-value" id="prediction6h">1,180 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="power-card text-center">
-                                    <h6>전력 효율</h6>
-                                    <div class="metric-value" id="powerEfficiency">94.2%</div>
-                                    <div class="metric-label">시스템 효율</div>
+                                    <h6>24시간 후 예측</h6>
+                                    <div class="metric-value" id="prediction24h">1,410 kW</div>
+                                    <div class="metric-label">예측 수요량</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="power-card text-center">
-                                    <h6>일일 소비량</h6>
-                                    <div class="metric-value" id="dailyConsumption">28.5 MWh</div>
-                                    <div class="metric-label">오늘 소비량</div>
+                                    <h6>예측 정확도</h6>
+                                    <div class="metric-value" id="predictionAccuracy">94.2%</div>
+                                    <div class="metric-label">AI 예측 정확도</div>
                                 </div>
                             </div>
                         </div>
@@ -2139,87 +2189,73 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 </div>
             </div>
 
-            <!-- 시계열 데이터 차트 -->
+            <!-- 수요-공급 매칭 분석 -->
             <div class="row mb-4">
                 <div class="col-lg-8">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-chart-line"></i> 시계열 데이터 분석</h5>
-                        <canvas id="timeSeriesChart" class="chart-container"></canvas>
+                        <h5><i class="fas fa-chart-line"></i> 수요-공급 매칭 분석</h5>
+                        <canvas id="demandSupplyChart" class="chart-container"></canvas>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-calendar-alt"></i> 구글 일정 연동</h5>
+                        <h5><i class="fas fa-percentage"></i> 매칭율 분석</h5>
                         <div class="calendar-card">
-                            <h6>오늘의 일정</h6>
-                            <div class="event-timeline" id="calendarEvents">
+                            <h6>실시간 매칭 현황</h6>
+                            <div class="event-timeline" id="matchingStatus">
                                 <div class="event-item">
-                                    <div class="event-time">09:00 - 10:00</div>
+                                    <div class="event-time">현재</div>
                                     <div class="event-content">
-                                        <strong>시설 점검</strong><br>
-                                        <small>정기 시설 점검 및 유지보수</small>
+                                        <strong>매칭율: 87.3%</strong><br>
+                                        <small>수요: 1,250 kW / 공급: 1,432 kW</small>
                                     </div>
                                 </div>
                                 <div class="event-item">
-                                    <div class="event-time">14:00 - 15:00</div>
+                                    <div class="event-time">1시간 후</div>
                                     <div class="event-content">
-                                        <strong>데이터 분석 회의</strong><br>
-                                        <small>주간 데이터 분석 결과 검토</small>
+                                        <strong>예측 매칭율: 92.1%</strong><br>
+                                        <small>예측 수요: 1,320 kW / 예측 공급: 1,434 kW</small>
                                     </div>
                                 </div>
                                 <div class="event-item">
-                                    <div class="event-time">16:30 - 17:30</div>
+                                    <div class="event-time">6시간 후</div>
                                     <div class="event-content">
-                                        <strong>시스템 업데이트</strong><br>
-                                        <small>센서 시스템 소프트웨어 업데이트</small>
+                                        <strong>예측 매칭율: 78.5%</strong><br>
+                                        <small>예측 수요: 1,180 kW / 예측 공급: 1,503 kW</small>
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-primary btn-sm mt-2" onclick="syncGoogleCalendar()">
-                                <i class="fas fa-sync"></i> 구글 일정 동기화
+                            <button class="btn btn-success btn-sm mt-2" onclick="optimizeMatching()">
+                                <i class="fas fa-cogs"></i> 매칭 최적화
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 이벤트 및 메모 기능 -->
+            <!-- 전자기기 시뮬레이션 및 동적 제어 -->
             <div class="row mb-4">
                 <div class="col-lg-6">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-history"></i> 시계열 이벤트 타임라인</h5>
-                        <div class="event-timeline" id="eventTimeline">
+                        <h5><i class="fas fa-desktop"></i> 전자기기 시뮬레이션</h5>
+                        <div class="mb-3">
+                            <h6>기기 선택:</h6>
+                            <select class="form-select" id="deviceSelect" onchange="simulateDevice()">
+                                <option value="">기기를 선택하세요</option>
+                                <option value="hvac">HVAC 시스템 (450 kW)</option>
+                                <option value="lighting">조명 시스템 (180 kW)</option>
+                                <option value="it">IT 장비 (320 kW)</option>
+                                <option value="elevator">엘리베이터 (150 kW)</option>
+                                <option value="pump">펌프 시스템 (200 kW)</option>
+                                <option value="security">보안 시스템 (80 kW)</option>
+                            </select>
+                        </div>
+                        <div class="event-timeline" id="simulationResults">
                             <div class="event-item">
-                                <div class="event-time">2024-01-15 10:30:15</div>
+                                <div class="event-time">시뮬레이션 결과</div>
                                 <div class="event-content">
-                                    <strong>전력 소비 급증</strong><br>
-                                    <small>전력 소비량이 평균 대비 15% 증가</small>
-                                    <div class="memo-input">
-                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
-                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="event-item">
-                                <div class="event-time">2024-01-15 09:45:22</div>
-                                <div class="event-content">
-                                    <strong>온도 센서 이상</strong><br>
-                                    <small>온도 센서 값이 정상 범위를 벗어남</small>
-                                    <div class="memo-input">
-                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
-                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="event-item">
-                                <div class="event-time">2024-01-15 08:15:33</div>
-                                <div class="event-content">
-                                    <strong>시스템 시작</strong><br>
-                                    <small>모니터링 시스템이 정상적으로 시작됨</small>
-                                    <div class="memo-input">
-                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
-                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
-                                    </div>
+                                    <strong>기기를 선택하면 수요 예측이 표시됩니다</strong><br>
+                                    <small>선택한 기기의 에너지 소비 패턴을 분석하여 수요를 예측합니다.</small>
                                 </div>
                             </div>
                         </div>
@@ -2227,28 +2263,21 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 </div>
                 <div class="col-lg-6">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-sticky-note"></i> 사용자 이벤트 및 메모</h5>
+                        <h5><i class="fas fa-cogs"></i> 동적 제어 평가</h5>
                         <div class="mb-3">
-                            <button class="btn btn-success btn-sm" onclick="addUserEvent()">
-                                <i class="fas fa-plus"></i> 새 이벤트 추가
-                            </button>
-                            <button class="btn btn-info btn-sm ms-2" onclick="exportEvents()">
-                                <i class="fas fa-download"></i> 이벤트 내보내기
-                            </button>
-                        </div>
-                        <div class="event-timeline" id="userEvents">
-                            <div class="event-item">
-                                <div class="event-time">2024-01-15 11:20:45</div>
-                                <div class="event-content">
-                                    <strong>사용자 메모</strong><br>
-                                    <small>시설 점검 완료. 모든 시스템 정상 작동 중.</small>
-                                </div>
+                            <h6>제어 시나리오:</h6>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="evaluateControl('peak')">피크 제어</button>
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="evaluateControl('load')">부하 분산</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="evaluateControl('efficiency')">효율 최적화</button>
                             </div>
+                        </div>
+                        <div class="event-timeline" id="controlResults">
                             <div class="event-item">
-                                <div class="event-time">2024-01-15 10:45:12</div>
+                                <div class="event-time">제어 평가 결과</div>
                                 <div class="event-content">
-                                    <strong>알림 설정</strong><br>
-                                    <small>전력 소비량 임계값 알림 설정 완료</small>
+                                    <strong>제어 시나리오를 선택하면 평가 결과가 표시됩니다</strong><br>
+                                    <small>동적 제어의 효과와 가능성을 분석합니다.</small>
                                 </div>
                             </div>
                         </div>
@@ -2261,40 +2290,57 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         <script>
             // 실시간 데이터 업데이트
             function updateRealtimeData() {{
-                // 센서 데이터 업데이트
-                const temperature = (Math.random() * 10 + 20).toFixed(1);
-                const humidity = (Math.random() * 20 + 50).toFixed(0);
-                const vibration = (Math.random() * 0.5).toFixed(1);
-                const pressure = (Math.random() * 5 + 100).toFixed(1);
+                // 에너지 수요 데이터 업데이트
+                const currentDemand = (Math.random() * 200 + 1200).toFixed(0);
+                const peakDemand = (Math.random() * 100 + 1400).toFixed(0);
+                const predictedDemand = (Math.random() * 150 + 1300).toFixed(0);
+                const demandGrowth = (Math.random() * 10 - 2).toFixed(1);
 
-                document.getElementById('temperature').textContent = temperature + '°C';
-                document.getElementById('humidity').textContent = humidity + '%';
-                document.getElementById('vibration').textContent = vibration + 'g';
-                document.getElementById('pressure').textContent = pressure + ' kPa';
+                document.getElementById('currentDemand').textContent = currentDemand + ' kW';
+                document.getElementById('peakDemand').textContent = peakDemand + ' kW';
+                document.getElementById('predictedDemand').textContent = predictedDemand + ' kW';
+                document.getElementById('demandGrowth').textContent = (demandGrowth > 0 ? '+' : '') + demandGrowth + '%';
 
-                // 전력 데이터 업데이트
-                const totalPower = (Math.random() * 200 + 1200).toFixed(0);
-                const peakPower = (Math.random() * 100 + 1400).toFixed(0);
-                const powerEfficiency = (Math.random() * 5 + 92).toFixed(1);
-                const dailyConsumption = (Math.random() * 5 + 27).toFixed(1);
+                // 전자기기별 수요 업데이트
+                const hvacDemand = (Math.random() * 100 + 400).toFixed(0);
+                const lightingDemand = (Math.random() * 50 + 150).toFixed(0);
+                const itDemand = (Math.random() * 80 + 280).toFixed(0);
+                const otherDemand = (Math.random() * 100 + 250).toFixed(0);
 
-                document.getElementById('totalPower').textContent = totalPower + ' kW';
-                document.getElementById('peakPower').textContent = peakPower + ' kW';
-                document.getElementById('powerEfficiency').textContent = powerEfficiency + '%';
-                document.getElementById('dailyConsumption').textContent = dailyConsumption + ' MWh';
+                document.getElementById('hvacDemand').textContent = hvacDemand + ' kW';
+                document.getElementById('lightingDemand').textContent = lightingDemand + ' kW';
+                document.getElementById('itDemand').textContent = itDemand + ' kW';
+                document.getElementById('otherDemand').textContent = otherDemand + ' kW';
+
+                // 수요 예측 업데이트
+                const prediction1h = (Math.random() * 150 + 1300).toFixed(0);
+                const prediction6h = (Math.random() * 200 + 1100).toFixed(0);
+                const prediction24h = (Math.random() * 300 + 1300).toFixed(0);
+                const predictionAccuracy = (Math.random() * 5 + 92).toFixed(1);
+
+                document.getElementById('prediction1h').textContent = prediction1h + ' kW';
+                document.getElementById('prediction6h').textContent = prediction6h + ' kW';
+                document.getElementById('prediction24h').textContent = prediction24h + ' kW';
+                document.getElementById('predictionAccuracy').textContent = predictionAccuracy + '%';
             }}
 
-            // 시계열 차트 초기화
-            function initTimeSeriesChart() {{
-                const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            // 수요-공급 매칭 차트 초기화
+            function initDemandSupplyChart() {{
+                const ctx = document.getElementById('demandSupplyChart').getContext('2d');
                 const hours = [];
-                const powerData = [];
-                const temperatureData = [];
+                const demandData = [];
+                const supplyData = [];
+                const matchingData = [];
                 
                 for (let i = 0; i < 24; i++) {{
                     hours.push(i.toString().padStart(2, '0') + ':00');
-                    powerData.push(Math.random() * 200 + 1200);
-                    temperatureData.push(Math.random() * 10 + 20);
+                    const demand = Math.random() * 200 + 1200;
+                    const supply = Math.random() * 300 + 1300;
+                    const matching = (Math.min(demand, supply) / Math.max(demand, supply) * 100);
+                    
+                    demandData.push(demand);
+                    supplyData.push(supply);
+                    matchingData.push(matching);
                 }}
                 
                 new Chart(ctx, {{
@@ -2302,17 +2348,24 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                     data: {{
                         labels: hours,
                         datasets: [{{
-                            label: '전력 소비 (kW)',
-                            data: powerData,
+                            label: '에너지 수요 (kW)',
+                            data: demandData,
                             borderColor: '#ff6b6b',
                             backgroundColor: 'rgba(255, 107, 107, 0.1)',
                             tension: 0.4,
                             yAxisID: 'y'
                         }}, {{
-                            label: '온도 (°C)',
-                            data: temperatureData,
+                            label: '에너지 공급 (kW)',
+                            data: supplyData,
                             borderColor: '#4ecdc4',
                             backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }}, {{
+                            label: '매칭율 (%)',
+                            data: matchingData,
+                            borderColor: '#ffa726',
+                            backgroundColor: 'rgba(255, 167, 38, 0.1)',
                             tension: 0.4,
                             yAxisID: 'y1'
                         }}]
@@ -2327,7 +2380,7 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                                 position: 'left',
                                 title: {{
                                     display: true,
-                                    text: '전력 소비 (kW)'
+                                    text: '에너지 (kW)'
                                 }}
                             }},
                             y1: {{
@@ -2336,8 +2389,10 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                                 position: 'right',
                                 title: {{
                                     display: true,
-                                    text: '온도 (°C)'
+                                    text: '매칭율 (%)'
                                 }},
+                                min: 0,
+                                max: 100,
                                 grid: {{
                                     drawOnChartArea: false,
                                 }},
@@ -2353,58 +2408,95 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 }});
             }}
 
-            // 구글 일정 동기화
-            function syncGoogleCalendar() {{
-                // 구글 일정 API 연동 시뮬레이션
-                const calendarEvents = document.getElementById('calendarEvents');
+            // 매칭 최적화
+            function optimizeMatching() {{
+                const matchingStatus = document.getElementById('matchingStatus');
                 const newEvent = document.createElement('div');
                 newEvent.className = 'event-item';
                 newEvent.innerHTML = `
                     <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
                     <div class="event-content">
-                        <strong>새 일정 추가됨</strong><br>
-                        <small>구글 일정에서 동기화된 새로운 일정</small>
+                        <strong>매칭 최적화 실행</strong><br>
+                        <small>수요-공급 매칭 알고리즘이 최적화되었습니다. 매칭율이 5.2% 향상되었습니다.</small>
                     </div>
                 `;
-                calendarEvents.insertBefore(newEvent, calendarEvents.firstChild);
+                matchingStatus.insertBefore(newEvent, matchingStatus.firstChild);
             }}
 
-            // 메모 저장
-            function saveMemo(button) {{
-                const textarea = button.previousElementSibling;
-                const memo = textarea.value.trim();
-                if (memo) {{
-                    // 메모 저장 로직
-                    button.textContent = '저장됨';
-                    button.className = 'btn btn-success btn-sm mt-1';
-                    textarea.disabled = true;
+            // 전자기기 시뮬레이션
+            function simulateDevice() {{
+                const deviceSelect = document.getElementById('deviceSelect');
+                const selectedDevice = deviceSelect.value;
+                const simulationResults = document.getElementById('simulationResults');
+                
+                if (!selectedDevice) {{
+                    simulationResults.innerHTML = `
+                        <div class="event-item">
+                            <div class="event-time">시뮬레이션 결과</div>
+                            <div class="event-content">
+                                <strong>기기를 선택하면 수요 예측이 표시됩니다</strong><br>
+                                <small>선택한 기기의 에너지 소비 패턴을 분석하여 수요를 예측합니다.</small>
+                            </div>
+                        </div>
+                    `;
+                    return;
                 }}
+                
+                const deviceData = {{
+                    hvac: {{ name: 'HVAC 시스템', power: 450, pattern: '계절성', efficiency: 85 }},
+                    lighting: {{ name: '조명 시스템', power: 180, pattern: '시간대별', efficiency: 92 }},
+                    it: {{ name: 'IT 장비', power: 320, pattern: '지속적', efficiency: 88 }},
+                    elevator: {{ name: '엘리베이터', power: 150, pattern: '피크시간', efficiency: 90 }},
+                    pump: {{ name: '펌프 시스템', power: 200, pattern: '수요기반', efficiency: 87 }},
+                    security: {{ name: '보안 시스템', power: 80, pattern: '24시간', efficiency: 95 }}
+                }};
+                
+                const device = deviceData[selectedDevice];
+                const predictedDemand = (device.power * (Math.random() * 0.3 + 0.85)).toFixed(0);
+                const efficiency = device.efficiency + (Math.random() * 10 - 5);
+                
+                simulationResults.innerHTML = `
+                    <div class="event-item">
+                        <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
+                        <div class="event-content">
+                            <strong>${{device.name}} 시뮬레이션 결과</strong><br>
+                            <small>현재 소비: ${{device.power}} kW</small><br>
+                            <small>예측 수요: ${{predictedDemand}} kW</small><br>
+                            <small>소비 패턴: ${{device.pattern}}</small><br>
+                            <small>효율성: ${{efficiency.toFixed(1)}}%</small>
+                        </div>
+                    </div>
+                `;
             }}
 
-            // 새 사용자 이벤트 추가
-            function addUserEvent() {{
-                const userEvents = document.getElementById('userEvents');
+            // 동적 제어 평가
+            function evaluateControl(scenario) {{
+                const controlResults = document.getElementById('controlResults');
+                const scenarios = {{
+                    peak: {{ name: '피크 제어', savings: 15, efficiency: 8, cost: 5 }},
+                    load: {{ name: '부하 분산', savings: 12, efficiency: 6, cost: 3 }},
+                    efficiency: {{ name: '효율 최적화', savings: 8, efficiency: 12, cost: 2 }}
+                }};
+                
+                const scenarioData = scenarios[scenario];
                 const newEvent = document.createElement('div');
                 newEvent.className = 'event-item';
                 newEvent.innerHTML = `
-                    <div class="event-time">${{new Date().toLocaleString()}}</div>
+                    <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
                     <div class="event-content">
-                        <strong>새 사용자 이벤트</strong><br>
-                        <small>사용자가 추가한 새로운 이벤트</small>
+                        <strong>${{scenarioData.name}} 평가 결과</strong><br>
+                        <small>에너지 절약: ${{scenarioData.savings}}%</small><br>
+                        <small>효율성 향상: ${{scenarioData.efficiency}}%</small><br>
+                        <small>비용 절감: ${{scenarioData.cost}}%</small><br>
+                        <small>제어 가능성: 높음</small>
                     </div>
                 `;
-                userEvents.insertBefore(newEvent, userEvents.firstChild);
-            }}
-
-            // 이벤트 내보내기
-            function exportEvents() {{
-                // 이벤트 데이터를 CSV나 JSON 형태로 내보내기
-                alert('이벤트 데이터가 내보내기되었습니다.');
+                controlResults.insertBefore(newEvent, controlResults.firstChild);
             }}
 
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
-                initTimeSeriesChart();
+                initDemandSupplyChart();
                 updateRealtimeData();
                 
                 // 5초마다 데이터 업데이트
