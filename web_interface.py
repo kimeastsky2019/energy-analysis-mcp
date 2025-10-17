@@ -1375,8 +1375,8 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                             </div>
                             <div class="col-md-3">
                                 <div class="metric-card">
-                                    <div class="metric-value" id="windGeneration">1.8 kW</div>
-                                    <div class="metric-label">Wind Generation</div>
+                                    <div class="metric-value" id="essGeneration">2.1 kW</div>
+                                    <div class="metric-label">ESS Generation</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -1478,9 +1478,9 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                     <div class="progress-bar bg-warning" style="width: 87%"></div>
                                 </div>
                             </div>
-                            <h6><i class="fas fa-wind"></i> Wind vs Speed</h6>
+                            <h6><i class="fas fa-battery-half"></i> ESS vs Efficiency</h6>
                             <div class="mb-2">
-                                <small>Correlation: <strong id="windCorrelation">0.92</strong></small>
+                                <small>Correlation: <strong id="essCorrelation">0.92</strong></small>
                                 <div class="progress">
                                     <div class="progress-bar bg-info" style="width: 92%"></div>
                                 </div>
@@ -1634,7 +1634,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                                             <tr>
                                                 <th>Time</th>
                                                 <th>Solar (kW)</th>
-                                                <th>Wind (kW)</th>
+                                                <th>ESS (kW)</th>
                                                 <th>Total (kW)</th>
                                                 <th>Efficiency</th>
                                             </tr>
@@ -1684,13 +1684,13 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
             function updateRealtimeData() {{
                 // 발전량 데이터 업데이트
                 const solarGen = (Math.random() * 2 + 2.5).toFixed(1);
-                const windGen = (Math.random() * 1.5 + 1.2).toFixed(1);
-                const totalGen = (parseFloat(solarGen) + parseFloat(windGen)).toFixed(1);
+                const essGen = (Math.random() * 1.5 + 1.2).toFixed(1);
+                const totalGen = (parseFloat(solarGen) + parseFloat(essGen)).toFixed(1);
                 const efficiency = (Math.random() * 5 + 92).toFixed(1);
 
                 document.getElementById('totalGeneration').textContent = totalGen + ' kW';
                 document.getElementById('solarGeneration').textContent = solarGen + ' kW';
-                document.getElementById('windGeneration').textContent = windGen + ' kW';
+                document.getElementById('essGeneration').textContent = essGen + ' kW';
                 document.getElementById('systemEfficiency').textContent = efficiency + '%';
 
                 // 날씨 데이터 업데이트
@@ -1719,7 +1719,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 const tempCorr = (Math.random() * 0.4 - 0.2).toFixed(2);
 
                 document.getElementById('solarCorrelation').textContent = solarCorr;
-                document.getElementById('windCorrelation').textContent = windCorr;
+                document.getElementById('essCorrelation').textContent = windCorr;
                 document.getElementById('tempCorrelation').textContent = tempCorr;
 
                 // 진행률 바 업데이트
@@ -1743,7 +1743,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                             backgroundColor: 'rgba(255, 193, 7, 0.1)',
                             tension: 0.4
                         }}, {{
-                            label: 'Wind Generation',
+                            label: 'ESS Generation',
                             data: [1.2, 1.8, 1.5, 1.0, 1.5, 1.8],
                             borderColor: '#17a2b8',
                             backgroundColor: 'rgba(23, 162, 184, 0.1)',
@@ -1832,7 +1832,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 new Chart(energyMixCtx, {{
                     type: 'doughnut',
                     data: {{
-                        labels: ['Solar', 'Wind', 'Storage'],
+                        labels: ['Solar', 'ESS', 'Storage'],
                         datasets: [{{
                             data: [3.2, 1.8, 0.2],
                             backgroundColor: ['#ffc107', '#17a2b8', '#28a745']
@@ -1854,7 +1854,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
                 new Chart(impactCtx, {{
                     type: 'bar',
                     data: {{
-                        labels: ['Solar', 'Wind', 'Efficiency', 'Storage'],
+                        labels: ['Solar', 'ESS', 'Efficiency', 'Storage'],
                         datasets: [{{
                             label: 'Weather Impact (%)',
                             data: [85, 92, -15, 5],
