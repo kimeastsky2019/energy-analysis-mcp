@@ -1,5 +1,8 @@
 {
   "title": "에너지 분석 및 예측 플랫폼",
+  "main": {
+    "llmSlmSubtitle": "에너지 특화 언어 모델 개발"
+  },
   "navigation": {
     "home": "홈",
     "energySupply": "에너지 공급 분석",

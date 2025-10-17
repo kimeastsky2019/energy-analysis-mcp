@@ -68,6 +68,56 @@ def t(key, lang='ko', variables=None):
     
     return value if value else key
 
+def format_datetime(dt, lang='ko'):
+    """날짜/시간 현지화 포맷"""
+    if lang == 'ko':
+        return dt.strftime('%Y년 %m월 %d일 %H:%M:%S')
+    elif lang == 'en':
+        return dt.strftime('%B %d, %Y at %I:%M:%S %p')
+    elif lang == 'ja':
+        return dt.strftime('%Y年%m月%d日 %H:%M:%S')
+    elif lang == 'zh':
+        return dt.strftime('%Y年%m月%d日 %H:%M:%S')
+    else:
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+def format_number(num, lang='ko', unit=''):
+    """숫자 현지화 포맷"""
+    if lang == 'ko':
+        if num >= 10000:
+            return f"{num/10000:.1f}만{unit}"
+        elif num >= 1000:
+            return f"{num/1000:.1f}천{unit}"
+        else:
+            return f"{num:,.0f}{unit}"
+    elif lang == 'en':
+        return f"{num:,.0f}{unit}"
+    elif lang == 'ja':
+        if num >= 10000:
+            return f"{num/10000:.1f}万{unit}"
+        else:
+            return f"{num:,.0f}{unit}"
+    elif lang == 'zh':
+        if num >= 10000:
+            return f"{num/10000:.1f}万{unit}"
+        else:
+            return f"{num:,.0f}{unit}"
+    else:
+        return f"{num:,.0f}{unit}"
+
+def format_percentage(num, lang='ko'):
+    """퍼센트 현지화 포맷"""
+    if lang == 'ko':
+        return f"{num:.1f}%"
+    elif lang == 'en':
+        return f"{num:.1f}%"
+    elif lang == 'ja':
+        return f"{num:.1f}％"
+    elif lang == 'zh':
+        return f"{num:.1f}%"
+    else:
+        return f"{num:.1f}%"
+
 def generate_language_selector(current_lang='ko'):
     """언어 선택기 HTML 생성"""
     languages = {
@@ -81,11 +131,13 @@ def generate_language_selector(current_lang='ko'):
     for code, info in languages.items():
         active_class = 'btn-primary' if code == current_lang else 'btn-outline-primary'
         buttons.append(f'''
-            <a href="?lang={code}" 
-               class="btn btn-sm {active_class}"
-               title="{info['name']}">
+            <button type="button" 
+                    class="btn btn-sm {active_class}"
+                    onclick="switchLanguage('{code}')"
+                    data-lang="{code}"
+                    title="{info['name']}">
                 {info['flag']}
-            </a>
+            </button>
         ''')
     
     return f'''
@@ -203,7 +255,7 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             </div>
                             <div class="flex-grow-1">
                                 <h1 class="card-title mb-2">LLM SLM Development</h1>
-                                <h4 class="card-subtitle mb-3">에너지 특화 언어 모델 개발</h4>
+                                <h4 class="card-subtitle mb-3">{t('main.llmSlmSubtitle', lang)}</h4>
                                 <p class="card-text">Advanced AI language model specialized for energy management and analysis</p>
                             </div>
                             <div>
@@ -424,6 +476,14 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                         }}
                     }}
                 }});
+            }}
+
+            // 언어 전환 함수
+            function switchLanguage(lang) {{
+                // 현재 URL에서 언어 파라미터 업데이트
+                const url = new URL(window.location);
+                url.searchParams.set('lang', lang);
+                window.location.href = url.toString();
             }}
 
             // 페이지 로드 시 차트 초기화
@@ -958,6 +1018,13 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 document.getElementById('uptime').textContent = `${{hours}}h ${{minutes}}m ${{seconds}}s`;
             }}
 
+            // 언어 전환 함수
+            function switchLanguage(lang) {{
+                const url = new URL(window.location);
+                url.searchParams.set('lang', lang);
+                window.location.href = url.toString();
+            }}
+
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 updateStats();
@@ -965,7 +1032,21 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 setInterval(updateStats, 5000); // 5초마다 통계 업데이트
                 setInterval(updateUptime, 1000); // 1초마다 업타임 업데이트
                 setInterval(generateHeatmap, 10000); // 10초마다 히트맵 업데이트
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                const now = new Date();
+                const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
+                let timeString;
+                if (lang === 'ko') {
+                    timeString = now.toLocaleString('ko-KR');
+                } else if (lang === 'en') {
+                    timeString = now.toLocaleString('en-US');
+                } else if (lang === 'ja') {
+                    timeString = now.toLocaleString('ja-JP');
+                } else if (lang === 'zh') {
+                    timeString = now.toLocaleString('zh-CN');
+                } else {
+                    timeString = now.toLocaleString();
+                }
+                document.getElementById('lastUpdate').textContent = timeString;
             }});
         </script>
     </body>
@@ -4038,9 +4119,17 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
                                     <div class="mb-2">
                                         <strong>Output:</strong> Load control commands, PV curtailment, Storage dispatch
                                     </div>
+                                    <div class="btn-group" role="group">
                                         <button class="btn btn-outline-primary btn-sm" onclick="downloadSnapshot()">
                                             <i class="fas fa-download"></i> {t('crewai.safetyControls.simulationSnapshot', lang)} 다운로드
                                         </button>
+                                        <button class="btn btn-outline-success btn-sm" onclick="startSessionReplay()">
+                                            <i class="fas fa-play"></i> 리플레이 시작
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="stopSessionReplay()">
+                                            <i class="fas fa-stop"></i> 리플레이 중지
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4301,15 +4390,77 @@ async def crewai_system_page(request: Request, lang: str = Query("ko", descripti
             // Safety control functions
             function approveControl() {{
                 const policy = document.getElementById('policySelection').value;
+                const approvalData = {{
+                    timestamp: new Date().toISOString(),
+                    policy: policy,
+                    approver: 'admin@energy-system.com',
+                    ip: '192.168.1.100',
+                    sessionId: 'session_' + Date.now()
+                }};
+                
+                // 승인 로그 추가
                 addEventLog(`제어 명령 승인됨: ${{policy}}`, 'success');
-                // Simulate approval process
+                addAuditLog('APPROVAL', approvalData);
+                
+                // 승인 프로세스 시뮬레이션
                 setTimeout(() => {{
                     addEventLog('제어 명령이 성공적으로 적용되었습니다.', 'success');
+                    addAuditLog('APPLICATION', approvalData);
                 }}, 2000);
             }}
 
             function rejectControl() {{
+                const rejectionData = {{
+                    timestamp: new Date().toISOString(),
+                    reason: 'Manual rejection by operator',
+                    approver: 'admin@energy-system.com',
+                    ip: '192.168.1.100'
+                }};
+                
                 addEventLog('제어 명령이 거부되었습니다.', 'warning');
+                addAuditLog('REJECTION', rejectionData);
+            }}
+
+            // 감사 로그 추가 함수
+            function addAuditLog(action, data) {{
+                const auditEntry = {{
+                    id: 'audit_' + Date.now(),
+                    action: action,
+                    timestamp: data.timestamp,
+                    user: data.approver,
+                    ip: data.ip,
+                    details: data
+                }};
+                
+                // 로컬 스토리지에 감사 로그 저장
+                let auditLogs = JSON.parse(localStorage.getItem('auditLogs') || '[]');
+                auditLogs.unshift(auditEntry);
+                if (auditLogs.length > 100) auditLogs = auditLogs.slice(0, 100);
+                localStorage.setItem('auditLogs', JSON.stringify(auditLogs));
+                
+                console.log('Audit Log:', auditEntry);
+            }}
+
+            // 세션 리플레이 기능
+            function startSessionReplay() {{
+                const sessionData = {{
+                    startTime: new Date().toISOString(),
+                    user: 'admin@energy-system.com',
+                    actions: []
+                }};
+                
+                addEventLog('세션 리플레이 시작됨', 'info');
+                localStorage.setItem('currentSession', JSON.stringify(sessionData));
+            }}
+
+            function stopSessionReplay() {{
+                const sessionData = JSON.parse(localStorage.getItem('currentSession') || '{}');
+                sessionData.endTime = new Date().toISOString();
+                sessionData.duration = new Date(sessionData.endTime) - new Date(sessionData.startTime);
+                
+                addEventLog('세션 리플레이 종료됨', 'info');
+                localStorage.setItem('lastSession', JSON.stringify(sessionData));
+                localStorage.removeItem('currentSession');
             }}
 
             function downloadSnapshot() {{

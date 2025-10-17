@@ -1,5 +1,8 @@
 {
   "title": "Energy Analysis and Prediction Platform",
+  "main": {
+    "llmSlmSubtitle": "Energy-specialized Language Model Development"
+  },
   "navigation": {
     "home": "Home",
     "energySupply": "Energy Supply Analysis",

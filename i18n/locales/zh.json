@@ -1,5 +1,8 @@
 {
   "title": "能源分析与预测平台",
+  "main": {
+    "llmSlmSubtitle": "能源专业语言模型开发"
+  },
   "navigation": {
     "home": "首页",
     "energySupply": "能源供应分析",
