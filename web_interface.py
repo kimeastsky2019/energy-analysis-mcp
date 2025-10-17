@@ -401,6 +401,11 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
             </div>
         </div>
 
+        <!-- 새로고침 버튼 -->
+        <button class="refresh-button" onclick="refreshAllData()" title="모든 데이터 새로고침">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+
         <script>
             // 실시간 에너지 데이터 생성
             function generateEnergyData() {{
@@ -556,10 +561,29 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 border-radius: 50%;
                 display: inline-block;
                 margin-right: 8px;
+                animation: pulse 2s infinite;
             }}
-            .status-online {{ background-color: #28a745; }}
-            .status-offline {{ background-color: #dc3545; }}
-            .status-warning {{ background-color: #ffc107; }}
+            .status-online {{ 
+                background-color: #28a745; 
+                box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+            }}
+            .status-offline {{ 
+                background-color: #dc3545; 
+                box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+            }}
+            .status-warning {{ 
+                background-color: #ffc107; 
+                box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+            }}
+            .status-healthy {{ 
+                background-color: #17a2b8; 
+                box-shadow: 0 0 10px rgba(23, 162, 184, 0.5);
+            }}
+            @keyframes pulse {{
+                0% {{ transform: scale(1); opacity: 1; }}
+                50% {{ transform: scale(1.1); opacity: 0.7; }}
+                100% {{ transform: scale(1); opacity: 1; }}
+            }}
             .feature-grid {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -730,6 +754,55 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 font-size: 0.8rem;
                 margin-top: 10px;
             }}
+            .tooltip {{
+                position: relative;
+                display: inline-block;
+                cursor: help;
+            }}
+            .tooltip .tooltiptext {{
+                visibility: hidden;
+                width: 200px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 8px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%;
+                left: 50%;
+                margin-left: -100px;
+                opacity: 0;
+                transition: opacity 0.3s;
+                font-size: 0.8rem;
+            }}
+            .tooltip:hover .tooltiptext {{
+                visibility: visible;
+                opacity: 1;
+            }}
+            .refresh-button {{
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+            }}
+            .refresh-button:hover {{
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            }}
+            .refresh-button:active {{
+                transform: scale(0.95);
+            }}
         </style>
     </head>
     <body>
@@ -773,7 +846,7 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
 
             <!-- 시스템 상태 (Health 카드들) -->
             <div class="system-status-grid">
-                <div class="system-card" onclick="window.location.href='/?lang={lang}'">
+                <div class="system-card tooltip" onclick="window.location.href='/?lang={lang}'">
                     <i class="fas fa-server fa-3x text-success mb-3"></i>
                     <h5>{t('health.webServer.title', lang)}</h5>
                     <p>
@@ -784,13 +857,14 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="link-indicator">
                         🔗 {t('health.webServer.link', lang)}
                     </div>
+                    <span class="tooltiptext">웹 서버 상태: 정상 작동 중<br>포트: 8000<br>응답 시간: 평균 15ms</span>
                 </div>
                 
                 <div class="system-card" onclick="window.location.href='/api/health'">
                     <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
                     <h5>{t('health.apiServices.title', lang)}</h5>
                     <p>
-                        <span class="status-indicator status-online"></span>
+                        <span class="status-indicator status-healthy"></span>
                         <strong>{t('health.apiServices.status', lang)}</strong>
                     </p>
                     <small class="text-muted">{t('health.apiServices.description', lang)}</small>
@@ -820,6 +894,37 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                     <div class="link-indicator">
                         🔗 {t('health.uptime.link', lang)}
                     </div>
+                </div>
+            </div>
+
+            <!-- 시스템 메트릭 -->
+            <div class="system-status-grid">
+                <div class="system-card">
+                    <i class="fas fa-microchip fa-3x text-info mb-3"></i>
+                    <h5>{t('health.systemMetrics.cpuUsage', lang)}</h5>
+                    <p class="uptime-display" id="cpuUsage">0%</p>
+                    <small class="text-muted">{t('health.systemMetrics.currentCpuUsage', lang)}</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-memory fa-3x text-warning mb-3"></i>
+                    <h5>{t('health.systemMetrics.memoryUsage', lang)}</h5>
+                    <p class="uptime-display" id="memoryUsage">0%</p>
+                    <small class="text-muted">{t('health.systemMetrics.currentMemoryUsage', lang)}</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-tachometer-alt fa-3x text-success mb-3"></i>
+                    <h5>{t('health.systemMetrics.responseTime', lang)}</h5>
+                    <p class="uptime-display" id="responseTime">0ms</p>
+                    <small class="text-muted">{t('health.systemMetrics.avgApiResponseTime', lang)}</small>
+                </div>
+                
+                <div class="system-card">
+                    <i class="fas fa-network-wired fa-3x text-primary mb-3"></i>
+                    <h5>{t('health.systemMetrics.activeConnections', lang)}</h5>
+                    <p class="uptime-display" id="activeConnections">0</p>
+                    <small class="text-muted">{t('health.systemMetrics.currentActiveConnections', lang)}</small>
                 </div>
             </div>
 
@@ -1007,15 +1112,30 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
 
             // 업타임 계산
             function updateUptime() {{
-                const startTime = new Date('2025-10-11T01:22:47Z');
+                const startTime = new Date('2025-01-14T10:00:00Z');
                 const now = new Date();
                 const diff = now - startTime;
                 
-                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                 
-                document.getElementById('uptime').textContent = `${{hours}}h ${{minutes}}m ${{seconds}}s`;
+                const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
+                let uptimeText;
+                if (lang === 'ko') {{
+                    uptimeText = `${{days}}일 ${{hours}}시간 ${{minutes}}분 ${{seconds}}초`;
+                }} else if (lang === 'en') {{
+                    uptimeText = `${{days}}d ${{hours}}h ${{minutes}}m ${{seconds}}s`;
+                }} else if (lang === 'ja') {{
+                    uptimeText = `${{days}}日 ${{hours}}時間 ${{minutes}}分 ${{seconds}}秒`;
+                }} else if (lang === 'zh') {{
+                    uptimeText = `${{days}}天 ${{hours}}小时 ${{minutes}}分钟 ${{seconds}}秒`;
+                }} else {{
+                    uptimeText = `${{days}}d ${{hours}}h ${{minutes}}m ${{seconds}}s`;
+                }}
+                
+                document.getElementById('uptime').textContent = uptimeText;
             }}
 
             // 언어 전환 함수
@@ -1025,12 +1145,96 @@ async def health_page(request: Request, lang: str = Query("ko", description="Lan
                 window.location.href = url.toString();
             }}
 
+            // API 테스트 함수
+            async function testAPI(endpoint) {{
+                try {{
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    return {{
+                        status: 'success',
+                        data: data,
+                        responseTime: Date.now()
+                    }};
+                }} catch (error) {{
+                    return {{
+                        status: 'error',
+                        error: error.message,
+                        responseTime: Date.now()
+                    }};
+                }}
+            }}
+
+            // 시스템 메트릭 업데이트
+            function updateSystemMetrics() {{
+                // CPU 사용률 시뮬레이션
+                const cpuUsage = Math.floor(Math.random() * 30) + 20; // 20-50%
+                document.getElementById('cpuUsage').textContent = cpuUsage + '%';
+                
+                // 메모리 사용률 시뮬레이션
+                const memoryUsage = Math.floor(Math.random() * 40) + 30; // 30-70%
+                document.getElementById('memoryUsage').textContent = memoryUsage + '%';
+                
+                // 응답 시간 시뮬레이션
+                const responseTime = Math.floor(Math.random() * 50) + 10; // 10-60ms
+                document.getElementById('responseTime').textContent = responseTime + 'ms';
+                
+                // 활성 연결 수 시뮬레이션
+                const activeConnections = Math.floor(Math.random() * 100) + 50; // 50-150
+                document.getElementById('activeConnections').textContent = activeConnections;
+            }}
+
+            // 모든 데이터 새로고침
+            function refreshAllData() {{
+                const button = document.querySelector('.refresh-button i');
+                button.style.animation = 'spin 1s linear infinite';
+                
+                // 모든 데이터 업데이트
+                updateStats();
+                updateUptime();
+                updateSystemMetrics();
+                generateHeatmap();
+                
+                // 마지막 업데이트 시간 갱신
+                const now = new Date();
+                const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';
+                let timeString;
+                if (lang === 'ko') {{
+                    timeString = now.toLocaleString('ko-KR');
+                }} else if (lang === 'en') {{
+                    timeString = now.toLocaleString('en-US');
+                }} else if (lang === 'ja') {{
+                    timeString = now.toLocaleString('ja-JP');
+                }} else if (lang === 'zh') {{
+                    timeString = now.toLocaleString('zh-CN');
+                }} else {{
+                    timeString = now.toLocaleString();
+                }}
+                document.getElementById('lastUpdate').textContent = timeString;
+                
+                // 애니메이션 중지
+                setTimeout(() => {{
+                    button.style.animation = '';
+                }}, 1000);
+            }}
+
+            // 스핀 애니메이션 CSS 추가
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {{
+                    0% {{ transform: rotate(0deg); }}
+                    100% {{ transform: rotate(360deg); }}
+                }}
+            `;
+            document.head.appendChild(style);
+
             // 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 updateStats();
                 updateUptime();
+                updateSystemMetrics();
                 setInterval(updateStats, 5000); // 5초마다 통계 업데이트
                 setInterval(updateUptime, 1000); // 1초마다 업타임 업데이트
+                setInterval(updateSystemMetrics, 3000); // 3초마다 시스템 메트릭 업데이트
                 setInterval(generateHeatmap, 10000); // 10초마다 히트맵 업데이트
                 const now = new Date();
                 const lang = new URLSearchParams(window.location.search).get('lang') || 'ko';

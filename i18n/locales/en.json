@@ -414,6 +414,17 @@
       "lastUpdate": "Last Update:",
       "link": "Statistics Page"
     },
+    "systemMetrics": {
+      "title": "System Metrics",
+      "cpuUsage": "CPU Usage",
+      "memoryUsage": "Memory Usage",
+      "responseTime": "Response Time",
+      "activeConnections": "Active Connections",
+      "currentCpuUsage": "Current CPU Usage",
+      "currentMemoryUsage": "Current Memory Usage",
+      "avgApiResponseTime": "Average API Response Time",
+      "currentActiveConnections": "Current Active Connections"
+    },
     "realTimeEventCapture": {
       "title": "Real-time Event Capture",
       "description": "Track all user interactions such as clicks, scrolls, and form submissions in real-time.",

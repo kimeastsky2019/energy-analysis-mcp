@@ -414,6 +414,17 @@
       "lastUpdate": "Last Update:",
       "link": "통계 페이지"
     },
+    "systemMetrics": {
+      "title": "시스템 메트릭",
+      "cpuUsage": "CPU 사용률",
+      "memoryUsage": "메모리 사용률",
+      "responseTime": "응답 시간",
+      "activeConnections": "활성 연결",
+      "currentCpuUsage": "현재 CPU 사용률",
+      "currentMemoryUsage": "현재 메모리 사용률",
+      "avgApiResponseTime": "평균 API 응답 시간",
+      "currentActiveConnections": "현재 활성 연결 수"
+    },
     "realTimeEventCapture": {
       "title": "실시간 이벤트 캡처",
       "description": "클릭, 스크롤, 폼 제출 등 모든 사용자 상호작용을 실시간으로 추적합니다.",

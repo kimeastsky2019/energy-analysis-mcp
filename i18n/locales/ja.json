@@ -334,6 +334,17 @@
       "lastUpdate": "最終更新:",
       "link": "統計ページ"
     },
+    "systemMetrics": {
+      "title": "システムメトリクス",
+      "cpuUsage": "CPU使用率",
+      "memoryUsage": "メモリ使用率",
+      "responseTime": "応答時間",
+      "activeConnections": "アクティブ接続",
+      "currentCpuUsage": "現在のCPU使用率",
+      "currentMemoryUsage": "現在のメモリ使用率",
+      "avgApiResponseTime": "平均API応答時間",
+      "currentActiveConnections": "現在のアクティブ接続数"
+    },
     "realTimeEventCapture": {
       "title": "リアルタイムイベントキャプチャ",
       "description": "クリック、スクロール、フォーム送信など、すべてのユーザーインタラクションをリアルタイムで追跡します。",

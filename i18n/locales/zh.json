@@ -334,6 +334,17 @@
       "lastUpdate": "最后更新:",
       "link": "统计页面"
     },
+    "systemMetrics": {
+      "title": "系统指标",
+      "cpuUsage": "CPU使用率",
+      "memoryUsage": "内存使用率",
+      "responseTime": "响应时间",
+      "activeConnections": "活跃连接",
+      "currentCpuUsage": "当前CPU使用率",
+      "currentMemoryUsage": "当前内存使用率",
+      "avgApiResponseTime": "平均API响应时间",
+      "currentActiveConnections": "当前活跃连接数"
+    },
     "realTimeEventCapture": {
       "title": "实时事件捕获",
       "description": "实时跟踪所有用户交互，如点击、滚动和表单提交。",
