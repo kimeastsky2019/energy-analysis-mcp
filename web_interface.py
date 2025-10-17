@@ -1892,7 +1892,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
 
 @web_app.get("/data-analysis", response_class=HTMLResponse)
 async def data_analysis_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """Energy Demand Monitoring 페이지"""
+    """시설 모니터링 및 데이터 분석 페이지"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -1903,26 +1903,116 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>📊 Energy Demand Monitoring</title>
+        <title>🏭 시설 모니터링 및 데이터 분석</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
         <style>
-            .analysis-card {{
-                transition: transform 0.2s;
-                border: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }}
-            .analysis-card:hover {{
-                transform: translateY(-5px);
-                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            .monitoring-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .facility-info {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .sensor-card {{
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                color: #333;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .power-card {{
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                color: #333;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .event-card {{
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }}
+            .calendar-card {{
+                background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                color: #333;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }}
+            .metric-value {{
+                font-size: 2rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }}
+            .metric-label {{
+                font-size: 0.9rem;
+                opacity: 0.9;
+            }}
+            .chart-container {{
+                max-height: 300px;
+            }}
+            .status-indicator {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+            }}
+            .status-online {{ background-color: #28a745; }}
+            .status-offline {{ background-color: #dc3545; }}
+            .status-warning {{ background-color: #ffc107; }}
+            .event-timeline {{
+                max-height: 400px;
+                overflow-y: auto;
+            }}
+            .event-item {{
+                border-left: 3px solid #007bff;
+                padding-left: 15px;
+                margin-bottom: 15px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 5px;
+                padding: 10px;
+            }}
+            .event-time {{
+                font-size: 0.8rem;
+                color: #666;
+                font-weight: bold;
+            }}
+            .event-content {{
+                margin-top: 5px;
+            }}
+            .memo-input {{
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 10px;
+                margin-top: 10px;
             }}
         </style>
     </head>
-    <body class="bg-light">
+    <body>
         <nav class="navbar navbar-dark bg-dark">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">
-                    <i class="fas fa-chart-bar"></i> <span data-translate="card_demand">Energy Demand Monitoring</span>
+                    <i class="fas fa-industry"></i> <span data-translate="facility_monitoring">시설 모니터링 및 데이터 분석</span>
                 </span>
                 <div class="navbar-nav ms-auto d-flex flex-row">
                     <a href="/?lang={lang}" class="btn btn-outline-light btn-sm me-2">
@@ -1930,10 +2020,10 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                     </a>
                     <!-- 언어 선택 드롭다운 -->
                     <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-globe"></i> <span id="currentLanguage">한국어</span>
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe"></i> <span data-translate="current_language">한국어</span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                        <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="?lang=ko">🇰🇷 한국어</a></li>
                             <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
                             <li><a class="dropdown-item" href="?lang=zh">🇨🇳 中文</a></li>
@@ -1944,67 +2034,222 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         </nav>
 
         <div class="container-fluid mt-4">
-            <div class="row">
-                <!-- 데이터 품질 카드들 -->
-                <div class="col-md-3 mb-4">
-                    <div class="card analysis-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Data Completeness</h5>
-                            <h2 class="text-success">98.5%</h2>
-                            <p class="card-text">완전성</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card analysis-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-bullseye fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Data Accuracy</h5>
-                            <h2 class="text-primary">96.2%</h2>
-                            <p class="card-text">정확성</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card analysis-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-sync-alt fa-3x text-info mb-3"></i>
-                            <h5 class="card-title">Data Consistency</h5>
-                            <h2 class="text-info">94.8%</h2>
-                            <p class="card-text">일관성</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card analysis-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-clock fa-3x text-warning mb-3"></i>
-                            <h5 class="card-title">Data Freshness</h5>
-                            <h2 class="text-warning">99.1%</h2>
-                            <p class="card-text">신선도</p>
+            <!-- 시설 정보 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="facility-info">
+                        <h4><i class="fas fa-map-marker-alt"></i> 시설 위치 및 정보</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6>시설명</h6>
+                                <p><strong>서울 에너지 센터</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>위치</h6>
+                                <p><strong>서울특별시 강남구 테헤란로 123</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>시설 유형</h6>
+                                <p><strong>스마트 그리드 시설</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>운영 상태</h6>
+                                <p><span class="status-indicator status-online"></span><strong>정상 운영</strong></p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 에너지 수요 분석 차트 -->
-            <div class="row">
+            <!-- 센서링 데이터 모니터링 -->
+            <div class="row mb-4">
                 <div class="col-12">
-                    <div class="card analysis-card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-line"></i> Energy Demand Analysis
-                            </h5>
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-microchip"></i> 센서링 데이터 실시간 모니터링</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="sensor-card text-center">
+                                    <h6>온도 센서</h6>
+                                    <div class="metric-value" id="temperature">23.5°C</div>
+                                    <div class="metric-label">실내 온도</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="sensor-card text-center">
+                                    <h6>습도 센서</h6>
+                                    <div class="metric-value" id="humidity">65%</div>
+                                    <div class="metric-label">실내 습도</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="sensor-card text-center">
+                                    <h6>진동 센서</h6>
+                                    <div class="metric-value" id="vibration">0.2g</div>
+                                    <div class="metric-label">기계 진동</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="sensor-card text-center">
+                                    <h6>압력 센서</h6>
+                                    <div class="metric-value" id="pressure">101.3 kPa</div>
+                                    <div class="metric-label">기압</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <p class="text-muted">에너지 수요 패턴 분석 및 예측</p>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>분석 결과:</strong> 현재 에너지 수요는 정상 범위 내에 있으며, 예측 모델에 따르면 향후 24시간 내 안정적인 패턴을 유지할 것으로 예상됩니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 전력 데이터 실시간 모니터링 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-bolt"></i> 전력 데이터 실시간 모니터링</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>총 전력 소비</h6>
+                                    <div class="metric-value" id="totalPower">1,250 kW</div>
+                                    <div class="metric-label">현재 소비량</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>피크 전력</h6>
+                                    <div class="metric-value" id="peakPower">1,450 kW</div>
+                                    <div class="metric-label">최대 소비량</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>전력 효율</h6>
+                                    <div class="metric-value" id="powerEfficiency">94.2%</div>
+                                    <div class="metric-label">시스템 효율</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="power-card text-center">
+                                    <h6>일일 소비량</h6>
+                                    <div class="metric-value" id="dailyConsumption">28.5 MWh</div>
+                                    <div class="metric-label">오늘 소비량</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시계열 데이터 차트 -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-chart-line"></i> 시계열 데이터 분석</h5>
+                        <canvas id="timeSeriesChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-calendar-alt"></i> 구글 일정 연동</h5>
+                        <div class="calendar-card">
+                            <h6>오늘의 일정</h6>
+                            <div class="event-timeline" id="calendarEvents">
+                                <div class="event-item">
+                                    <div class="event-time">09:00 - 10:00</div>
+                                    <div class="event-content">
+                                        <strong>시설 점검</strong><br>
+                                        <small>정기 시설 점검 및 유지보수</small>
+                                    </div>
+                                </div>
+                                <div class="event-item">
+                                    <div class="event-time">14:00 - 15:00</div>
+                                    <div class="event-content">
+                                        <strong>데이터 분석 회의</strong><br>
+                                        <small>주간 데이터 분석 결과 검토</small>
+                                    </div>
+                                </div>
+                                <div class="event-item">
+                                    <div class="event-time">16:30 - 17:30</div>
+                                    <div class="event-content">
+                                        <strong>시스템 업데이트</strong><br>
+                                        <small>센서 시스템 소프트웨어 업데이트</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm mt-2" onclick="syncGoogleCalendar()">
+                                <i class="fas fa-sync"></i> 구글 일정 동기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이벤트 및 메모 기능 -->
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-history"></i> 시계열 이벤트 타임라인</h5>
+                        <div class="event-timeline" id="eventTimeline">
+                            <div class="event-item">
+                                <div class="event-time">2024-01-15 10:30:15</div>
+                                <div class="event-content">
+                                    <strong>전력 소비 급증</strong><br>
+                                    <small>전력 소비량이 평균 대비 15% 증가</small>
+                                    <div class="memo-input">
+                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
+                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">2024-01-15 09:45:22</div>
+                                <div class="event-content">
+                                    <strong>온도 센서 이상</strong><br>
+                                    <small>온도 센서 값이 정상 범위를 벗어남</small>
+                                    <div class="memo-input">
+                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
+                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">2024-01-15 08:15:33</div>
+                                <div class="event-content">
+                                    <strong>시스템 시작</strong><br>
+                                    <small>모니터링 시스템이 정상적으로 시작됨</small>
+                                    <div class="memo-input">
+                                        <textarea class="form-control form-control-sm" placeholder="이벤트에 대한 메모를 입력하세요..." rows="2"></textarea>
+                                        <button class="btn btn-primary btn-sm mt-1" onclick="saveMemo(this)">메모 저장</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-sticky-note"></i> 사용자 이벤트 및 메모</h5>
+                        <div class="mb-3">
+                            <button class="btn btn-success btn-sm" onclick="addUserEvent()">
+                                <i class="fas fa-plus"></i> 새 이벤트 추가
+                            </button>
+                            <button class="btn btn-info btn-sm ms-2" onclick="exportEvents()">
+                                <i class="fas fa-download"></i> 이벤트 내보내기
+                            </button>
+                        </div>
+                        <div class="event-timeline" id="userEvents">
+                            <div class="event-item">
+                                <div class="event-time">2024-01-15 11:20:45</div>
+                                <div class="event-content">
+                                    <strong>사용자 메모</strong><br>
+                                    <small>시설 점검 완료. 모든 시스템 정상 작동 중.</small>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">2024-01-15 10:45:12</div>
+                                <div class="event-content">
+                                    <strong>알림 설정</strong><br>
+                                    <small>전력 소비량 임계값 알림 설정 완료</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2013,6 +2258,159 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 실시간 데이터 업데이트
+            function updateRealtimeData() {{
+                // 센서 데이터 업데이트
+                const temperature = (Math.random() * 10 + 20).toFixed(1);
+                const humidity = (Math.random() * 20 + 50).toFixed(0);
+                const vibration = (Math.random() * 0.5).toFixed(1);
+                const pressure = (Math.random() * 5 + 100).toFixed(1);
+
+                document.getElementById('temperature').textContent = temperature + '°C';
+                document.getElementById('humidity').textContent = humidity + '%';
+                document.getElementById('vibration').textContent = vibration + 'g';
+                document.getElementById('pressure').textContent = pressure + ' kPa';
+
+                // 전력 데이터 업데이트
+                const totalPower = (Math.random() * 200 + 1200).toFixed(0);
+                const peakPower = (Math.random() * 100 + 1400).toFixed(0);
+                const powerEfficiency = (Math.random() * 5 + 92).toFixed(1);
+                const dailyConsumption = (Math.random() * 5 + 27).toFixed(1);
+
+                document.getElementById('totalPower').textContent = totalPower + ' kW';
+                document.getElementById('peakPower').textContent = peakPower + ' kW';
+                document.getElementById('powerEfficiency').textContent = powerEfficiency + '%';
+                document.getElementById('dailyConsumption').textContent = dailyConsumption + ' MWh';
+            }}
+
+            // 시계열 차트 초기화
+            function initTimeSeriesChart() {{
+                const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+                const hours = [];
+                const powerData = [];
+                const temperatureData = [];
+                
+                for (let i = 0; i < 24; i++) {{
+                    hours.push(i.toString().padStart(2, '0') + ':00');
+                    powerData.push(Math.random() * 200 + 1200);
+                    temperatureData.push(Math.random() * 10 + 20);
+                }}
+                
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: hours,
+                        datasets: [{{
+                            label: '전력 소비 (kW)',
+                            data: powerData,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }}, {{
+                            label: '온도 (°C)',
+                            data: temperatureData,
+                            borderColor: '#4ecdc4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {{
+                                    display: true,
+                                    text: '전력 소비 (kW)'
+                                }}
+                            }},
+                            y1: {{
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {{
+                                    display: true,
+                                    text: '온도 (°C)'
+                                }},
+                                grid: {{
+                                    drawOnChartArea: false,
+                                }},
+                            }}
+                        }},
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top'
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 구글 일정 동기화
+            function syncGoogleCalendar() {{
+                // 구글 일정 API 연동 시뮬레이션
+                const calendarEvents = document.getElementById('calendarEvents');
+                const newEvent = document.createElement('div');
+                newEvent.className = 'event-item';
+                newEvent.innerHTML = `
+                    <div class="event-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="event-content">
+                        <strong>새 일정 추가됨</strong><br>
+                        <small>구글 일정에서 동기화된 새로운 일정</small>
+                    </div>
+                `;
+                calendarEvents.insertBefore(newEvent, calendarEvents.firstChild);
+            }}
+
+            // 메모 저장
+            function saveMemo(button) {{
+                const textarea = button.previousElementSibling;
+                const memo = textarea.value.trim();
+                if (memo) {{
+                    // 메모 저장 로직
+                    button.textContent = '저장됨';
+                    button.className = 'btn btn-success btn-sm mt-1';
+                    textarea.disabled = true;
+                }}
+            }}
+
+            // 새 사용자 이벤트 추가
+            function addUserEvent() {{
+                const userEvents = document.getElementById('userEvents');
+                const newEvent = document.createElement('div');
+                newEvent.className = 'event-item';
+                newEvent.innerHTML = `
+                    <div class="event-time">${new Date().toLocaleString()}</div>
+                    <div class="event-content">
+                        <strong>새 사용자 이벤트</strong><br>
+                        <small>사용자가 추가한 새로운 이벤트</small>
+                    </div>
+                `;
+                userEvents.insertBefore(newEvent, userEvents.firstChild);
+            }}
+
+            // 이벤트 내보내기
+            function exportEvents() {{
+                // 이벤트 데이터를 CSV나 JSON 형태로 내보내기
+                alert('이벤트 데이터가 내보내기되었습니다.');
+            }}
+
+            // 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initTimeSeriesChart();
+                updateRealtimeData();
+                
+                // 5초마다 데이터 업데이트
+                setInterval(updateRealtimeData, 5000);
+            }});
+        </script>
     </body>
     </html>
     """
