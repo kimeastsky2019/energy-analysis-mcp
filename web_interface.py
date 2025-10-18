@@ -4,9 +4,10 @@
 Health 카드와 메뉴에 기존 페이지들을 연결한 플랫폼
 """
 
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Body, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
+from typing import Optional
 import uvicorn
 
 # FastAPI 앱 생성
@@ -186,6 +187,11 @@ def generate_navigation(current_lang='ko'):
                         <li class="nav-item">
                             <a class="nav-link" href="/statistics?lang={current_lang}">
                                 <i class="fas fa-cogs"></i> {t('navigation.demandControl', current_lang)}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/trading?lang={current_lang}">
+                                <i class="fas fa-exchange-alt"></i> 전력/탄소 거래
                             </a>
                         </li>
                         <li class="nav-item">
@@ -1892,6 +1898,349 @@ async def api_dashboard():
         "timestamp": datetime.now().isoformat()
     }
 
+@web_app.get("/api/energy-matching")
+async def get_energy_matching(
+    time_offset_hours: int = Query(0, description="시간 오프셋 (0=현재, 1=1시간후, 3=3시간후)")
+):
+    """에너지 공급-수요 매칭 분석 API"""
+    from datetime import datetime, timedelta
+    
+    target_time = datetime.now() + timedelta(hours=time_offset_hours)
+    
+    # 시뮬레이션 데이터 생성
+    import random
+    
+    # 공급 데이터
+    supply_data = {
+        "solar": round(random.uniform(1.5, 4.5), 1),
+        "ess": round(random.uniform(1.0, 3.5), 1),
+        "grid": round(random.uniform(8.0, 12.0), 1),
+        "surplus": round(random.uniform(100, 200), 0)
+    }
+    
+    # 수요 데이터 (기기별)
+    demand_data = {
+        "building_a": {
+            "total": 450,
+            "hvac": 280,
+            "lighting": 85,
+            "computing": 65,
+            "other": 20
+        },
+        "building_b": {
+            "total": 380,
+            "hvac": 220,
+            "lighting": 75,
+            "computing": 55,
+            "other": 30
+        },
+        "building_c": {
+            "total": 320,
+            "hvac": 200,
+            "lighting": 70,
+            "computing": 40,
+            "other": 10
+        },
+        "common": {
+            "total": 100,
+            "elevator": 45,
+            "ventilation": 30,
+            "pump": 25
+        }
+    }
+    
+    # 매칭 분석
+    total_demand = sum(building["total"] for building in demand_data.values())
+    total_supply = supply_data["solar"] + supply_data["ess"] + supply_data["grid"]
+    matching_rate = min(total_demand, total_supply) / max(total_demand, total_supply) * 100
+    
+    return {
+        "time": target_time.isoformat(),
+        "offset_hours": time_offset_hours,
+        "supply": supply_data,
+        "demand": demand_data,
+        "matching": {
+            "matching_rate": round(matching_rate, 1),
+            "grid_dependency": round(supply_data["grid"] / total_supply * 100, 1),
+            "self_generation": round((supply_data["solar"] + supply_data["ess"]) / total_supply * 100, 1),
+            "cost_savings": round(random.uniform(5000, 15000), 0)
+        },
+        "total_demand": total_demand,
+        "total_supply": round(total_supply, 1)
+    }
+
+@web_app.get("/api/demand-response/recommendations")
+async def get_dr_recommendations(
+    target_reduction_kw: float = Query(0, description="목표 절감량 (kW)")
+):
+    """수요 반응 권장사항 생성 API"""
+    import random
+    
+    recommendations = [
+        {
+            "id": "hvac_optimization",
+            "title": "냉방 시스템 최적화",
+            "priority": "high",
+            "target_buildings": ["building_a", "building_b", "building_c"],
+            "target_reduction": 120,
+            "options": [
+                {
+                    "name": "설정 온도 1°C 상향",
+                    "reduction": 80,
+                    "impact": "low",
+                    "apply_time": "17:00"
+                },
+                {
+                    "name": "외기 도입량 20% 증가",
+                    "reduction": 25,
+                    "impact": "none",
+                    "apply_time": "16:30"
+                },
+                {
+                    "name": "미사용 구역 냉방 차단",
+                    "reduction": 15,
+                    "impact": "none",
+                    "apply_time": "immediate"
+                }
+            ],
+            "cost_savings": 14400
+        },
+        {
+            "id": "lighting_control",
+            "title": "조명 자동 조도 조절",
+            "priority": "medium",
+            "target_buildings": ["all"],
+            "target_reduction": 35,
+            "options": [
+                {
+                    "name": "창가 구역 조도 30% 감소",
+                    "reduction": 20,
+                    "impact": "none",
+                    "apply_time": "immediate"
+                },
+                {
+                    "name": "인체감지 센서 작동",
+                    "reduction": 10,
+                    "impact": "none",
+                    "apply_time": "immediate"
+                },
+                {
+                    "name": "미사용 회의실 자동 소등",
+                    "reduction": 5,
+                    "impact": "none",
+                    "apply_time": "immediate"
+                }
+            ],
+            "cost_savings": 4200
+        }
+    ]
+    
+    total_potential = sum(rec["target_reduction"] for rec in recommendations)
+    total_savings = sum(rec["cost_savings"] for rec in recommendations)
+    
+    return {
+        "target_reduction": target_reduction_kw,
+        "recommendations": recommendations,
+        "total_potential_reduction": total_potential,
+        "total_cost_savings": total_savings,
+        "priority_actions": [rec for rec in recommendations if rec["priority"] == "high"],
+        "estimated_impact": {
+            "matching_rate_improvement": round(random.uniform(8, 12), 1),
+            "co2_reduction": round(random.uniform(5, 8), 1),
+            "ess_preservation": round(random.uniform(6, 10), 1)
+        }
+    }
+
+@web_app.post("/api/device-control")
+async def control_device(
+    building: str = Query(..., description="건물 ID"),
+    device_type: str = Query(..., description="기기 타입"),
+    action: str = Query(..., description="제어 액션"),
+    parameters: dict = Body(default={}, description="제어 파라미터")
+):
+    """기기 제어 명령 실행 API"""
+    from datetime import datetime
+    
+    # 제어 명령 검증
+    valid_buildings = ["building_a", "building_b", "building_c", "common"]
+    valid_devices = ["hvac", "lighting", "computing", "elevator", "ventilation", "pump"]
+    valid_actions = ["on", "off", "adjust", "schedule", "optimize"]
+    
+    if building not in valid_buildings:
+        raise HTTPException(status_code=400, detail="Invalid building ID")
+    
+    if device_type not in valid_devices:
+        raise HTTPException(status_code=400, detail="Invalid device type")
+    
+    if action not in valid_actions:
+        raise HTTPException(status_code=400, detail="Invalid action")
+    
+    # 시뮬레이션 제어 실행
+    import random
+    
+    expected_effect = {
+        "power_reduction": round(random.uniform(10, 50), 1),
+        "cost_savings": round(random.uniform(1000, 5000), 0),
+        "duration": "2-4 hours"
+    }
+    
+    return {
+        "status": "success",
+        "timestamp": datetime.now().isoformat(),
+        "building": building,
+        "device_type": device_type,
+        "action": action,
+        "parameters": parameters,
+        "expected_effect": expected_effect,
+        "execution_id": f"ctrl_{random.randint(10000, 99999)}"
+    }
+
+@web_app.get("/api/ess/optimization-strategy")
+async def get_ess_strategy(
+    horizon_hours: int = Query(3, description="예측 시간 범위 (시간)")
+):
+    """ESS 최적 운영 전략 생성 API"""
+    import random
+    from datetime import datetime, timedelta
+    
+    # 현재 ESS 상태
+    ess_status = {
+        "bank_1": {"soc": round(random.uniform(85, 95), 1), "status": "charging", "power": 2.3},
+        "bank_2": {"soc": round(random.uniform(80, 90), 1), "status": "discharging", "power": -1.8},
+        "bank_3": {"soc": round(random.uniform(90, 98), 1), "status": "standby", "power": 0},
+        "bank_4": {"soc": 0, "status": "maintenance", "power": 0}
+    }
+    
+    # 향후 전략
+    strategy = {
+        "current_period": {
+            "duration": "14:30 - 15:30",
+            "strategy": "maximum_charging",
+            "actions": [
+                {"bank": "bank_1", "action": "continue_charging", "target_soc": 95},
+                {"bank": "bank_2", "action": "switch_to_charging", "target_soc": 94},
+                {"bank": "bank_3", "action": "standby", "target_soc": 96}
+            ]
+        },
+        "future_period": {
+            "duration": "15:30 - 17:30",
+            "strategy": "gradual_discharging",
+            "actions": [
+                {"bank": "bank_2", "action": "discharge", "target_soc": 70, "power": -2.5},
+                {"bank": "bank_3", "action": "discharge", "target_soc": 88, "power": -1.5},
+                {"bank": "bank_1", "action": "emergency_reserve", "target_soc": 95}
+            ]
+        }
+    }
+    
+    # 예상 효과
+    expected_savings = {
+        "grid_reduction": round(random.uniform(15, 25), 1),
+        "cost_savings": round(random.uniform(25000, 45000), 0),
+        "peak_avoidance": round(random.uniform(40000, 60000), 0),
+        "cycle_impact": round(random.uniform(0.005, 0.015), 3),
+        "final_soc": round(random.uniform(80, 90), 1)
+    }
+    
+    return {
+        "current_status": ess_status,
+        "strategy": strategy,
+        "horizon_hours": horizon_hours,
+        "expected_savings": expected_savings,
+        "risk_analysis": {
+            "solar_prediction_error": "±15%",
+            "emergency_reserve": "sufficient",
+            "weather_contingency": "auto_switch_enabled"
+        }
+    }
+
+@web_app.get("/api/cost-analysis")
+async def get_cost_analysis(
+    start_time: Optional[str] = Query(None, description="시작 시간 (ISO format)"),
+    end_time: Optional[str] = Query(None, description="종료 시간 (ISO format)")
+):
+    """비용 및 환경 영향 분석 API"""
+    from datetime import datetime, timedelta
+    import random
+    
+    if not start_time:
+        start_time = (datetime.now() - timedelta(hours=24)).isoformat()
+    if not end_time:
+        end_time = datetime.now().isoformat()
+    
+    # 비용 분석
+    cost_analysis = {
+        "current_strategy": {
+            "grid_power": 3450,
+            "power_cost": 69000,
+            "peak_cost": 38000,
+            "total_cost": 107000
+        },
+        "optimized_strategy": {
+            "grid_power": 2850,
+            "power_cost": 49500,
+            "peak_cost": 12600,
+            "total_cost": 62100
+        },
+        "savings": {
+            "grid_reduction": 600,
+            "cost_reduction": 44900,
+            "reduction_rate": 42.0
+        },
+        "savings_breakdown": {
+            "self_generation": 18200,
+            "ess_utilization": 14500,
+            "demand_response": 12200
+        }
+    }
+    
+    # 탄소 배출 분석
+    carbon_analysis = {
+        "current_emissions": {
+            "grid_power": 25.1,
+            "self_generation": 0.0,
+            "total": 25.1
+        },
+        "optimized_emissions": {
+            "grid_power": 20.7,
+            "self_generation": 0.0,
+            "total": 20.7
+        },
+        "reduction": {
+            "amount": 4.4,
+            "rate": 17.5
+        },
+        "environmental_equivalent": {
+            "trees_daily": 0.4,
+            "monthly": 105.6,
+            "yearly": 1267
+        }
+    }
+    
+    # 투자 회수 분석
+    investment_analysis = {
+        "ess_investment": 150000000,
+        "annual_savings": 49165500,
+        "payback_period": 3.1,
+        "npv_10year": 312450000,
+        "discount_rate": 5.0
+    }
+    
+    return {
+        "period": {
+            "start": start_time,
+            "end": end_time
+        },
+        "cost": cost_analysis,
+        "carbon": carbon_analysis,
+        "investment": investment_analysis,
+        "projections": {
+            "daily_average": 134700,
+            "monthly": 4041000,
+            "yearly": 49165500
+        }
+    }
+
 @web_app.get("/api/models")
 async def api_models():
     """Models API"""
@@ -1919,7 +2268,7 @@ async def api_languages():
 
 @web_app.get("/statistics", response_class=HTMLResponse)
 async def statistics_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """Demand Control 페이지 - Smart Grid Service Overview 기반"""
+    """글로벌 에너지 프로슈머 플랫폼 - Global Energy Prosumer Platform with P2P Trading & Carbon Credit System"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -1930,10 +2279,12 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{t('demandControl.title', lang)}</title>
+        <title>🌍 글로벌 에너지 프로슈머 플랫폼 - Global Energy Prosumer Platform</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
         <style>
             body {{
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1985,328 +2336,413 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
             .status-active {{ background-color: #2ecc71; color: white; }}
             .status-standby {{ background-color: #f39c12; color: white; }}
             .status-offline {{ background-color: #e74c3c; color: white; }}
+            .market-card {{
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .carbon-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .trading-table {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                margin-top: 15px;
+            }}
+            .trading-item {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .trading-item:last-child {{
+                border-bottom: none;
+            }}
+            .price-trend {{
+                font-size: 0.9rem;
+                margin-left: 8px;
+            }}
+            .price-up {{ color: #28a745; }}
+            .price-down {{ color: #dc3545; }}
+            .price-stable {{ color: #6c757d; }}
         </style>
     </head>
     <body>
         {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
-            <!-- Smart ESS 중앙 제어 -->
+            <!-- 글로벌 플랫폼 헤더 -->
+            <div class="global-header">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-globe-americas"></i> 글로벌 에너지 프로슈머 플랫폼
+                </h1>
+                <p class="lead mb-4">Global Energy Prosumer Platform with P2P Trading & Carbon Credit System</p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalSites">4</div>
+                            <div class="kpi-label">활성 Demo Sites</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalDevices">1,248</div>
+                            <div class="kpi-label">등록 기기</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="dailyRevenue">₩2.5M</div>
+                            <div class="kpi-label">오늘의 거래 수익</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="carbonCredits">₩896K</div>
+                            <div class="kpi-label">탄소 크레딧 수익</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 글로벌 사이트 맵 -->
             <div class="row">
                 <div class="col-12">
-                    <div class="control-card smart-ess-card">
-                        <h4><i class="fas fa-microchip"></i> <span data-translate="smart_ess_title">Smart ESS (Energy Storage System)</span></h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="control-value" id="essCapacity">85%</div>
-                                <div class="control-label" data-translate="smart_ess_capacity">Battery Capacity</div>
+                    <div class="platform-card">
+                        <h4><i class="fas fa-map-marked-alt"></i> 글로벌 Demo Sites 실시간 모니터링</h4>
+                        <div id="globalMap" class="map-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4개 Demo Sites 상세 정보 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="site-card">
+                        <div class="site-header site-finland">
+                            <h5><i class="fas fa-university"></i> 🇫🇮 Finland - Oulu University</h5>
+                            <p class="mb-0">극한 기후, 스마트 빌딩 | 312개 기기</p>
+                        </div>
+                        <div class="site-metrics">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">92.3%</div>
+                                        <div class="metric-label">에너지 효율</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">22%</div>
+                                        <div class="metric-label">절약률</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">
+                                            <span class="status-indicator status-online"></span>Online
+                                        </div>
+                                        <div class="metric-label">연결 상태</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="control-value" id="essPower">2.3 kW</div>
-                                <div class="control-label" data-translate="smart_ess_power">Current Power</div>
+                            <div class="mt-3">
+                                <small class="text-muted">연간 비용 절감: ₩318M | ROI: 20개월</small>
                             </div>
-                            <div class="col-md-3">
-                                <div class="control-value" id="essEfficiency">94.2%</div>
-                                <div class="control-label" data-translate="smart_ess_efficiency">System Efficiency</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="site-card">
+                        <div class="site-header site-sweden">
+                            <h5><i class="fas fa-flask"></i> 🇸🇪 Sweden - KTH University</h5>
+                            <p class="mb-0">Living Lab, 지속가능성 | 428개 기기</p>
+                        </div>
+                        <div class="site-metrics">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">94.8%</div>
+                                        <div class="metric-label">에너지 효율</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">31%</div>
+                                        <div class="metric-label">절약률</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">
+                                            <span class="status-indicator status-online"></span>Online
+                                        </div>
+                                        <div class="metric-label">연결 상태</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="control-value" id="essStatus" data-translate="online">Online</div>
-                                <div class="control-label" data-translate="smart_ess_status">System Status</div>
+                            <div class="mt-3">
+                                <small class="text-muted">연간 비용 절감: ₩458M | ROI: 15개월</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="site-card">
+                        <div class="site-header site-romania">
+                            <h5><i class="fas fa-microchip"></i> 🇷🇴 Romania - BEIA</h5>
+                            <p class="mb-0">IoT, 스마트 시스템 | 256개 기기</p>
+                        </div>
+                        <div class="site-metrics">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">89.5%</div>
+                                        <div class="metric-label">에너지 효율</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">26%</div>
+                                        <div class="metric-label">절약률</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">
+                                            <span class="status-indicator status-online"></span>Online
+                                        </div>
+                                        <div class="metric-label">연결 상태</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">연간 비용 절감: ₩257M | ROI: 18개월</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="site-card">
+                        <div class="site-header site-greece">
+                            <h5><i class="fas fa-building"></i> 🇬🇷 Greece - Triaena/OTE</h5>
+                            <p class="mb-0">상업 빌딩, 통신 인프라 | 252개 기기</p>
+                        </div>
+                        <div class="site-metrics">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">91.7%</div>
+                                        <div class="metric-label">에너지 효율</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">25%</div>
+                                        <div class="metric-label">절약률</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-item">
+                                        <div class="metric-value">
+                                            <span class="status-indicator status-online"></span>Online
+                                        </div>
+                                        <div class="metric-label">연결 상태</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">연간 비용 절감: ₩321M | ROI: 16개월</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Peak/Night-time Power Supply & Environmental Sensors -->
+            <!-- P2P 전력 거래 마켓플레이스 -->
             <div class="row">
-                <!-- Peak/Night-time Power Supply -->
-                <div class="col-lg-6">
-                    <div class="control-card">
-                        <h5><i class="fas fa-solar-panel"></i> Peak/Night-time Power Supply</h5>
+                <div class="col-md-6">
+                    <div class="trading-card">
+                        <h4><i class="fas fa-exchange-alt"></i> P2P 전력 거래 마켓플레이스</h4>
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="device-item">
-                                    <span><i class="fas fa-sun text-warning"></i> Solar Generation</span>
-                                    <span class="text-success" id="solarGen">3.2 kW</span>
+                            <div class="col-6">
+                                <h6>판매 가능 전력</h6>
+                                <div class="mb-2">
+                                    <small>🇫🇮 Finland: 45 kW @ ₩185/kWh</small>
                                 </div>
-                                <div class="device-item">
-                                    <span><i class="fas fa-wind text-info"></i> Small-scale Wind Energy</span>
-                                    <span class="text-info" id="windGen">1.8 kW</span>
+                                <div class="mb-2">
+                                    <small>🇸🇪 Sweden: 32 kW @ ₩192/kWh</small>
                                 </div>
-                                <div class="device-item">
-                                    <span><i class="fas fa-battery-half text-primary"></i> Fuel Cells & Others</span>
-                                    <span class="text-primary" id="fuelCell">0.5 kW</span>
+                                <div class="mb-2">
+                                    <small>🇷🇴 Romania: 28 kW @ ₩178/kWh</small>
                                 </div>
-                                <div class="alert alert-info mt-3" role="alert">
-                                    <i class="fas fa-wifi"></i> <strong>WiFi Network:</strong> Connected to Supply-side Monitoring
+                                <div class="mb-2">
+                                    <small>🇬🇷 Greece: 38 kW @ ₩201/kWh</small>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <canvas id="supplyChart" class="chart-container"></canvas>
+                            <div class="col-6">
+                                <h6>구매 요청</h6>
+                                <div class="mb-2">
+                                    <small>🏭 Industrial Co.: 120 kW @ ₩200/kWh</small>
+                                </div>
+                                <div class="mb-2">
+                                    <small>🏢 Office Complex: 85 kW @ ₩195/kWh</small>
+                                </div>
+                                <div class="mb-2">
+                                    <small>🏪 Retail Chain: 65 kW @ ₩190/kWh</small>
+                                </div>
                             </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openTradingMarket()">
+                                <i class="fas fa-chart-line"></i> 거래 마켓 열기
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Wireless Integrated Environmental Sensors -->
-                <div class="col-lg-6">
-                    <div class="control-card sensor-card">
-                        <h5><i class="fas fa-thermometer-half"></i> Wireless Integrated Environmental Sensors</h5>
+                <div class="col-md-6">
+                    <div class="carbon-card">
+                        <h4><i class="fas fa-leaf"></i> 탄소 크레딧 거래</h4>
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="device-item">
-                                    <span><i class="fas fa-thermometer-half text-danger"></i> Temperature</span>
-                                    <span class="text-danger" id="temperature">23.5°C</span>
+                            <div class="col-6">
+                                <h6>보유 크레딧</h6>
+                                <div class="mb-2">
+                                    <small>🇫🇮 Finland: 652톤 (₩29.3M)</small>
                                 </div>
-                                <div class="device-item">
-                                    <span><i class="fas fa-tint text-info"></i> Humidity</span>
-                                    <span class="text-info" id="humidity">65%</span>
+                                <div class="mb-2">
+                                    <small>🇸🇪 Sweden: 1,200톤 (₩54.0M)</small>
                                 </div>
-                                <div class="device-item">
-                                    <span><i class="fas fa-wind text-success"></i> Wind Speed</span>
-                                    <span class="text-success" id="windSpeed">12 km/h</span>
+                                <div class="mb-2">
+                                    <small>🇷🇴 Romania: 450톤 (₩20.3M)</small>
                                 </div>
-                                <div class="device-item">
-                                    <span><i class="fas fa-sun text-warning"></i> Solar Irradiance</span>
-                                    <span class="text-warning" id="solarIrradiance">850 W/m²</span>
+                                <div class="mb-2">
+                                    <small>🇬🇷 Greece: 5,000톤 (₩225.0M)</small>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <canvas id="sensorChart" class="chart-container"></canvas>
+                            <div class="col-6">
+                                <h6>시장 가격</h6>
+                                <div class="mb-2">
+                                    <small>현재 가격: ₩45,000/톤</small>
+                                </div>
+                                <div class="mb-2">
+                                    <small>24h 변동: +2.3%</small>
+                                </div>
+                                <div class="mb-2">
+                                    <small>월간 거래량: 1,847톤</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openCarbonMarket()">
+                                <i class="fas fa-seedling"></i> 탄소 시장 열기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 수익 최적화 AI 대시보드 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="revenue-card">
+                        <h4><i class="fas fa-robot"></i> AI 수익 최적화 대시보드</h4>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="chart-container">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="revenue-breakdown">
+                                    <h6>수익원 분석 (월간)</h6>
+                                    <div class="revenue-item">
+                                        <span>전력 절감</span>
+                                        <span>₩48.4M (42%)</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span>P2P 전력 판매</span>
+                                        <span>₩35.7M (31%)</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span>탄소 크레딧 거래</span>
+                                        <span>₩28.8M (25%)</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span>수요 반응 인센티브</span>
+                                        <span>₩2.3M (2%)</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span>총 수익</span>
+                                        <span>₩115.3M</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Device Control Panel -->
+            <!-- 실시간 성과 지표 -->
             <div class="row">
-                <div class="col-12">
-                    <div class="control-card">
-                        <h5><i class="fas fa-cogs"></i> Device Control Panel</h5>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h6>Energy Storage System</h6>
-                                <div class="device-item">
-                                    <span>ESS Controller</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Battery Management</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Power Conversion</span>
-                                    <span class="status-badge status-standby">Standby</span>
-                                </div>
+                <div class="col-md-4">
+                    <div class="platform-card">
+                        <h5><i class="fas fa-chart-line"></i> 오늘의 성과</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="metric-value text-success">4,128 kWh</div>
+                                <div class="metric-label">에너지 절감</div>
                             </div>
-                            <div class="col-md-4">
-                                <h6>Renewable Energy</h6>
-                                <div class="device-item">
-                                    <span>Solar Inverter</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Wind Turbine</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Fuel Cell System</span>
-                                    <span class="status-badge status-standby">Standby</span>
-                                </div>
+                            <div class="col-6">
+                                <div class="metric-value text-primary">₩2.5M</div>
+                                <div class="metric-label">거래 수익</div>
                             </div>
-                            <div class="col-md-4">
-                                <h6>Monitoring Systems</h6>
-                                <div class="device-item">
-                                    <span>Environmental Sensors</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Power Meters</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                                <div class="device-item">
-                                    <span>Communication Hub</span>
-                                    <span class="status-badge status-active">Active</span>
-                                </div>
-                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <canvas id="dailyPerformanceChart" class="chart-container"></canvas>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 실증 사이트 관리 -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="control-card">
-                        <h5><i class="fas fa-globe"></i> 실증 사이트 관리 (Demo Sites)</h5>
-                        <div class="row">
-                            <!-- Demo 1: Finland -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100" style="border: 2px solid #007bff;">
-                                    <div class="card-header bg-primary text-white">
-                                        <h6 class="mb-0"><i class="fas fa-university"></i> Demo 1: Oulu University</h6>
-                                        <small>🇫🇮 Finland - 대학/공공</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <h6>Academic Buildings</h6>
-                                        <p class="card-text">
-                                            <strong>특징:</strong> 극한 기후, 스마트 빌딩<br>
-                                            <strong>연구 분야:</strong> 극한 환경 에너지 관리<br>
-                                            <strong>시스템 상태:</strong> 
-                                            <span class="status-badge status-active">Active</span>
-                                        </p>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <small>에너지 효율</small><br>
-                                                <strong>92.3%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>절약률</small><br>
-                                                <strong>15.7%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>연결 상태</small><br>
-                                                <span class="status-badge status-active">Online</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                <div class="col-md-4">
+                    <div class="platform-card">
+                        <h5><i class="fas fa-globe"></i> 글로벌 통계</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="metric-value text-info">27.3%</div>
+                                <div class="metric-label">평균 절약률</div>
                             </div>
-
-                            <!-- Demo 2: Sweden -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100" style="border: 2px solid #28a745;">
-                                    <div class="card-header bg-success text-white">
-                                        <h6 class="mb-0"><i class="fas fa-flask"></i> Demo 2: KTH University</h6>
-                                        <small>🇸🇪 Sweden - 대학</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <h6>Living Lab</h6>
-                                        <p class="card-text">
-                                            <strong>특징:</strong> 실증 연구, 지속가능성<br>
-                                            <strong>연구 분야:</strong> 지속가능 에너지 시스템<br>
-                                            <strong>시스템 상태:</strong> 
-                                            <span class="status-badge status-active">Active</span>
-                                        </p>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <small>에너지 효율</small><br>
-                                                <strong>94.8%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>절약률</small><br>
-                                                <strong>18.2%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>연결 상태</small><br>
-                                                <span class="status-badge status-active">Online</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Demo 3: Romania -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100" style="border: 2px solid #ffc107;">
-                                    <div class="card-header bg-warning text-dark">
-                                        <h6 class="mb-0"><i class="fas fa-microchip"></i> Demo 3: BEIA</h6>
-                                        <small>🇷🇴 Romania - 연구소</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <h6>Research Institute</h6>
-                                        <p class="card-text">
-                                            <strong>특징:</strong> IoT, 스마트 시스템<br>
-                                            <strong>연구 분야:</strong> IoT 기반 에너지 관리<br>
-                                            <strong>시스템 상태:</strong> 
-                                            <span class="status-badge status-active">Active</span>
-                                        </p>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <small>에너지 효율</small><br>
-                                                <strong>89.5%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>절약률</small><br>
-                                                <strong>12.4%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>연결 상태</small><br>
-                                                <span class="status-badge status-active">Online</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Demo 4: Greece -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100" style="border: 2px solid #dc3545;">
-                                    <div class="card-header bg-danger text-white">
-                                        <h6 class="mb-0"><i class="fas fa-building"></i> Demo 4: Triaena/OTE</h6>
-                                        <small>🇬🇷 Greece - 기업</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <h6>Commercial Buildings</h6>
-                                        <p class="card-text">
-                                            <strong>특징:</strong> 상업 빌딩, 통신 인프라<br>
-                                            <strong>연구 분야:</strong> 상업용 에너지 최적화<br>
-                                            <strong>시스템 상태:</strong> 
-                                            <span class="status-badge status-active">Active</span>
-                                        </p>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <small>에너지 효율</small><br>
-                                                <strong>91.7%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>절약률</small><br>
-                                                <strong>16.9%</strong>
-                                            </div>
-                                            <div class="col-4">
-                                                <small>연결 상태</small><br>
-                                                <span class="status-badge status-active">Online</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="col-6">
+                                <div class="metric-value text-warning">1,863톤</div>
+                                <div class="metric-label">CO₂ 감축</div>
                             </div>
                         </div>
-
-                        <!-- 실증 사이트 통합 모니터링 -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header bg-info text-white">
-                                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> 실증 사이트 통합 모니터링</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row text-center">
-                                            <div class="col-md-3">
-                                                <h4 class="text-primary">4</h4>
-                                                <small>활성 사이트</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <h4 class="text-success">92.1%</h4>
-                                                <small>평균 효율</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <h4 class="text-warning">15.8%</h4>
-                                                <small>평균 절약률</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <h4 class="text-info">100%</h4>
-                                                <small>연결률</small>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3">
-                                            <canvas id="demoSitesChart" class="chart-container"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="mt-3">
+                            <canvas id="globalStatsChart" class="chart-container"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="platform-card">
+                        <h5><i class="fas fa-cogs"></i> 시스템 상태</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="metric-value text-success">100%</div>
+                                <div class="metric-label">연결률</div>
                             </div>
+                            <div class="col-6">
+                                <div class="metric-value text-primary">17.3개월</div>
+                                <div class="metric-label">평균 ROI</div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <canvas id="systemStatusChart" class="chart-container"></canvas>
                         </div>
                     </div>
                 </div>
@@ -2315,23 +2751,153 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // 글로벌 맵 초기화
+            function initGlobalMap() {{
+                const map = L.map('globalMap').setView([55.0, 15.0], 4);
+                
+                L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+                    attribution: '© OpenStreetMap contributors'
+                }}).addTo(map);
+                
+                // Demo Sites 마커 추가
+                const sites = [
+                    {{name: 'Finland - Oulu University', lat: 65.0, lng: 25.5, color: '#007bff'}},
+                    {{name: 'Sweden - KTH University', lat: 59.3, lng: 18.1, color: '#28a745'}},
+                    {{name: 'Romania - BEIA', lat: 44.4, lng: 26.1, color: '#ffc107'}},
+                    {{name: 'Greece - Triaena/OTE', lat: 37.9, lng: 23.7, color: '#dc3545'}}
+                ];
+                
+                sites.forEach(site => {{
+                    const marker = L.circleMarker([site.lat, site.lng], {{
+                        radius: 15,
+                        fillColor: site.color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }}).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <b>${{site.name}}</b><br>
+                        <span class="status-indicator status-online"></span> Online<br>
+                        에너지 효율: 92%+<br>
+                        절약률: 22%+
+                    `);
+                }});
+            }}
+            
             // 실시간 데이터 업데이트
             function updateRealtimeData() {{
-                // ESS 데이터 업데이트
-                document.getElementById('essCapacity').textContent = (Math.random() * 20 + 80).toFixed(0) + '%';
-                document.getElementById('essPower').textContent = (Math.random() * 2 + 1.5).toFixed(1) + ' kW';
-                document.getElementById('essEfficiency').textContent = (Math.random() * 5 + 92).toFixed(1) + '%';
-
-                // 발전량 데이터 업데이트
-                document.getElementById('solarGen').textContent = (Math.random() * 2 + 2.5).toFixed(1) + ' kW';
-                document.getElementById('windGen').textContent = (Math.random() * 1.5 + 1.2).toFixed(1) + ' kW';
-                document.getElementById('fuelCell').textContent = (Math.random() * 0.5 + 0.3).toFixed(1) + ' kW';
-
-                // 환경 센서 데이터 업데이트
-                document.getElementById('temperature').textContent = (Math.random() * 10 + 20).toFixed(1) + '°C';
-                document.getElementById('humidity').textContent = (Math.random() * 20 + 50).toFixed(0) + '%';
-                document.getElementById('windSpeed').textContent = (Math.random() * 15 + 5).toFixed(0) + ' km/h';
-                document.getElementById('solarIrradiance').textContent = (Math.random() * 300 + 700).toFixed(0) + ' W/m²';
+                // KPI 업데이트
+                document.getElementById('dailyRevenue').textContent = '₩' + (Math.random() * 0.5 + 2.3).toFixed(1) + 'M';
+                document.getElementById('carbonCredits').textContent = '₩' + (Math.random() * 200 + 800).toFixed(0) + 'K';
+            }}
+            
+            // 거래 마켓 열기
+            function openTradingMarket() {{
+                alert('P2P 전력 거래 마켓플레이스가 곧 열립니다!');
+            }}
+            
+            // 탄소 시장 열기
+            function openCarbonMarket() {{
+                alert('탄소 크레딧 거래 시장이 곧 열립니다!');
+            }}
+            
+            // 차트 초기화
+            function initCharts() {{
+                // 수익 차트
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(revenueCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                        datasets: [{{
+                            label: '월간 수익 (백만원)',
+                            data: [98, 105, 112, 108, 115, 120],
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                labels: {{ color: 'white' }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{ ticks: {{ color: 'white' }} }},
+                            y: {{ ticks: {{ color: 'white' }} }}
+                        }}
+                    }}
+                }});
+                
+                // 일일 성과 차트
+                const dailyCtx = document.getElementById('dailyPerformanceChart').getContext('2d');
+                new Chart(dailyCtx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['에너지 절감', '거래 수익', '탄소 크레딧'],
+                        datasets: [{{
+                            data: [42, 31, 25],
+                            backgroundColor: ['#28a745', '#007bff', '#17a2b8']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }}
+                }});
+                
+                // 글로벌 통계 차트
+                const globalCtx = document.getElementById('globalStatsChart').getContext('2d');
+                new Chart(globalCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Finland', 'Sweden', 'Romania', 'Greece'],
+                        datasets: [{{
+                            label: '절약률 (%)',
+                            data: [22, 31, 26, 25],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{ beginAtZero: true }}
+                        }}
+                    }}
+                }});
+                
+                // 시스템 상태 차트
+                const systemCtx = document.getElementById('systemStatusChart').getContext('2d');
+                new Chart(systemCtx, {{
+                    type: 'radar',
+                    data: {{
+                        labels: ['연결률', '효율성', '안정성', '수익성', '환경성'],
+                        datasets: [{{
+                            label: '시스템 성능',
+                            data: [100, 92, 95, 88, 90],
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            pointBackgroundColor: '#007bff'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            r: {{
+                                beginAtZero: true,
+                                max: 100
+                            }}
+                        }}
+                    }}
+                }});
             }}
 
             // 차트 초기화
@@ -2444,11 +3010,582 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
 
             // 페이지 로드 시 초기화
             document.addEventListener('DOMContentLoaded', function() {{
+                initGlobalMap();
                 initCharts();
                 updateRealtimeData();
                 
+                // 10초마다 데이터 업데이트
+                setInterval(updateRealtimeData, 10000);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/trading", response_class=HTMLResponse)
+async def trading_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """전력/탄소 거래 플랫폼 - P2P Trading & Carbon Credit System with AI Optimization"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>⚡ 전력/탄소 거래 플랫폼 - P2P Trading & Carbon Credit System</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .trading-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 25px;
+                margin-bottom: 25px;
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(15px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }}
+            .trading-card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            }}
+            .trading-header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+            }}
+            .kpi-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                text-align: center;
+                margin-bottom: 20px;
+            }}
+            .kpi-value {{
+                font-size: 2.5rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }}
+            .kpi-label {{
+                font-size: 1rem;
+                opacity: 0.9;
+            }}
+            .market-card {{
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .carbon-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .ai-card {{
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .blockchain-card {{
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .chart-container {{
+                height: 300px;
+                position: relative;
+            }}
+            .trading-table {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                margin-top: 15px;
+            }}
+            .trading-item {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .trading-item:last-child {{
+                border-bottom: none;
+            }}
+            .btn-trading {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                color: white;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }}
+            .btn-trading:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+                color: white;
+            }}
+            .status-indicator {{
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+            }}
+            .status-online {{ background-color: #28a745; }}
+            .status-warning {{ background-color: #ffc107; }}
+            .status-offline {{ background-color: #dc3545; }}
+            .price-trend {{
+                font-size: 0.9rem;
+                margin-left: 8px;
+            }}
+            .price-up {{ color: #28a745; }}
+            .price-down {{ color: #dc3545; }}
+            .price-stable {{ color: #6c757d; }}
+        </style>
+    </head>
+    <body>
+        {generate_navigation(lang)}
+
+        <div class="container-fluid mt-4">
+            <!-- 거래 플랫폼 헤더 -->
+            <div class="trading-header">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-exchange-alt"></i> 전력/탄소 거래 플랫폼
+                </h1>
+                <p class="lead mb-4">P2P Trading & Carbon Credit System with AI Optimization</p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalTrades">1,247</div>
+                            <div class="kpi-label">총 거래 건수</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalVolume">₩89.2M</div>
+                            <div class="kpi-label">총 거래량</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="activeUsers">156</div>
+                            <div class="kpi-label">활성 거래자</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="platformFee">₩1.8M</div>
+                            <div class="kpi-label">플랫폼 수수료</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P2P 전력 거래 마켓플레이스 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="market-card">
+                        <h4><i class="fas fa-bolt"></i> P2P 전력 거래 마켓플레이스</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>판매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🇫🇮 Finland</span>
+                                        <span>45 kW @ ₩185/kWh <span class="price-trend price-up">↗ +2.3%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇸🇪 Sweden</span>
+                                        <span>32 kW @ ₩192/kWh <span class="price-trend price-up">↗ +1.8%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇷🇴 Romania</span>
+                                        <span>28 kW @ ₩178/kWh <span class="price-trend price-down">↘ -0.5%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇬🇷 Greece</span>
+                                        <span>38 kW @ ₩201/kWh <span class="price-trend price-up">↗ +3.1%</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6>구매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🏭 Industrial Co.</span>
+                                        <span>120 kW @ ₩200/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏢 Office Complex</span>
+                                        <span>85 kW @ ₩195/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏪 Retail Chain</span>
+                                        <span>65 kW @ ₩190/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏥 Hospital</span>
+                                        <span>45 kW @ ₩205/kWh</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openP2PMarket()">
+                                <i class="fas fa-chart-line"></i> P2P 마켓 열기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="carbon-card">
+                        <h4><i class="fas fa-leaf"></i> 탄소 크레딧 거래</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>보유 크레딧</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🇫🇮 Finland</span>
+                                        <span>652톤 (₩29.3M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇸🇪 Sweden</span>
+                                        <span>1,200톤 (₩54.0M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇷🇴 Romania</span>
+                                        <span>450톤 (₩20.3M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇬🇷 Greece</span>
+                                        <span>5,000톤 (₩225.0M)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6>시장 정보</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>현재 가격</span>
+                                        <span>₩45,000/톤 <span class="price-trend price-up">↗ +2.3%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>24h 변동</span>
+                                        <span>+₩1,050/톤</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>월간 거래량</span>
+                                        <span>1,847톤</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>시장 캡</span>
+                                        <span>₩328.6M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openCarbonMarket()">
+                                <i class="fas fa-seedling"></i> 탄소 시장 열기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 최적화 엔진 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="ai-card">
+                        <h4><i class="fas fa-robot"></i> AI 수익 최적화 엔진</h4>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="chart-container">
+                                    <canvas id="aiOptimizationChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="trading-table">
+                                    <h6>최적화 전략</h6>
+                                    <div class="trading-item">
+                                        <span>전력 판매 최적화</span>
+                                        <span>₩35.7M (+12%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>탄소 크레딧 최적화</span>
+                                        <span>₩28.8M (+8%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>수요 반응 최적화</span>
+                                        <span>₩2.3M (+15%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>총 최적화 효과</span>
+                                        <span>₩66.8M (+11%)</span>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-trading" onclick="runAIOptimization()">
+                                        <i class="fas fa-magic"></i> AI 최적화 실행
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 블록체인 거래 기록 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="blockchain-card">
+                        <h4><i class="fas fa-link"></i> 블록체인 거래 기록</h4>
+                        <div class="trading-table">
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x1a2b3c...</span>
+                                <span>Finland → Industrial Co. 45kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x4d5e6f...</span>
+                                <span>Sweden → Office Complex 32kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x7g8h9i...</span>
+                                <span>Greece → Hospital 38kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-clock text-warning"></i> TX: 0x0j1k2l...</span>
+                                <span>Romania → Retail Chain 28kW (대기중)</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="viewBlockchain()">
+                                <i class="fas fa-external-link-alt"></i> 블록체인 탐색기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="trading-card">
+                        <h4><i class="fas fa-chart-bar"></i> 거래 통계 및 분석</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="chart-container">
+                                    <canvas id="tradingVolumeChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="chart-container">
+                                    <canvas id="tradingPriceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실시간 거래 피드 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="trading-card">
+                        <h4><i class="fas fa-stream"></i> 실시간 거래 피드</h4>
+                        <div class="trading-table" id="tradingFeed">
+                            <div class="trading-item">
+                                <span><i class="fas fa-bolt text-warning"></i> 14:32:15</span>
+                                <span>Finland에서 Industrial Co.로 45kW 거래 완료 (₩8,325)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-leaf text-success"></i> 14:31:42</span>
+                                <span>Sweden에서 100톤 탄소 크레딧 판매 (₩4,500,000)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-bolt text-warning"></i> 14:30:18</span>
+                                <span>Greece에서 Hospital로 38kW 거래 완료 (₩7,638)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-robot text-info"></i> 14:29:55</span>
+                                <span>AI 최적화로 수익 12% 증가 예상</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // AI 최적화 차트
+            function initAIChart() {{
+                const ctx = document.getElementById('aiOptimizationChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                        datasets: [{{
+                            label: 'AI 최적화 전 수익',
+                            data: [60, 65, 70, 68, 72, 75],
+                            borderColor: '#ff9a9e',
+                            backgroundColor: 'rgba(255, 154, 158, 0.1)',
+                            tension: 0.4
+                        }}, {{
+                            label: 'AI 최적화 후 수익',
+                            data: [67, 73, 78, 76, 81, 85],
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                labels: {{ color: 'white' }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{ ticks: {{ color: 'white' }} }},
+                            y: {{ ticks: {{ color: 'white' }} }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 거래량 차트
+            function initTradingVolumeChart() {{
+                const ctx = document.getElementById('tradingVolumeChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Finland', 'Sweden', 'Romania', 'Greece'],
+                        datasets: [{{
+                            label: '거래량 (kW)',
+                            data: [45, 32, 28, 38],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{ beginAtZero: true }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 거래 가격 차트
+            function initTradingPriceChart() {{
+                const ctx = document.getElementById('tradingPriceChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{{
+                            label: '평균 거래 가격 (₩/kWh)',
+                            data: [185, 178, 192, 201, 195, 188],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{ beginAtZero: false }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 실시간 데이터 업데이트
+            function updateTradingData() {{
+                // KPI 업데이트
+                document.getElementById('totalTrades').textContent = (1247 + Math.floor(Math.random() * 10)).toLocaleString();
+                document.getElementById('totalVolume').textContent = '₩' + (89.2 + Math.random() * 2).toFixed(1) + 'M';
+                document.getElementById('activeUsers').textContent = (156 + Math.floor(Math.random() * 5)).toLocaleString();
+                document.getElementById('platformFee').textContent = '₩' + (1.8 + Math.random() * 0.2).toFixed(1) + 'M';
+            }}
+            
+            // P2P 마켓 열기
+            function openP2PMarket() {{
+                alert('P2P 전력 거래 마켓플레이스가 곧 열립니다!\\n\\n• 실시간 매칭 알고리즘\\n• 자동 거래 실행\\n• 수수료 최적화');
+            }}
+            
+            // 탄소 시장 열기
+            function openCarbonMarket() {{
+                alert('탄소 크레딧 거래 시장이 곧 열립니다!\\n\\n• 크레딧 발행 및 추적\\n• 검증 및 인증 시스템\\n• 블록체인 기록');
+            }}
+            
+            // AI 최적화 실행
+            function runAIOptimization() {{
+                alert('AI 수익 최적화 엔진이 실행되었습니다!\\n\\n• 수익 최적화 AI 엔진\\n• 수요 반응 자동화\\n• 예측 정확도 개선\\n• 개인화된 추천');
+            }}
+            
+            // 블록체인 탐색기
+            function viewBlockchain() {{
+                alert('블록체인 탐색기로 이동합니다!\\n\\n• 거래 투명성 보장\\n• 스마트 컨트랙트 실행\\n• 실시간 거래 기록');
+            }}
+            
+            // 실시간 거래 피드 업데이트
+            function updateTradingFeed() {{
+                const feed = document.getElementById('tradingFeed');
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR');
+                
+                const newTrade = document.createElement('div');
+                newTrade.className = 'trading-item';
+                newTrade.innerHTML = `
+                    <span><i class="fas fa-bolt text-warning"></i> ${{timeString}}</span>
+                    <span>새로운 거래가 실행되었습니다 (₩${{(Math.random() * 10000 + 1000).toFixed(0)}})</span>
+                `;
+                
+                feed.insertBefore(newTrade, feed.firstChild);
+                
+                // 최대 10개 항목만 유지
+                while (feed.children.length > 10) {{
+                    feed.removeChild(feed.lastChild);
+                }}
+            }}
+            
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initAIChart();
+                initTradingVolumeChart();
+                initTradingPriceChart();
+                updateTradingData();
+                
                 // 5초마다 데이터 업데이트
-                setInterval(updateRealtimeData, 5000);
+                setInterval(updateTradingData, 5000);
+                // 10초마다 거래 피드 업데이트
+                setInterval(updateTradingFeed, 10000);
             }});
         </script>
     </body>
@@ -3182,7 +4319,7 @@ async def data_collection_page(request: Request, lang: str = Query("ko", descrip
 
 @web_app.get("/data-analysis", response_class=HTMLResponse)
 async def data_analysis_page(request: Request, lang: str = Query("ko", description="Language code")):
-    """시설 모니터링 및 데이터 분석 페이지"""
+    """개선된 에너지 수요 분석 및 예측 대시보드"""
     # 언어 설정
     if lang not in get_available_languages():
         lang = "ko"
@@ -3193,10 +4330,11 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{t('energyDemand.title', lang)}</title>
+        <title>에너지 수요 분석 및 예측 대시보드</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js?v=2.0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
         <style>
             body {{
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -3296,6 +4434,401 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 padding: 10px;
                 margin-top: 10px;
             }}
+            .metric-card {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .model-info {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+            }}
+            .model-item {{
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+            }}
+            .data-sources {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+            }}
+            .source-item {{
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                font-size: 0.9rem;
+            }}
+            .source-item i {{
+                margin-right: 10px;
+                width: 20px;
+            }}
+            .legend-item {{
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+            }}
+            .legend-color {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+            }}
+            .prediction-card {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .prediction-value {{
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin: 10px 0;
+            }}
+            .prediction-confidence {{
+                font-size: 0.8rem;
+                opacity: 0.8;
+            }}
+            .prediction-settings {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+            }}
+            .setting-item {{
+                margin-bottom: 15px;
+            }}
+            .setting-item:last-child {{
+                margin-bottom: 0;
+            }}
+            .simulation-results, .control-results {{
+                min-height: 120px;
+            }}
+            .alert {{
+                border: none;
+                border-radius: 8px;
+            }}
+            .alert-info {{
+                background: rgba(13, 202, 240, 0.1);
+                color: #0dcaf0;
+            }}
+            .alert-success {{
+                background: rgba(25, 135, 84, 0.1);
+                color: #198754;
+            }}
+            .alert-warning {{
+                background: rgba(255, 193, 7, 0.1);
+                color: #ffc107;
+            }}
+            .alert-danger {{
+                background: rgba(220, 53, 69, 0.1);
+                color: #dc3545;
+            }}
+            .table-responsive {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 10px;
+            }}
+            .table {{
+                margin-bottom: 0;
+            }}
+            .table th, .table td {{
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #333;
+            }}
+            .table th {{
+                background: rgba(255, 255, 255, 0.1);
+                font-weight: 600;
+            }}
+            .btn-group .btn.active {{
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+                color: white;
+            }}
+            .form-range {{
+                background: rgba(255, 255, 255, 0.1);
+            }}
+            .form-check-input:checked {{
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+            }}
+            .form-select, .form-control {{
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+            }}
+            .form-select:focus, .form-control:focus {{
+                background: rgba(255, 255, 255, 0.95);
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            }}
+            .energy-flow-container {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .supply-section, .strategy-section, .demand-section {{
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                padding: 15px;
+                height: 100%;
+            }}
+            .supply-item {{
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 6px;
+            }}
+            .supply-icon {{
+                font-size: 1.5rem;
+                margin-right: 12px;
+                width: 30px;
+                text-align: center;
+            }}
+            .supply-info {{
+                flex: 1;
+            }}
+            .strategy-item {{
+                margin-bottom: 12px;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 6px;
+                text-align: center;
+            }}
+            .strategy-priority {{
+                font-weight: bold;
+                color: #ffc107;
+                font-size: 0.9rem;
+            }}
+            .strategy-desc {{
+                font-size: 0.85rem;
+                margin-top: 5px;
+            }}
+            .building-grid {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }}
+            .building-item {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .building-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .building-power {{
+                font-weight: bold;
+                color: #4ecdc4;
+            }}
+            .device-item {{
+                margin-bottom: 8px;
+                padding: 6px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 4px;
+                font-size: 0.85rem;
+            }}
+            .device-item:last-child {{
+                margin-bottom: 0;
+            }}
+            .device-name {{
+                font-weight: 500;
+                margin-right: 8px;
+            }}
+            .device-power {{
+                color: #ff6b6b;
+                font-weight: bold;
+                margin-right: 8px;
+            }}
+            .power-source {{
+                margin-top: 4px;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }}
+            .source-solar, .source-ess, .source-grid {{
+                font-size: 0.75rem;
+                padding: 2px 6px;
+                border-radius: 3px;
+                background: rgba(255, 255, 255, 0.1);
+            }}
+            .source-solar {{ background: rgba(255, 193, 7, 0.2); }}
+            .source-ess {{ background: rgba(40, 167, 69, 0.2); }}
+            .source-grid {{ background: rgba(220, 53, 69, 0.2); }}
+            .matching-summary {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .demand-response-panel {{
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                padding: 15px;
+            }}
+            .dr-recommendation {{
+                margin-bottom: 20px;
+            }}
+            .dr-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .dr-priority {{
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }}
+            .dr-priority.high {{
+                background: rgba(220, 53, 69, 0.2);
+                color: #dc3545;
+            }}
+            .dr-item {{
+                margin-bottom: 20px;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .dr-title {{
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #4ecdc4;
+            }}
+            .dr-target, .dr-goal {{
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+            }}
+            .dr-options {{
+                margin: 15px 0;
+            }}
+            .dr-option {{
+                margin-bottom: 10px;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }}
+            .dr-option input[type="radio"] {{
+                margin-right: 8px;
+            }}
+            .dr-option label {{
+                font-weight: 500;
+                cursor: pointer;
+            }}
+            .dr-effect {{
+                font-size: 0.8rem;
+                color: #6c757d;
+                margin-top: 5px;
+                margin-left: 20px;
+            }}
+            .dr-summary {{
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .dr-actions {{
+                margin-top: 10px;
+                display: flex;
+                gap: 8px;
+            }}
+            .dr-summary-total {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .summary-stat {{
+                text-align: center;
+                padding: 10px;
+            }}
+            .stat-value {{
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #4ecdc4;
+            }}
+            .dr-total-actions {{
+                text-align: center;
+            }}
+            .notification-panel {{
+                max-height: 400px;
+                overflow-y: auto;
+            }}
+            .notification-item {{
+                display: flex;
+                margin-bottom: 15px;
+                padding: 12px;
+                border-radius: 8px;
+                border-left: 4px solid;
+            }}
+            .notification-item.urgent {{
+                background: rgba(220, 53, 69, 0.1);
+                border-left-color: #dc3545;
+            }}
+            .notification-item.warning {{
+                background: rgba(255, 193, 7, 0.1);
+                border-left-color: #ffc107;
+            }}
+            .notification-item.info {{
+                background: rgba(13, 202, 240, 0.1);
+                border-left-color: #0dcaf0;
+            }}
+            .notification-icon {{
+                font-size: 1.2rem;
+                margin-right: 10px;
+                margin-top: 2px;
+            }}
+            .notification-content {{
+                flex: 1;
+            }}
+            .notification-title {{
+                font-weight: bold;
+                margin-bottom: 4px;
+            }}
+            .notification-desc {{
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-bottom: 8px;
+            }}
+            .notification-action {{
+                margin-top: 8px;
+            }}
+            .performance-summary {{
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 15px;
+            }}
+            .performance-item {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+                padding: 6px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }}
+            .performance-item:last-child {{
+                border-bottom: none;
+                margin-bottom: 0;
+            }}
+            .performance-value {{
+                font-weight: bold;
+                color: #4ecdc4;
+            }}
             @keyframes spin {{
                 0% {{ transform: rotate(0deg); }}
                 100% {{ transform: rotate(360deg); }}
@@ -3306,28 +4839,127 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
         {generate_navigation(lang)}
 
         <div class="container-fluid mt-4">
-            <!-- 에너지 수요 현황 -->
+            <!-- 대시보드 헤더 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="facility-info">
-                        <h4><i class="fas fa-bolt"></i> 실시간 에너지 수요 현황</h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <h6>현재 수요</h6>
-                                <p><strong id="currentDemand">1,250 kW</strong></p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><i class="fas fa-chart-line"></i> 에너지 수요 분석 및 예측 대시보드</h2>
+                                <p class="mb-0">실시간 에너지 수요 모니터링 및 AI 기반 예측 분석</p>
                             </div>
-                            <div class="col-md-3">
-                                <h6>피크 수요</h6>
-                                <p><strong id="peakDemand">1,450 kW</strong></p>
+                            <div class="text-end">
+                                <div class="mb-2">
+                                    <small class="text-light">마지막 업데이트: <span id="lastUpdate">-</span></small>
                             </div>
-                            <div class="col-md-3">
-                                <h6>예측 수요 (1시간 후)</h6>
-                                <p><strong id="predictedDemand">1,320 kW</strong></p>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-light btn-sm" onclick="refreshData()">
+                                        <i class="fas fa-sync-alt"></i> 새로고침
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm" onclick="exportData()">
+                                        <i class="fas fa-download"></i> 데이터 내보내기
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm" onclick="showDataSource()">
+                                        <i class="fas fa-info-circle"></i> 데이터 출처
+                                    </button>
                             </div>
-                            <div class="col-md-3">
-                                <h6>수요 증가율</h6>
-                                <p><span class="status-indicator status-warning"></span><strong id="demandGrowth">+5.6%</strong></p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실시간 수요-공급 매칭 현황 -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="monitoring-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-chart-area"></i> 실시간 수요-공급 매칭 현황</h5>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="changeTimeRange('1h')">1시간</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('6h')">6시간</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('24h')">24시간</button>
+                                </div>
+                            </div>
+                        <canvas id="realtimeChart" class="chart-container" style="height: 400px;"></canvas>
+                        <div class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <h6 class="text-primary">현재 매칭율</h6>
+                                        <h4 id="currentMatchingRate">87.3%</h4>
+                                        <small class="text-muted">수요: <span id="currentDemand">1,250</span> kW / 공급: <span id="currentSupply">1,432</span> kW</small>
+                                </div>
+                            </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <h6 class="text-success">1시간 후 예측</h6>
+                                        <h4 id="prediction1h">92.1%</h4>
+                                        <small class="text-muted">예측 수요: <span id="predDemand1h">1,320</span> kW / 예측 공급: <span id="predSupply1h">1,434</span> kW</small>
+                                </div>
+                            </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <h6 class="text-warning">6시간 후 예측</h6>
+                                        <h4 id="prediction6h">78.5%</h4>
+                                        <small class="text-muted">예측 수요: <span id="predDemand6h">1,180</span> kW / 예측 공급: <span id="predSupply6h">1,503</span> kW</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-robot"></i> AI 예측 모델 정보</h5>
+                        <div class="model-info">
+                            <div class="model-item">
+                                <strong>모델명:</strong> EnergyDemandPredictor v2.1
+                            </div>
+                            <div class="model-item">
+                                <strong>학습 데이터:</strong> 2년간의 에너지 사용 패턴
+                            </div>
+                            <div class="model-item">
+                                <strong>예측 정확도:</strong> <span id="modelAccuracy">94.2%</span>
+                            </div>
+                            <div class="model-item">
+                                <strong>마지막 학습:</strong> 2024-01-15
+                            </div>
+                            <div class="model-item">
+                                <strong>특징:</strong> LSTM + 시계열 분석
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="showModelDetails()">
+                                <i class="fas fa-cogs"></i> 모델 상세 정보
+                            </button>
+                </div>
+            </div>
+
+                    <div class="monitoring-card mt-3">
+                        <h5><i class="fas fa-database"></i> 데이터 출처</h5>
+                        <div class="data-sources">
+                            <div class="source-item">
+                                <i class="fas fa-solar-panel text-warning"></i>
+                                <span>태양광 발전소 (3개소)</span>
+                            </div>
+                            <div class="source-item">
+                                <i class="fas fa-wind text-info"></i>
+                                <span>풍력 발전소 (2개소)</span>
+                            </div>
+                            <div class="source-item">
+                                <i class="fas fa-bolt text-danger"></i>
+                                <span>전력 수요 센서 (15개)</span>
+                            </div>
+                            <div class="source-item">
+                                <i class="fas fa-thermometer-half text-success"></i>
+                                <span>기상 데이터 (KMA API)</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm w-100" onclick="showRawData()">
+                                <i class="fas fa-table"></i> 원시 데이터 보기
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -3335,37 +4967,59 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
 
             <!-- 전자기기별 수요 분석 -->
             <div class="row mb-4">
-                <div class="col-12">
+                <div class="col-lg-8">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-microchip"></i> 전자기기별 에너지 수요 분석</h5>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="sensor-card text-center">
-                                    <h6>HVAC 시스템</h6>
-                                    <div class="metric-value" id="hvacDemand">450 kW</div>
-                                    <div class="metric-label">냉난방 수요</div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-microchip"></i> 전자기기별 에너지 수요 분석</h5>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="changeDeviceView('chart')">차트</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changeDeviceView('table')">테이블</button>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="sensor-card text-center">
-                                    <h6>조명 시스템</h6>
-                                    <div class="metric-value" id="lightingDemand">180 kW</div>
-                                    <div class="metric-label">조명 수요</div>
+                        <div id="deviceChartView">
+                            <canvas id="deviceChart" class="chart-container" style="height: 300px;"></canvas>
+                                </div>
+                        <div id="deviceTableView" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>기기명</th>
+                                            <th>현재 수요</th>
+                                            <th>평균 수요</th>
+                                            <th>효율성</th>
+                                            <th>상태</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deviceTableBody">
+                                        <!-- 동적으로 생성됨 -->
+                                    </tbody>
+                                </table>
+                            </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="sensor-card text-center">
-                                    <h6>IT 장비</h6>
-                                    <div class="metric-value" id="itDemand">320 kW</div>
-                                    <div class="metric-label">IT 장비 수요</div>
                                 </div>
+                <div class="col-lg-4">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-chart-pie"></i> 수요 분포</h5>
+                        <canvas id="demandDistributionChart" class="chart-container" style="height: 250px;"></canvas>
+                        <div class="mt-3">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #ff6b6b;"></span>
+                                <span>HVAC 시스템: <strong id="hvacPercent">36%</strong></span>
                             </div>
-                            <div class="col-md-3">
-                                <div class="sensor-card text-center">
-                                    <h6>기타 장비</h6>
-                                    <div class="metric-value" id="otherDemand">300 kW</div>
-                                    <div class="metric-label">기타 장비 수요</div>
-                                </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #4ecdc4;"></span>
+                                <span>IT 장비: <strong id="itPercent">26%</strong></span>
+                        </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #45b7d1;"></span>
+                                <span>기타 장비: <strong id="otherPercent">24%</strong></span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #f9ca24;"></span>
+                                <span>조명 시스템: <strong id="lightingPercent">14%</strong></span>
                             </div>
                         </div>
                     </div>
@@ -3374,189 +5028,599 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
 
             <!-- 수요 예측 분석 -->
             <div class="row mb-4">
-                <div class="col-12">
+                <div class="col-lg-8">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-crystal-ball"></i> 에너지 수요 예측 분석</h5>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="power-card text-center">
-                                    <h6>1시간 후 예측</h6>
-                                    <div class="metric-value" id="prediction1h">1,320 kW</div>
-                                    <div class="metric-label">예측 수요량</div>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-crystal-ball"></i> 에너지 수요 예측 분석</h5>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="changePredictionRange('24h')">24시간</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changePredictionRange('7d')">7일</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changePredictionRange('30d')">30일</button>
                             </div>
-                            <div class="col-md-3">
-                                <div class="power-card text-center">
-                                    <h6>6시간 후 예측</h6>
-                                    <div class="metric-value" id="prediction6h">1,180 kW</div>
-                                    <div class="metric-label">예측 수요량</div>
+                        </div>
+                        <canvas id="predictionChart" class="chart-container" style="height: 350px;"></canvas>
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="prediction-card">
+                                        <h6 class="text-primary">단기 예측 (1-6시간)</h6>
+                                        <div class="prediction-value" id="shortTermPrediction">1,250 kW</div>
+                                        <div class="prediction-confidence">신뢰도: <span id="shortTermConfidence">96.5%</span></div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="power-card text-center">
-                                    <h6>24시간 후 예측</h6>
-                                    <div class="metric-value" id="prediction24h">1,410 kW</div>
-                                    <div class="metric-label">예측 수요량</div>
+                                <div class="col-md-4">
+                                    <div class="prediction-card">
+                                        <h6 class="text-success">중기 예측 (1-7일)</h6>
+                                        <div class="prediction-value" id="mediumTermPrediction">1,180 kW</div>
+                                        <div class="prediction-confidence">신뢰도: <span id="mediumTermConfidence">89.2%</span></div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="power-card text-center">
-                                    <h6>예측 정확도</h6>
-                                    <div class="metric-value" id="predictionAccuracy">94.2%</div>
-                                    <div class="metric-label">AI 예측 정확도</div>
+                                <div class="col-md-4">
+                                    <div class="prediction-card">
+                                        <h6 class="text-warning">장기 예측 (1-30일)</h6>
+                                        <div class="prediction-value" id="longTermPrediction">1,410 kW</div>
+                                        <div class="prediction-confidence">신뢰도: <span id="longTermConfidence">78.4%</span></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 수요-공급 매칭 분석 -->
-            <div class="row mb-4">
-                <div class="col-lg-8">
-                    <div class="monitoring-card">
-                        <h5><i class="fas fa-chart-line"></i> 수요-공급 매칭 분석</h5>
-                        <canvas id="demandSupplyChart" class="chart-container"></canvas>
-                    </div>
-                </div>
                 <div class="col-lg-4">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-percentage"></i> 매칭율 분석</h5>
-                        <div class="calendar-card">
-                            <h6>실시간 매칭 현황</h6>
-                            <div class="event-timeline" id="matchingStatus">
-                                <div class="event-item">
-                                    <div class="event-time">현재</div>
-                                    <div class="event-content">
-                                        <strong>매칭율: 87.3%</strong><br>
-                                        <small>수요: 1,250 kW / 공급: 1,432 kW</small>
+                        <h5><i class="fas fa-sliders-h"></i> 예측 설정</h5>
+                        <div class="prediction-settings">
+                            <div class="setting-item">
+                                <label class="form-label">예측 모델</label>
+                                <select class="form-select form-select-sm" id="modelSelect" onchange="updatePrediction()">
+                                    <option value="lstm">LSTM (기본)</option>
+                                    <option value="transformer">Transformer</option>
+                                    <option value="ensemble">앙상블</option>
+                                </select>
+                                    </div>
+                            <div class="setting-item">
+                                <label class="form-label">예측 정확도 임계값</label>
+                                <input type="range" class="form-range" id="accuracyThreshold" min="70" max="99" value="90" onchange="updateThreshold()">
+                                <small class="text-muted">현재: <span id="currentThreshold">90%</span></small>
+                                </div>
+                            <div class="setting-item">
+                                <label class="form-label">자동 새로고침</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoRefresh" checked onchange="toggleAutoRefresh()">
+                                    <label class="form-check-label" for="autoRefresh">활성화</label>
                                     </div>
                                 </div>
-                                <div class="event-item">
-                                    <div class="event-time">1시간 후</div>
-                                    <div class="event-content">
-                                        <strong>예측 매칭율: 92.1%</strong><br>
-                                        <small>예측 수요: 1,320 kW / 예측 공급: 1,434 kW</small>
+                            <div class="setting-item">
+                                <label class="form-label">새로고침 간격</label>
+                                <select class="form-select form-select-sm" id="refreshInterval" onchange="updateRefreshInterval()">
+                                    <option value="30">30초</option>
+                                    <option value="60" selected>1분</option>
+                                    <option value="300">5분</option>
+                                    <option value="600">10분</option>
+                                </select>
                                     </div>
                                 </div>
-                                <div class="event-item">
-                                    <div class="event-time">6시간 후</div>
-                                    <div class="event-content">
-                                        <strong>예측 매칭율: 78.5%</strong><br>
-                                        <small>예측 수요: 1,180 kW / 예측 공급: 1,503 kW</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-success btn-sm mt-2" onclick="optimizeMatching()">
-                                <i class="fas fa-cogs"></i> 매칭 최적화
+                        <div class="mt-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="runPrediction()">
+                                <i class="fas fa-play"></i> 예측 실행
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 전자기기 시뮬레이션 및 동적 제어 -->
+            <!-- 에너지 공급-수요 매칭 분석 -->
             <div class="row mb-4">
-                <div class="col-lg-6">
+                <div class="col-12">
                     <div class="monitoring-card">
-                        <h5><i class="fas fa-desktop"></i> 전자기기 시뮬레이션</h5>
-                        <div class="mb-3">
-                            <h6>기기 선택:</h6>
-                            <select class="form-select" id="deviceSelect" onchange="simulateDevice()">
-                                <option value="">기기를 선택하세요</option>
-                                <option value="hvac">HVAC 시스템 (450 kW)</option>
-                                <option value="lighting">조명 시스템 (180 kW)</option>
-                                <option value="it">IT 장비 (320 kW)</option>
-                                <option value="elevator">엘리베이터 (150 kW)</option>
-                                <option value="pump">펌프 시스템 (200 kW)</option>
-                                <option value="security">보안 시스템 (80 kW)</option>
-                            </select>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-bolt"></i> 에너지 공급-수요 매칭 분석 (실시간)</h5>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="changeMatchingView('current')">현재</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changeMatchingView('1h')">1시간 후</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="changeMatchingView('3h')">3시간 후</button>
+                            </div>
                         </div>
-                        <div class="event-timeline" id="simulationResults">
-                            <div class="event-item">
-                                <div class="event-time">시뮬레이션 결과</div>
-                                <div class="event-content">
-                                    <strong>기기를 선택하면 수요 예측이 표시됩니다</strong><br>
-                                    <small>선택한 기기의 에너지 소비 패턴을 분석하여 수요를 예측합니다.</small>
+                        
+                        <!-- 현재 에너지 흐름 다이어그램 -->
+                        <div id="energyFlowDiagram" class="energy-flow-container">
+                            <div class="row">
+                                <!-- 공급원 -->
+                                <div class="col-md-3">
+                                    <div class="supply-section">
+                                        <h6 class="text-center mb-3">⚡ 공급원</h6>
+                                        <div class="supply-item">
+                                            <div class="supply-icon">☀️</div>
+                                            <div class="supply-info">
+                                                <strong>태양광</strong><br>
+                                                <span id="solarPower">3.5 kW</span><br>
+                                                <small class="text-muted">(24.4%)</small>
+                                            </div>
+                                        </div>
+                                        <div class="supply-item">
+                                            <div class="supply-icon">🔋</div>
+                                            <div class="supply-info">
+                                                <strong>ESS</strong><br>
+                                                <span id="essPower">1.8 kW</span><br>
+                                                <small class="text-muted">(12.6%)</small>
+                                            </div>
+                                        </div>
+                                        <div class="supply-item">
+                                            <div class="supply-icon">🔌</div>
+                                            <div class="supply-info">
+                                                <strong>그리드</strong><br>
+                                                <span id="gridPower">9.0 kW</span><br>
+                                                <small class="text-muted">(63%)</small>
+                                            </div>
+                                        </div>
+                                        <div class="supply-item">
+                                            <div class="supply-icon">💡</div>
+                                            <div class="supply-info">
+                                                <strong>잉여</strong><br>
+                                                <span id="surplusPower">+182 kW</span><br>
+                                                <small class="text-success">→ ESS 충전</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 배분 전략 -->
+                                <div class="col-md-3">
+                                    <div class="strategy-section">
+                                        <h6 class="text-center mb-3">🎯 배분 전략</h6>
+                                        <div class="strategy-item">
+                                            <div class="strategy-priority">우선순위 1</div>
+                                            <div class="strategy-desc">필수 부하<br><small>(전산, 안전)</small></div>
+                                        </div>
+                                        <div class="strategy-item">
+                                            <div class="strategy-priority">우선순위 2</div>
+                                            <div class="strategy-desc">냉방 부하<br><small>(태양광 우선)</small></div>
+                                        </div>
+                                        <div class="strategy-item">
+                                            <div class="strategy-priority">우선순위 3</div>
+                                            <div class="strategy-desc">조명<br><small>(ESS 활용)</small></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 수요 기기 -->
+                                <div class="col-md-6">
+                                    <div class="demand-section">
+                                        <h6 class="text-center mb-3">🏢 수요 기기</h6>
+                                        <div class="building-grid">
+                                            <div class="building-item">
+                                                <div class="building-header">
+                                                    <strong>🏢 건물 A</strong>
+                                                    <span class="building-power">450 kW</span>
+                                                </div>
+                                                <div class="device-breakdown">
+                                                    <div class="device-item">
+                                                        <span class="device-name">냉방</span>
+                                                        <span class="device-power">280 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 160kW</span>
+                                                            <span class="source-ess">🔋 80kW</span>
+                                                            <span class="source-grid">🔌 40kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">조명</span>
+                                                        <span class="device-power">85 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 45kW</span>
+                                                            <span class="source-ess">🔋 40kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">전산</span>
+                                                        <span class="device-power">65 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 30kW</span>
+                                                            <span class="source-ess">🔋 35kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">기타</span>
+                                                        <span class="device-power">20 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 17kW</span>
+                                                            <span class="source-ess">🔋 3kW</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="building-item">
+                                                <div class="building-header">
+                                                    <strong>🏢 건물 B</strong>
+                                                    <span class="building-power">380 kW</span>
+                                                </div>
+                                                <div class="device-breakdown">
+                                                    <div class="device-item">
+                                                        <span class="device-name">냉방</span>
+                                                        <span class="device-power">220 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 120kW</span>
+                                                            <span class="source-ess">🔋 60kW</span>
+                                                            <span class="source-grid">🔌 40kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">조명</span>
+                                                        <span class="device-power">75 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-ess">🔋 75kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">전산</span>
+                                                        <span class="device-power">55 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 25kW</span>
+                                                            <span class="source-ess">🔋 30kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">기타</span>
+                                                        <span class="device-power">30 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-grid">🔌 30kW</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="building-item">
+                                                <div class="building-header">
+                                                    <strong>🔧 공용설비</strong>
+                                                    <span class="building-power">100 kW</span>
+                                                </div>
+                                                <div class="device-breakdown">
+                                                    <div class="device-item">
+                                                        <span class="device-name">엘리베이터</span>
+                                                        <span class="device-power">45 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-solar">☀️ 25kW</span>
+                                                            <span class="source-ess">🔋 20kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">환기</span>
+                                                        <span class="device-power">30 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-ess">🔋 30kW</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <span class="device-name">펌프</span>
+                                                        <span class="device-power">25 kW</span>
+                                                        <div class="power-source">
+                                                            <span class="source-grid">🔌 25kW</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="monitoring-card">
-                        <h5><i class="fas fa-cogs"></i> 동적 제어 평가</h5>
-                        <div class="mb-3">
-                            <h6>제어 시나리오:</h6>
-                            <div class="btn-group w-100" role="group">
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="evaluateControl('peak')">피크 제어</button>
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="evaluateControl('load')">부하 분산</button>
-                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="evaluateControl('efficiency')">효율 최적화</button>
-                            </div>
-                        </div>
-                        <div class="event-timeline" id="controlResults">
-                            <div class="event-item">
-                                <div class="event-time">제어 평가 결과</div>
-                                <div class="event-content">
-                                    <strong>제어 시나리오를 선택하면 평가 결과가 표시됩니다</strong><br>
-                                    <small>동적 제어의 효과와 가능성을 분석합니다.</small>
+                            
+                            <!-- 매칭 분석 요약 -->
+                            <div class="matching-summary mt-4">
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <div class="summary-item">
+                                            <h6 class="text-primary">매칭율</h6>
+                                            <h4 id="matchingRate">87.3%</h4>
+                                            <small class="text-muted">수요 대비 공급</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-item">
+                                            <h6 class="text-success">그리드 의존도</h6>
+                                            <h4 id="gridDependency">63%</h4>
+                                            <small class="text-muted">외부 전력 비율</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-item">
+                                            <h6 class="text-warning">자가발전 비율</h6>
+                                            <h4 id="selfGeneration">37%</h4>
+                                            <small class="text-muted">태양광 + ESS</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-item">
+                                            <h6 class="text-info">비용 절감</h6>
+                                            <h4 id="costSavings">₩8,500</h4>
+                                            <small class="text-muted">시간당 절감액</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- 수요 반응 제어 센터 -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-sliders-h"></i> 수요 반응 제어 센터</h5>
+                        <div class="demand-response-panel">
+                            <div class="dr-recommendation">
+                                <div class="dr-header">
+                                    <h6><i class="fas fa-lightbulb"></i> AI 추천 제어 전략 (3시간 후 대비)</h6>
+                                    <span class="dr-priority high">우선순위: 높음</span>
+                                </div>
+                                <div class="dr-content">
+                                    <div class="dr-item">
+                                        <div class="dr-title">1. 냉방 시스템 최적화</div>
+                                        <div class="dr-details">
+                                            <div class="dr-target">📍 대상: 건물 A, B, C</div>
+                                            <div class="dr-goal">🎯 목표: 120 kW 절감</div>
+                                            <div class="dr-options">
+                                                <div class="dr-option">
+                                                    <input type="radio" name="hvac_control" id="hvac_temp" value="temp">
+                                                    <label for="hvac_temp">설정 온도 1°C 상향 (24°C → 25°C)</label>
+                                                    <div class="dr-effect">효과: -80 kW | 체감: 낮음 | 적용: 17:00</div>
+                                                </div>
+                                                <div class="dr-option">
+                                                    <input type="radio" name="hvac_control" id="hvac_air" value="air">
+                                                    <label for="hvac_air">외기 도입량 20% 증가 (자연 냉방)</label>
+                                                    <div class="dr-effect">효과: -25 kW | 체감: 없음 | 적용: 16:30</div>
+                                                </div>
+                                                <div class="dr-option">
+                                                    <input type="radio" name="hvac_control" id="hvac_zone" value="zone">
+                                                    <label for="hvac_zone">미사용 구역 냉방 차단</label>
+                                                    <div class="dr-effect">효과: -15 kW | 체감: 없음 | 적용: 즉시</div>
+                                                </div>
+                                            </div>
+                                            <div class="dr-summary">
+                                                <strong>예상 절감: 120 kW | 비용 절감: ₩14,400</strong>
+                                                <div class="dr-actions">
+                                                    <button class="btn btn-success btn-sm" onclick="applyDRStrategy('hvac')">적용하기</button>
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="scheduleDRStrategy('hvac')">일정 설정</button>
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="ignoreDRStrategy('hvac')">무시</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="dr-item">
+                                        <div class="dr-title">2. 조명 자동 조도 조절</div>
+                                        <div class="dr-details">
+                                            <div class="dr-target">📍 대상: 모든 건물</div>
+                                            <div class="dr-goal">🎯 목표: 35 kW 절감</div>
+                                            <div class="dr-options">
+                                                <div class="dr-option">
+                                                    <input type="radio" name="lighting_control" id="light_window" value="window">
+                                                    <label for="light_window">창가 구역 조도 30% 감소 (자연광 활용)</label>
+                                                    <div class="dr-effect">효과: -20 kW | 체감: 없음 | 적용: 즉시</div>
+                                                </div>
+                                                <div class="dr-option">
+                                                    <input type="radio" name="lighting_control" id="light_sensor" value="sensor">
+                                                    <label for="light_sensor">복도/화장실 인체감지 센서 작동</label>
+                                                    <div class="dr-effect">효과: -10 kW | 체감: 없음 | 적용: 즉시</div>
+                                                </div>
+                                                <div class="dr-option">
+                                                    <input type="radio" name="lighting_control" id="light_auto" value="auto">
+                                                    <label for="light_auto">미사용 회의실 조명 자동 소등</label>
+                                                    <div class="dr-effect">효과: -5 kW | 체감: 없음 | 적용: 즉시</div>
+                                                </div>
+                                            </div>
+                                            <div class="dr-summary">
+                                                <strong>예상 절감: 35 kW | 비용 절감: ₩4,200</strong>
+                                                <div class="dr-actions">
+                                                    <button class="btn btn-success btn-sm" onclick="applyDRStrategy('lighting')">적용하기</button>
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="scheduleDRStrategy('lighting')">일정 설정</button>
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="ignoreDRStrategy('lighting')">무시</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dr-summary-total">
+                                <h6>📊 전체 수요 반응 효과 요약</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="summary-stat">
+                                            <strong>총 절감량</strong><br>
+                                            <span class="stat-value">170 kW</span><br>
+                                            <small>(전체 수요의 11.3%)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-stat">
+                                            <strong>비용 절감</strong><br>
+                                            <span class="stat-value">₩20,400</span><br>
+                                            <small>(3시간)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-stat">
+                                            <strong>CO₂ 감축</strong><br>
+                                            <span class="stat-value">6.2 kg</span><br>
+                                            <small>(환경 기여)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="summary-stat">
+                                            <strong>매칭율 개선</strong><br>
+                                            <span class="stat-value">+10.4%p</span><br>
+                                            <small>(78.5% → 88.9%)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dr-total-actions mt-3">
+                                    <button class="btn btn-primary" onclick="applyAllDRStrategies()">전체 적용</button>
+                                    <button class="btn btn-outline-primary" onclick="customizeDRStrategies()">맞춤 설정</button>
+                                    <button class="btn btn-outline-info" onclick="simulateDRStrategies()">시뮬레이션 실행</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="monitoring-card">
+                        <h5><i class="fas fa-bell"></i> 실시간 알림</h5>
+                        <div class="notification-panel">
+                            <div class="notification-item urgent">
+                                <div class="notification-icon">🔴</div>
+                                <div class="notification-content">
+                                    <div class="notification-title">건물 A 냉방 수요 급증 (+25%)</div>
+                                    <div class="notification-desc">예상 원인: 회의실 4개 동시 사용</div>
+                                    <div class="notification-action">
+                                        <button class="btn btn-sm btn-warning" onclick="handleUrgentAlert('building_a')">즉시 조치</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item warning">
+                                <div class="notification-icon">🟡</div>
+                                <div class="notification-content">
+                                    <div class="notification-title">ESS Bank 1 충전 완료 임박 (95% SOC)</div>
+                                    <div class="notification-desc">예상 완료: 14:55</div>
+                                    <div class="notification-action">
+                                        <button class="btn btn-sm btn-outline-warning" onclick="handleWarningAlert('ess_bank1')">자동 전환</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item info">
+                                <div class="notification-icon">🟢</div>
+                                <div class="notification-content">
+                                    <div class="notification-title">태양광 발전 최적 상태 (3.5 kW)</div>
+                                    <div class="notification-desc">효율: 18.2% (평균 대비 +2.1%)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-summary mt-3">
+                            <h6>💡 오늘의 성과</h6>
+                            <div class="performance-item">
+                                <span>누적 비용 절감</span>
+                                <span class="performance-value">₩87,500</span>
+                                <small class="text-success">(목표 대비 112%)</small>
+                            </div>
+                            <div class="performance-item">
+                                <span>평균 매칭율</span>
+                                <span class="performance-value">89.2%</span>
+                                <small class="text-success">(목표: 85%)</small>
+                            </div>
+                            <div class="performance-item">
+                                <span>그리드 의존도</span>
+                                <span class="performance-value">58%</span>
+                                <small class="text-success">(목표 대비 -7%p)</small>
+                            </div>
+                            <div class="performance-item">
+                                <span>CO₂ 감축</span>
+                                <span class="performance-value">18.3 kg</span>
+                                <small class="text-success">(월간 목표 달성률: 23%)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // 전역 변수
+            let realtimeChart, deviceChart, demandDistributionChart, predictionChart;
+            let autoRefreshInterval;
+            let currentTimeRange = '1h';
+            let currentPredictionRange = '24h';
+            let currentDeviceView = 'chart';
+
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initializeCharts();
+                updateRealtimeData();
+                updateLastUpdateTime();
+                startAutoRefresh();
+            }});
 
             // 실시간 데이터 업데이트
             function updateRealtimeData() {{
-                // 에너지 수요 데이터 업데이트
+                // 현재 시간 업데이트
+                updateLastUpdateTime();
+                
+                // 실시간 수요-공급 데이터 생성
                 const currentDemand = (Math.random() * 200 + 1200).toFixed(0);
-                const peakDemand = (Math.random() * 100 + 1400).toFixed(0);
-                const predictedDemand = (Math.random() * 150 + 1300).toFixed(0);
-                const demandGrowth = (Math.random() * 10 - 2).toFixed(1);
+                const currentSupply = (Math.random() * 300 + 1300).toFixed(0);
+                const currentMatchingRate = (Math.min(currentDemand, currentSupply) / Math.max(currentDemand, currentSupply) * 100).toFixed(1);
+                
+                // 1시간 후 예측
+                const predDemand1h = (Math.random() * 150 + 1300).toFixed(0);
+                const predSupply1h = (Math.random() * 200 + 1400).toFixed(0);
+                const predMatchingRate1h = (Math.min(predDemand1h, predSupply1h) / Math.max(predDemand1h, predSupply1h) * 100).toFixed(1);
+                
+                // 6시간 후 예측
+                const predDemand6h = (Math.random() * 200 + 1100).toFixed(0);
+                const predSupply6h = (Math.random() * 400 + 1500).toFixed(0);
+                const predMatchingRate6h = (Math.min(predDemand6h, predSupply6h) / Math.max(predDemand6h, predSupply6h) * 100).toFixed(1);
 
-                document.getElementById('currentDemand').textContent = currentDemand + ' kW';
-                document.getElementById('peakDemand').textContent = peakDemand + ' kW';
-                document.getElementById('predictedDemand').textContent = predictedDemand + ' kW';
-                document.getElementById('demandGrowth').textContent = (demandGrowth > 0 ? '+' : '') + demandGrowth + '%';
+                // DOM 업데이트
+                document.getElementById('currentDemand').textContent = currentDemand;
+                document.getElementById('currentSupply').textContent = currentSupply;
+                document.getElementById('currentMatchingRate').textContent = currentMatchingRate + '%';
+                
+                document.getElementById('predDemand1h').textContent = predDemand1h;
+                document.getElementById('predSupply1h').textContent = predSupply1h;
+                document.getElementById('prediction1h').textContent = predMatchingRate1h + '%';
+                
+                document.getElementById('predDemand6h').textContent = predDemand6h;
+                document.getElementById('predSupply6h').textContent = predSupply6h;
+                document.getElementById('prediction6h').textContent = predMatchingRate6h + '%';
 
-                // 전자기기별 수요 업데이트
-                const hvacDemand = (Math.random() * 100 + 400).toFixed(0);
-                const lightingDemand = (Math.random() * 50 + 150).toFixed(0);
-                const itDemand = (Math.random() * 80 + 280).toFixed(0);
-                const otherDemand = (Math.random() * 100 + 250).toFixed(0);
+                // 모델 정확도 업데이트
+                const modelAccuracy = (Math.random() * 5 + 92).toFixed(1);
+                document.getElementById('modelAccuracy').textContent = modelAccuracy + '%';
 
-                document.getElementById('hvacDemand').textContent = hvacDemand + ' kW';
-                document.getElementById('lightingDemand').textContent = lightingDemand + ' kW';
-                document.getElementById('itDemand').textContent = itDemand + ' kW';
-                document.getElementById('otherDemand').textContent = otherDemand + ' kW';
-
-                // 수요 예측 업데이트
-                const prediction1h = (Math.random() * 150 + 1300).toFixed(0);
-                const prediction6h = (Math.random() * 200 + 1100).toFixed(0);
-                const prediction24h = (Math.random() * 300 + 1300).toFixed(0);
-                const predictionAccuracy = (Math.random() * 5 + 92).toFixed(1);
-
-                document.getElementById('prediction1h').textContent = prediction1h + ' kW';
-                document.getElementById('prediction6h').textContent = prediction6h + ' kW';
-                document.getElementById('prediction24h').textContent = prediction24h + ' kW';
-                document.getElementById('predictionAccuracy').textContent = predictionAccuracy + '%';
+                // 차트 업데이트
+                updateRealtimeChart();
+                updateDeviceChart();
+                updateDemandDistributionChart();
+                updatePredictionChart();
             }}
 
-            // 수요-공급 매칭 차트 초기화
-            function initDemandSupplyChart() {{
-                const ctx = document.getElementById('demandSupplyChart').getContext('2d');
-                const hours = [];
+            // 마지막 업데이트 시간 표시
+            function updateLastUpdateTime() {{
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR');
+                document.getElementById('lastUpdate').textContent = timeString;
+            }}
+
+            // 차트 초기화
+            function initializeCharts() {{
+                initRealtimeChart();
+                initDeviceChart();
+                initDemandDistributionChart();
+                initPredictionChart();
+            }}
+
+            // 실시간 차트 초기화
+            function initRealtimeChart() {{
+                const ctx = document.getElementById('realtimeChart').getContext('2d');
+                const labels = [];
                 const demandData = [];
                 const supplyData = [];
                 const matchingData = [];
                 
-                for (let i = 0; i < 24; i++) {{
-                    hours.push(i.toString().padStart(2, '0') + ':00');
+                // 시간 범위에 따른 데이터 생성
+                const dataPoints = currentTimeRange === '1h' ? 12 : currentTimeRange === '6h' ? 24 : 48;
+                
+                for (let i = 0; i < dataPoints; i++) {{
+                    const time = new Date();
+                    time.setMinutes(time.getMinutes() - (dataPoints - i) * (currentTimeRange === '1h' ? 5 : currentTimeRange === '6h' ? 15 : 30));
+                    labels.push(time.toLocaleTimeString('ko-KR', {{hour: '2-digit', minute: '2-digit'}}));
+                    
                     const demand = Math.random() * 200 + 1200;
                     const supply = Math.random() * 300 + 1300;
                     const matching = (Math.min(demand, supply) / Math.max(demand, supply) * 100);
@@ -3566,10 +5630,10 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                     matchingData.push(matching);
                 }}
                 
-                new Chart(ctx, {{
+                realtimeChart = new Chart(ctx, {{
                     type: 'line',
                     data: {{
-                        labels: hours,
+                        labels: labels,
                         datasets: [{{
                             label: '에너지 수요 (kW)',
                             data: demandData,
@@ -3596,6 +5660,10 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {{
+                            intersect: false,
+                            mode: 'index'
+                        }},
                         scales: {{
                             y: {{
                                 type: 'linear',
@@ -3625,25 +5693,434 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                             legend: {{
                                 display: true,
                                 position: 'top'
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        if (context.datasetIndex === 2) {{
+                                            return `매칭율: ${{context.parsed.y.toFixed(1)}}%`;
+                                        }}
+                                        return `${{context.dataset.label}}: ${{context.parsed.y.toFixed(0)}} kW`;
+                                    }}
+                                }}
                             }}
                         }}
                     }}
                 }});
             }}
 
-            // 매칭 최적화
-            function optimizeMatching() {{
-                const matchingStatus = document.getElementById('matchingStatus');
-                const newEvent = document.createElement('div');
-                newEvent.className = 'event-item';
-                newEvent.innerHTML = `
-                    <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
-                    <div class="event-content">
-                        <strong>매칭 최적화 실행</strong><br>
-                        <small>수요-공급 매칭 알고리즘이 최적화되었습니다. 매칭율이 5.2% 향상되었습니다.</small>
-                    </div>
+            // 실시간 차트 업데이트
+            function updateRealtimeChart() {{
+                if (!realtimeChart) return;
+                
+                const now = new Date();
+                const newLabel = now.toLocaleTimeString('ko-KR', {{hour: '2-digit', minute: '2-digit'}});
+                
+                // 새 데이터 추가
+                const demand = Math.random() * 200 + 1200;
+                const supply = Math.random() * 300 + 1300;
+                const matching = (Math.min(demand, supply) / Math.max(demand, supply) * 100);
+                
+                realtimeChart.data.labels.push(newLabel);
+                realtimeChart.data.datasets[0].data.push(demand);
+                realtimeChart.data.datasets[1].data.push(supply);
+                realtimeChart.data.datasets[2].data.push(matching);
+                
+                // 오래된 데이터 제거 (최대 50개 데이터 포인트 유지)
+                if (realtimeChart.data.labels.length > 50) {{
+                    realtimeChart.data.labels.shift();
+                    realtimeChart.data.datasets[0].data.shift();
+                    realtimeChart.data.datasets[1].data.shift();
+                    realtimeChart.data.datasets[2].data.shift();
+                }}
+                
+                realtimeChart.update('none');
+            }}
+
+            // 기기별 차트 초기화
+            function initDeviceChart() {{
+                const ctx = document.getElementById('deviceChart').getContext('2d');
+                const devices = ['HVAC', 'IT 장비', '기타 장비', '조명'];
+                const data = [450, 320, 300, 180];
+                
+                deviceChart = new Chart(ctx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: devices,
+                        datasets: [{{
+                            label: '에너지 수요 (kW)',
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 107, 107, 0.8)',
+                                'rgba(78, 205, 196, 0.8)',
+                                'rgba(69, 183, 209, 0.8)',
+                                'rgba(249, 202, 36, 0.8)'
+                            ],
+                            borderColor: [
+                                '#ff6b6b',
+                                '#4ecdc4',
+                                '#45b7d1',
+                                '#f9ca24'
+                            ],
+                            borderWidth: 2
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return `${{context.label}}: ${{context.parsed.y}} kW`;
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: '에너지 수요 (kW)'
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 기기별 차트 업데이트
+            function updateDeviceChart() {{
+                if (!deviceChart) return;
+                
+                const newData = [
+                    Math.random() * 100 + 400,  // HVAC
+                    Math.random() * 80 + 280,   // IT
+                    Math.random() * 100 + 250,  // 기타
+                    Math.random() * 50 + 150    // 조명
+                ];
+                
+                deviceChart.data.datasets[0].data = newData;
+                deviceChart.update('none');
+            }}
+
+            // 수요 분포 차트 초기화
+            function initDemandDistributionChart() {{
+                const ctx = document.getElementById('demandDistributionChart').getContext('2d');
+                
+                demandDistributionChart = new Chart(ctx, {{
+                    type: 'doughnut',
+                    data: {{
+                        labels: ['HVAC 시스템', 'IT 장비', '기타 장비', '조명 시스템'],
+                        datasets: [{{
+                            data: [450, 320, 300, 180],
+                            backgroundColor: [
+                                '#ff6b6b',
+                                '#4ecdc4',
+                                '#45b7d1',
+                                '#f9ca24'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${{context.label}}: ${{context.parsed}} kW (${{percentage}}%)`;
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 수요 분포 차트 업데이트
+            function updateDemandDistributionChart() {{
+                if (!demandDistributionChart) return;
+                
+                const newData = [
+                    Math.random() * 100 + 400,  // HVAC
+                    Math.random() * 80 + 280,   // IT
+                    Math.random() * 100 + 250,  // 기타
+                    Math.random() * 50 + 150    // 조명
+                ];
+                
+                demandDistributionChart.data.datasets[0].data = newData;
+                demandDistributionChart.update('none');
+                
+                // 퍼센트 업데이트
+                const total = newData.reduce((a, b) => a + b, 0);
+                document.getElementById('hvacPercent').textContent = ((newData[0] / total) * 100).toFixed(0) + '%';
+                document.getElementById('itPercent').textContent = ((newData[1] / total) * 100).toFixed(0) + '%';
+                document.getElementById('otherPercent').textContent = ((newData[2] / total) * 100).toFixed(0) + '%';
+                document.getElementById('lightingPercent').textContent = ((newData[3] / total) * 100).toFixed(0) + '%';
+            }}
+
+            // 예측 차트 초기화
+            function initPredictionChart() {{
+                const ctx = document.getElementById('predictionChart').getContext('2d');
+                const labels = [];
+                const actualData = [];
+                const predictedData = [];
+                
+                // 24시간 데이터 생성
+                for (let i = 0; i < 24; i++) {{
+                    const hour = i.toString().padStart(2, '0') + ':00';
+                    labels.push(hour);
+                    actualData.push(Math.random() * 200 + 1200);
+                    predictedData.push(Math.random() * 200 + 1200);
+                }}
+                
+                predictionChart = new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            label: '실제 수요',
+                            data: actualData,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4
+                        }}, {{
+                            label: '예측 수요',
+                            data: predictedData,
+                            borderColor: '#4ecdc4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.4,
+                            borderDash: [5, 5]
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top'
+                            }},
+                            tooltip: {{
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return `${{context.dataset.label}}: ${{context.parsed.y.toFixed(0)}} kW`;
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                title: {{
+                                    display: true,
+                                    text: '에너지 수요 (kW)'
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+            }}
+
+            // 예측 차트 업데이트
+            function updatePredictionChart() {{
+                if (!predictionChart) return;
+                
+                // 새로운 예측 데이터 생성
+                const newPredictedData = predictionChart.data.datasets[1].data.map(() => 
+                    Math.random() * 200 + 1200
+                );
+                
+                predictionChart.data.datasets[1].data = newPredictedData;
+                predictionChart.update('none');
+            }}
+
+            // 인터랙티브 함수들
+            function changeTimeRange(range) {{
+                currentTimeRange = range;
+                
+                // 버튼 상태 업데이트
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // 차트 재초기화
+                if (realtimeChart) {{
+                    realtimeChart.destroy();
+                }}
+                initRealtimeChart();
+            }}
+
+            function changePredictionRange(range) {{
+                currentPredictionRange = range;
+                
+                // 버튼 상태 업데이트
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // 예측 차트 업데이트
+                updatePredictionChart();
+            }}
+
+            function changeDeviceView(view) {{
+                currentDeviceView = view;
+                
+                // 버튼 상태 업데이트
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // 뷰 전환
+                if (view === 'chart') {{
+                    document.getElementById('deviceChartView').style.display = 'block';
+                    document.getElementById('deviceTableView').style.display = 'none';
+                }} else {{
+                    document.getElementById('deviceChartView').style.display = 'none';
+                    document.getElementById('deviceTableView').style.display = 'block';
+                    updateDeviceTable();
+                }}
+            }}
+
+            function updateDeviceTable() {{
+                const tableBody = document.getElementById('deviceTableBody');
+                const devices = [
+                    {{ name: 'HVAC 시스템', current: Math.random() * 100 + 400, average: 450, efficiency: 85, status: '정상' }},
+                    {{ name: 'IT 장비', current: Math.random() * 80 + 280, average: 320, efficiency: 88, status: '정상' }},
+                    {{ name: '기타 장비', current: Math.random() * 100 + 250, average: 300, efficiency: 87, status: '정상' }},
+                    {{ name: '조명 시스템', current: Math.random() * 50 + 150, average: 180, efficiency: 92, status: '정상' }}
+                ];
+                
+                tableBody.innerHTML = devices.map(device => `
+                    <tr>
+                        <td>${{device.name}}</td>
+                        <td>${{device.current.toFixed(0)}} kW</td>
+                        <td>${{device.average}} kW</td>
+                        <td>${{device.efficiency}}%</td>
+                        <td><span class="badge bg-success">${{device.status}}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="controlDevice('${{device.name}}')">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }}
+
+            function controlDevice(deviceName) {{
+                alert(`${{deviceName}} 제어 패널을 열겠습니다.`);
+            }}
+
+            function refreshData() {{
+                updateRealtimeData();
+                showNotification('데이터가 새로고침되었습니다.', 'success');
+            }}
+
+            function exportData() {{
+                const data = {{
+                    timestamp: new Date().toISOString(),
+                    currentDemand: document.getElementById('currentDemand').textContent,
+                    currentSupply: document.getElementById('currentSupply').textContent,
+                    matchingRate: document.getElementById('currentMatchingRate').textContent
+                }};
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], {{ type: 'application/json' }});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `energy_data_${{new Date().toISOString().split('T')[0]}}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('데이터가 내보내기되었습니다.', 'success');
+            }}
+
+            function showDataSource() {{
+                const modal = new bootstrap.Modal(document.getElementById('dataSourceModal'));
+                modal.show();
+            }}
+
+            function showRawData() {{
+                const modal = new bootstrap.Modal(document.getElementById('rawDataModal'));
+                modal.show();
+            }}
+
+            function showModelDetails() {{
+                const modal = new bootstrap.Modal(document.getElementById('modelDetailsModal'));
+                modal.show();
+            }}
+
+            function updatePrediction() {{
+                const model = document.getElementById('modelSelect').value;
+                showNotification(`${{model}} 모델로 예측을 업데이트했습니다.`, 'info');
+            }}
+
+            function updateThreshold() {{
+                const threshold = document.getElementById('accuracyThreshold').value;
+                document.getElementById('currentThreshold').textContent = threshold + '%';
+            }}
+
+            function toggleAutoRefresh() {{
+                const autoRefresh = document.getElementById('autoRefresh').checked;
+                if (autoRefresh) {{
+                    startAutoRefresh();
+                }} else {{
+                    stopAutoRefresh();
+                }}
+            }}
+
+            function updateRefreshInterval() {{
+                const interval = parseInt(document.getElementById('refreshInterval').value);
+                stopAutoRefresh();
+                startAutoRefresh(interval);
+            }}
+
+            function runPrediction() {{
+                showNotification('예측 모델을 실행하고 있습니다...', 'info');
+                setTimeout(() => {{
+                    updatePredictionChart();
+                    showNotification('예측이 완료되었습니다.', 'success');
+                }}, 2000);
+            }}
+
+            function startAutoRefresh(interval = 60) {{
+                stopAutoRefresh();
+                autoRefreshInterval = setInterval(updateRealtimeData, interval * 1000);
+            }}
+
+            function stopAutoRefresh() {{
+                if (autoRefreshInterval) {{
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }}
+            }}
+
+            function showNotification(message, type = 'info') {{
+                const alertClass = `alert-${{type}}`;
+                const notification = document.createElement('div');
+                notification.className = `alert ${{alertClass}} alert-dismissible fade show position-fixed`;
+                notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                notification.innerHTML = `
+                    ${{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
-                matchingStatus.insertBefore(newEvent, matchingStatus.firstChild);
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {{
+                    if (notification.parentNode) {{
+                        notification.remove();
+                    }}
+                }}, 5000);
             }}
 
             // 전자기기 시뮬레이션
@@ -3654,12 +6131,10 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 
                 if (!selectedDevice) {{
                     simulationResults.innerHTML = `
-                        <div class="event-item">
-                            <div class="event-time">시뮬레이션 결과</div>
-                            <div class="event-content">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
                                 <strong>기기를 선택하면 수요 예측이 표시됩니다</strong><br>
                                 <small>선택한 기기의 에너지 소비 패턴을 분석하여 수요를 예측합니다.</small>
-                            </div>
                         </div>
                     `;
                     return;
@@ -3679,18 +6154,282 @@ async def data_analysis_page(request: Request, lang: str = Query("ko", descripti
                 const efficiency = device.efficiency + (Math.random() * 10 - 5);
                 
                 simulationResults.innerHTML = `
-                    <div class="event-item">
-                        <div class="event-time">${{new Date().toLocaleTimeString()}}</div>
-                        <div class="event-content">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
                             <strong>${{device.name}} 시뮬레이션 결과</strong><br>
-                            <small>현재 소비: ${{device.power}} kW</small><br>
-                            <small>예측 수요: ${{predictedDemand}} kW</small><br>
-                            <small>소비 패턴: ${{device.pattern}}</small><br>
-                            <small>효율성: ${{efficiency.toFixed(1)}}%</small>
+                        <small>
+                            예측 수요: <strong>${{predictedDemand}} kW</strong><br>
+                            소비 패턴: <strong>${{device.pattern}}</strong><br>
+                            효율성: <strong>${{efficiency.toFixed(1)}}%</strong><br>
+                            최적화 가능성: <strong>${{(100 - efficiency).toFixed(1)}}%</strong>
+                        </small>
                         </div>
+                `;
+            }}
+
+            // 에너지 매칭 뷰 변경
+            function changeMatchingView(view) {{
+                // 버튼 상태 업데이트
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // 뷰에 따른 데이터 업데이트
+                updateEnergyMatchingData(view);
+            }}
+
+            // 에너지 매칭 데이터 업데이트
+            function updateEnergyMatchingData(view) {{
+                const timeLabels = {{
+                    current: '현재 (14:30)',
+                    '1h': '1시간 후 (15:30)',
+                    '3h': '3시간 후 (17:30)'
+                }};
+                
+                // 공급 데이터 업데이트
+                const supplyData = {{
+                    current: {{ solar: 3.5, ess: 1.8, grid: 9.0, surplus: 182 }},
+                    '1h': {{ solar: 4.2, ess: 2.1, grid: 8.5, surplus: 165 }},
+                    '3h': {{ solar: 1.8, ess: 3.2, grid: 11.5, surplus: 0 }}
+                }};
+                
+                const data = supplyData[view];
+                document.getElementById('solarPower').textContent = data.solar + ' kW';
+                document.getElementById('essPower').textContent = data.ess + ' kW';
+                document.getElementById('gridPower').textContent = data.grid + ' kW';
+                document.getElementById('surplusPower').textContent = '+' + data.surplus + ' kW';
+                
+                // 매칭율 및 지표 업데이트
+                const matchingData = {{
+                    current: {{ rate: 87.3, grid: 63, self: 37, savings: 8500 }},
+                    '1h': {{ rate: 92.1, grid: 58, self: 42, savings: 12400 }},
+                    '3h': {{ rate: 78.5, grid: 78, self: 22, savings: 3200 }}
+                }};
+                
+                const metrics = matchingData[view];
+                document.getElementById('matchingRate').textContent = metrics.rate + '%';
+                document.getElementById('gridDependency').textContent = metrics.grid + '%';
+                document.getElementById('selfGeneration').textContent = metrics.self + '%';
+                document.getElementById('costSavings').textContent = '₩' + metrics.savings.toLocaleString();
+            }}
+
+            // 수요 반응 전략 적용
+            function applyDRStrategy(strategy) {{
+                showNotification(`${{strategy}} 수요 반응 전략을 적용했습니다.`, 'success');
+                
+                // 실제 적용 로직 시뮬레이션
+                setTimeout(() => {{
+                    updateEnergyMatchingData('current');
+                    showNotification('전략 적용이 완료되었습니다. 매칭율이 개선되었습니다.', 'success');
+                }}, 2000);
+            }}
+
+            function scheduleDRStrategy(strategy) {{
+                showNotification(`${{strategy}} 수요 반응 전략을 일정에 추가했습니다.`, 'info');
+            }}
+
+            function ignoreDRStrategy(strategy) {{
+                showNotification(`${{strategy}} 수요 반응 전략을 무시했습니다.`, 'warning');
+            }}
+
+            function applyAllDRStrategies() {{
+                showNotification('모든 수요 반응 전략을 적용합니다...', 'info');
+                
+                setTimeout(() => {{
+                    updateEnergyMatchingData('current');
+                    showNotification('모든 전략이 성공적으로 적용되었습니다!', 'success');
+                }}, 3000);
+            }}
+
+            function customizeDRStrategies() {{
+                showNotification('맞춤 설정 패널을 열겠습니다.', 'info');
+            }}
+
+            function simulateDRStrategies() {{
+                showNotification('시뮬레이션을 실행합니다...', 'info');
+                
+                setTimeout(() => {{
+                    showNotification('시뮬레이션 완료: 예상 절감량 170kW, 비용 절감 ₩20,400', 'success');
+                }}, 2000);
+            }}
+
+            // 알림 처리
+            function handleUrgentAlert(alertType) {{
+                showNotification('긴급 알림을 처리했습니다. 즉시 조치를 실행합니다.', 'warning');
+                
+                setTimeout(() => {{
+                    showNotification('긴급 조치가 완료되었습니다. 시스템이 정상화되었습니다.', 'success');
+                }}, 1500);
+            }}
+
+            function handleWarningAlert(alertType) {{
+                showNotification('경고 알림을 처리했습니다. 자동 전환을 실행합니다.', 'info');
+                
+                setTimeout(() => {{
+                    showNotification('자동 전환이 완료되었습니다.', 'success');
+                }}, 1000);
+            }}
+
+            // 동적 제어 평가
+            function evaluateControl(scenario) {{
+                const controlResults = document.getElementById('controlResults');
+                const scenarios = {{
+                    peak: {{ name: '피크 제어', effect: '15-25%', risk: '낮음', duration: '2-4시간' }},
+                    load: {{ name: '부하 분산', effect: '10-20%', risk: '중간', duration: '4-8시간' }},
+                    efficiency: {{ name: '효율 최적화', effect: '5-15%', risk: '낮음', duration: '지속적' }}
+                }};
+                
+                const scenarioData = scenarios[scenario];
+                const actualEffect = (Math.random() * 10 + 5).toFixed(1);
+                
+                controlResults.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-cogs"></i>
+                        <strong>${{scenarioData.name}} 평가 결과</strong><br>
+                        <small>
+                            예상 효과: <strong>${{actualEffect}}%</strong> (범위: ${{scenarioData.effect}})<br>
+                            위험도: <strong>${{scenarioData.risk}}</strong><br>
+                            적용 기간: <strong>${{scenarioData.duration}}</strong><br>
+                            권장사항: <strong>모니터링 후 단계적 적용</strong>
+                        </small>
                     </div>
                 `;
             }}
+
+        </script>
+
+        <!-- 모달 창들 -->
+        <div class="modal fade" id="dataSourceModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-database"></i> 데이터 출처 정보</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>실시간 센서 데이터</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-bolt text-danger"></i> 전력 수요 센서 (15개)</li>
+                                    <li><i class="fas fa-thermometer-half text-success"></i> 온도 센서 (8개)</li>
+                                    <li><i class="fas fa-tachometer-alt text-info"></i> 풍속 센서 (3개)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>외부 API 데이터</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-cloud-sun text-warning"></i> 기상청 API (KMA)</li>
+                                    <li><i class="fas fa-solar-panel text-warning"></i> 태양광 발전량 API</li>
+                                    <li><i class="fas fa-wind text-info"></i> 풍력 발전량 API</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6>데이터 업데이트 주기</h6>
+                            <p class="mb-0">실시간 센서: 1분마다 | 외부 API: 5분마다 | 예측 모델: 1시간마다</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="rawDataModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-table"></i> 원시 데이터</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>시간</th>
+                                        <th>수요 (kW)</th>
+                                        <th>공급 (kW)</th>
+                                        <th>매칭율 (%)</th>
+                                        <th>온도 (°C)</th>
+                                        <th>습도 (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rawDataTableBody">
+                                    <!-- 동적으로 생성됨 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modelDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-robot"></i> AI 예측 모델 상세 정보</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>모델 아키텍처</h6>
+                                <ul>
+                                    <li>LSTM 레이어: 3개</li>
+                                    <li>은닉 유닛: 128개</li>
+                                    <li>드롭아웃: 0.2</li>
+                                    <li>배치 크기: 32</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>성능 지표</h6>
+                                <ul>
+                                    <li>MAE: 45.2 kW</li>
+                                    <li>RMSE: 67.8 kW</li>
+                                    <li>MAPE: 3.2%</li>
+                                    <li>R²: 0.942</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6>학습 데이터</h6>
+                            <p>2022년 1월 ~ 2024년 1월 (2년간의 에너지 사용 패턴 데이터)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 모달 열 때 원시 데이터 생성
+            document.getElementById('rawDataModal').addEventListener('show.bs.modal', function() {{
+                const tableBody = document.getElementById('rawDataTableBody');
+                const rows = [];
+                
+                for (let i = 0; i < 20; i++) {{
+                    const time = new Date();
+                    time.setMinutes(time.getMinutes() - i * 5);
+                    const demand = (Math.random() * 200 + 1200).toFixed(0);
+                    const supply = (Math.random() * 300 + 1300).toFixed(0);
+                    const matching = (Math.min(demand, supply) / Math.max(demand, supply) * 100).toFixed(1);
+                    const temp = (Math.random() * 10 + 20).toFixed(1);
+                    const humidity = (Math.random() * 30 + 50).toFixed(0);
+                    
+                    rows.push(`
+                        <tr>
+                            <td>${{time.toLocaleTimeString('ko-KR')}}</td>
+                            <td>${{demand}}</td>
+                            <td>${{supply}}</td>
+                            <td>${{matching}}</td>
+                            <td>${{temp}}</td>
+                            <td>${{humidity}}</td>
+                        </tr>
+                    `);
+                }}
+                
+                tableBody.innerHTML = rows.join('');
+            }});
+        </script>
 
             // 동적 제어 평가
             function evaluateControl(scenario) {{
@@ -5806,3 +8545,4 @@ async def llm_slm_page(request: Request, lang: str = Query("ko", description="La
 
 if __name__ == "__main__":
     uvicorn.run(web_app, host="0.0.0.0", port=8000)
+
