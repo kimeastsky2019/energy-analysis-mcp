@@ -190,7 +190,7 @@ def generate_navigation(current_lang='ko'):
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/trading?lang={current_lang}">
+                            <a class="nav-link" href="/energytrading?lang={current_lang}">
                                 <i class="fas fa-exchange-alt"></i> 전력/탄소 거래
                             </a>
                         </li>
@@ -361,6 +361,24 @@ async def dashboard(request: Request, lang: str = Query("ko", description="Langu
                             </p>
                             <a href="/statistics?lang={lang}" class="btn btn-danger btn-sm w-100">
                                 <i class="fas fa-arrow-right"></i> {t('navigation.demandControl', lang)}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Energy Trading 카드 -->
+                <div class="col-md-2 mb-4">
+                    <div class="card energy-card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-exchange-alt text-success" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title">전력/탄소 거래</h6>
+                            <p class="card-text small text-muted mb-3">
+                                P2P 전력 거래 & 탄소 크레딧 시스템
+                            </p>
+                            <a href="/energytrading?lang={lang}" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-arrow-right"></i> 전력/탄소 거래
                             </a>
                         </div>
                     </div>
@@ -3041,6 +3059,576 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
                 
                 // 10초마다 데이터 업데이트
                 setInterval(updateRealtimeData, 10000);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+
+@web_app.get("/energytrading", response_class=HTMLResponse)
+async def energy_trading_page(request: Request, lang: str = Query("ko", description="Language code")):
+    """전력/탄소 거래 플랫폼 - P2P Trading & Carbon Credit System with AI Optimization"""
+    # 언어 설정
+    if lang not in get_available_languages():
+        lang = "ko"
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>⚡ 전력/탄소 거래 플랫폼 - P2P Trading & Carbon Credit System</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            body {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }}
+            .trading-card {{
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 25px;
+                margin-bottom: 25px;
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(15px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }}
+            .trading-card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            }}
+            .trading-header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+            }}
+            .kpi-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                text-align: center;
+                margin-bottom: 20px;
+            }}
+            .kpi-value {{
+                font-size: 2.5rem;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }}
+            .kpi-label {{
+                font-size: 1rem;
+                opacity: 0.9;
+            }}
+            .market-card {{
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .carbon-card {{
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .ai-card {{
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .blockchain-card {{
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }}
+            .chart-container {{
+                height: 300px;
+                position: relative;
+            }}
+            .trading-table {{
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 15px;
+                margin-top: 15px;
+            }}
+            .trading-item {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }}
+            .trading-item:last-child {{
+                border-bottom: none;
+            }}
+            .btn-trading {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                color: white;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }}
+            .btn-trading:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+                color: white;
+            }}
+            .status-indicator {{
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+            }}
+            .status-online {{ background-color: #28a745; }}
+            .status-warning {{ background-color: #ffc107; }}
+            .status-offline {{ background-color: #dc3545; }}
+            .price-trend {{
+                font-size: 0.9rem;
+                margin-left: 8px;
+            }}
+            .price-up {{ color: #28a745; }}
+            .price-down {{ color: #dc3545; }}
+            .price-stable {{ color: #6c757d; }}
+        </style>
+    </head>
+    <body>
+        {generate_navigation(lang)}
+
+        <div class="container-fluid mt-4">
+            <!-- 거래 플랫폼 헤더 -->
+            <div class="trading-header">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-exchange-alt"></i> 전력/탄소 거래 플랫폼
+                </h1>
+                <p class="lead mb-4">P2P Trading & Carbon Credit System with AI Optimization</p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalTrades">1,247</div>
+                            <div class="kpi-label">총 거래 건수</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="totalVolume">₩89.2M</div>
+                            <div class="kpi-label">총 거래량</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="activeUsers">156</div>
+                            <div class="kpi-label">활성 거래자</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="platformFee">₩1.8M</div>
+                            <div class="kpi-label">플랫폼 수수료</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P2P 전력 거래 마켓플레이스 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="market-card">
+                        <h4><i class="fas fa-bolt"></i> P2P 전력 거래 마켓플레이스</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>판매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🇫🇮 Finland</span>
+                                        <span>45 kW @ ₩185/kWh <span class="price-trend price-up">↗ +2.3%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇸🇪 Sweden</span>
+                                        <span>32 kW @ ₩192/kWh <span class="price-trend price-up">↗ +1.8%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇷🇴 Romania</span>
+                                        <span>28 kW @ ₩178/kWh <span class="price-trend price-down">↘ -0.5%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇬🇷 Greece</span>
+                                        <span>38 kW @ ₩201/kWh <span class="price-trend price-up">↗ +3.1%</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6>구매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🏭 Industrial Co.</span>
+                                        <span>120 kW @ ₩200/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏢 Office Complex</span>
+                                        <span>85 kW @ ₩195/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏪 Retail Chain</span>
+                                        <span>65 kW @ ₩190/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏥 Hospital</span>
+                                        <span>45 kW @ ₩205/kWh</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openP2PMarket()">
+                                <i class="fas fa-chart-line"></i> P2P 마켓 열기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="carbon-card">
+                        <h4><i class="fas fa-leaf"></i> 탄소 크레딧 거래</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>보유 크레딧</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🇫🇮 Finland</span>
+                                        <span>652톤 (₩29.3M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇸🇪 Sweden</span>
+                                        <span>1,200톤 (₩54.0M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇷🇴 Romania</span>
+                                        <span>450톤 (₩20.3M)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇬🇷 Greece</span>
+                                        <span>5,000톤 (₩225.0M)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6>시장 정보</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>현재 가격</span>
+                                        <span>₩45,000/톤 <span class="price-trend price-up">↗ +2.3%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>24h 변동</span>
+                                        <span>+₩1,050/톤</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>월간 거래량</span>
+                                        <span>1,847톤</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>시장 캡</span>
+                                        <span>₩328.6M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="openCarbonMarket()">
+                                <i class="fas fa-seedling"></i> 탄소 시장 열기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 최적화 엔진 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="ai-card">
+                        <h4><i class="fas fa-robot"></i> AI 수익 최적화 엔진</h4>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="chart-container">
+                                    <canvas id="aiOptimizationChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="trading-table">
+                                    <h6>최적화 전략</h6>
+                                    <div class="trading-item">
+                                        <span>전력 판매 최적화</span>
+                                        <span>₩35.7M (+12%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>탄소 크레딧 최적화</span>
+                                        <span>₩28.8M (+8%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>수요 반응 최적화</span>
+                                        <span>₩2.3M (+15%)</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>총 최적화 효과</span>
+                                        <span>₩66.8M (+11%)</span>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-trading" onclick="runAIOptimization()">
+                                        <i class="fas fa-magic"></i> AI 최적화 실행
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 블록체인 거래 기록 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="blockchain-card">
+                        <h4><i class="fas fa-link"></i> 블록체인 거래 기록</h4>
+                        <div class="trading-table">
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x1a2b3c...</span>
+                                <span>Finland → Industrial Co. 45kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x4d5e6f...</span>
+                                <span>Sweden → Office Complex 32kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-check-circle text-success"></i> TX: 0x7g8h9i...</span>
+                                <span>Greece → Hospital 38kW</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-clock text-warning"></i> TX: 0x0j1k2l...</span>
+                                <span>Romania → Retail Chain 28kW (대기중)</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-trading" onclick="viewBlockchain()">
+                                <i class="fas fa-external-link-alt"></i> 블록체인 탐색기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="trading-card">
+                        <h4><i class="fas fa-chart-bar"></i> 거래 통계 및 분석</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="chart-container">
+                                    <canvas id="tradingVolumeChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="chart-container">
+                                    <canvas id="tradingPriceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실시간 거래 피드 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="trading-card">
+                        <h4><i class="fas fa-stream"></i> 실시간 거래 피드</h4>
+                        <div class="trading-table" id="tradingFeed">
+                            <div class="trading-item">
+                                <span><i class="fas fa-bolt text-warning"></i> 14:32:15</span>
+                                <span>Finland에서 Industrial Co.로 45kW 거래 완료 (₩8,325)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-leaf text-success"></i> 14:31:42</span>
+                                <span>Sweden에서 100톤 탄소 크레딧 판매 (₩4,500,000)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-bolt text-warning"></i> 14:30:18</span>
+                                <span>Greece에서 Hospital로 38kW 거래 완료 (₩7,638)</span>
+                            </div>
+                            <div class="trading-item">
+                                <span><i class="fas fa-robot text-info"></i> 14:29:55</span>
+                                <span>AI 최적화로 수익 12% 증가 예상</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // AI 최적화 차트
+            function initAIChart() {{
+                const ctx = document.getElementById('aiOptimizationChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                        datasets: [{{
+                            label: 'AI 최적화 전 수익',
+                            data: [60, 65, 70, 68, 72, 75],
+                            borderColor: '#ff9a9e',
+                            backgroundColor: 'rgba(255, 154, 158, 0.1)',
+                            tension: 0.4
+                        }}, {{
+                            label: 'AI 최적화 후 수익',
+                            data: [67, 73, 78, 76, 81, 85],
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                labels: {{ color: 'white' }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{ ticks: {{ color: 'white' }} }},
+                            y: {{ ticks: {{ color: 'white' }} }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 거래량 차트
+            function initTradingVolumeChart() {{
+                const ctx = document.getElementById('tradingVolumeChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Finland', 'Sweden', 'Romania', 'Greece'],
+                        datasets: [{{
+                            label: '거래량 (kW)',
+                            data: [45, 32, 28, 38],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{ beginAtZero: true }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 거래 가격 차트
+            function initTradingPriceChart() {{
+                const ctx = document.getElementById('tradingPriceChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{{
+                            label: '평균 거래 가격 (₩/kWh)',
+                            data: [185, 178, 192, 201, 195, 188],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {{
+                            y: {{ beginAtZero: false }}
+                        }}
+                    }}
+                }});
+            }}
+            
+            // 실시간 데이터 업데이트
+            function updateTradingData() {{
+                // KPI 업데이트
+                document.getElementById('totalTrades').textContent = (1247 + Math.floor(Math.random() * 10)).toLocaleString();
+                document.getElementById('totalVolume').textContent = '₩' + (89.2 + Math.random() * 2).toFixed(1) + 'M';
+                document.getElementById('activeUsers').textContent = (156 + Math.floor(Math.random() * 5)).toLocaleString();
+                document.getElementById('platformFee').textContent = '₩' + (1.8 + Math.random() * 0.2).toFixed(1) + 'M';
+            }}
+            
+            // P2P 마켓 열기
+            function openP2PMarket() {{
+                alert('P2P 전력 거래 마켓플레이스가 곧 열립니다!\\n\\n• 실시간 매칭 알고리즘\\n• 자동 거래 실행\\n• 수수료 최적화');
+            }}
+            
+            // 탄소 시장 열기
+            function openCarbonMarket() {{
+                alert('탄소 크레딧 거래 시장이 곧 열립니다!\\n\\n• 크레딧 발행 및 추적\\n• 검증 및 인증 시스템\\n• 블록체인 기록');
+            }}
+            
+            // AI 최적화 실행
+            function runAIOptimization() {{
+                alert('AI 수익 최적화 엔진이 실행되었습니다!\\n\\n• 수익 최적화 AI 엔진\\n• 수요 반응 자동화\\n• 예측 정확도 개선\\n• 개인화된 추천');
+            }}
+            
+            // 블록체인 탐색기
+            function viewBlockchain() {{
+                alert('블록체인 탐색기로 이동합니다!\\n\\n• 거래 투명성 보장\\n• 스마트 컨트랙트 실행\\n• 실시간 거래 기록');
+            }}
+            
+            // 실시간 거래 피드 업데이트
+            function updateTradingFeed() {{
+                const feed = document.getElementById('tradingFeed');
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR');
+                
+                const newTrade = document.createElement('div');
+                newTrade.className = 'trading-item';
+                newTrade.innerHTML = `
+                    <span><i class="fas fa-bolt text-warning"></i> ${{timeString}}</span>
+                    <span>새로운 거래가 실행되었습니다 (₩${{(Math.random() * 10000 + 1000).toFixed(0)}})</span>
+                `;
+                
+                feed.insertBefore(newTrade, feed.firstChild);
+                
+                // 최대 10개 항목만 유지
+                while (feed.children.length > 10) {{
+                    feed.removeChild(feed.lastChild);
+                }}
+            }}
+            
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{
+                initAIChart();
+                initTradingVolumeChart();
+                initTradingPriceChart();
+                updateTradingData();
+                
+                // 5초마다 데이터 업데이트
+                setInterval(updateTradingData, 5000);
+                // 10초마다 거래 피드 업데이트
+                setInterval(updateTradingFeed, 10000);
             }});
         </script>
     </body>
