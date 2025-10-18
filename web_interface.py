@@ -2567,43 +2567,58 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
                 </div>
             </div>
 
-            <!-- P2P 전력 거래 마켓플레이스 -->
+            <!-- 전력/탄소 거래 플랫폼 -->
             <div class="row">
                 <div class="col-md-6">
-                    <div class="trading-card">
-                        <h4><i class="fas fa-exchange-alt"></i> P2P 전력 거래 마켓플레이스</h4>
+                    <div class="market-card">
+                        <h4><i class="fas fa-bolt"></i> P2P 전력 거래 마켓플레이스</h4>
                         <div class="row">
                             <div class="col-6">
-                                <h6>판매 가능 전력</h6>
-                                <div class="mb-2">
-                                    <small>🇫🇮 Finland: 45 kW @ ₩185/kWh</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇸🇪 Sweden: 32 kW @ ₩192/kWh</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇷🇴 Romania: 28 kW @ ₩178/kWh</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇬🇷 Greece: 38 kW @ ₩201/kWh</small>
+                                <h6>판매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🇫🇮 Finland</span>
+                                        <span>45 kW @ ₩185/kWh <span class="price-trend price-up">↗ +2.3%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇸🇪 Sweden</span>
+                                        <span>32 kW @ ₩192/kWh <span class="price-trend price-up">↗ +1.8%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇷🇴 Romania</span>
+                                        <span>28 kW @ ₩178/kWh <span class="price-trend price-down">↘ -0.5%</span></span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🇬🇷 Greece</span>
+                                        <span>38 kW @ ₩201/kWh <span class="price-trend price-up">↗ +3.1%</span></span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <h6>구매 요청</h6>
-                                <div class="mb-2">
-                                    <small>🏭 Industrial Co.: 120 kW @ ₩200/kWh</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🏢 Office Complex: 85 kW @ ₩195/kWh</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🏪 Retail Chain: 65 kW @ ₩190/kWh</small>
+                                <h6>구매 호가</h6>
+                                <div class="trading-table">
+                                    <div class="trading-item">
+                                        <span>🏭 Industrial Co.</span>
+                                        <span>120 kW @ ₩200/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏢 Office Complex</span>
+                                        <span>85 kW @ ₩195/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏪 Retail Chain</span>
+                                        <span>65 kW @ ₩190/kWh</span>
+                                    </div>
+                                    <div class="trading-item">
+                                        <span>🏥 Hospital</span>
+                                        <span>45 kW @ ₩205/kWh</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="text-center mt-3">
-                            <button class="btn btn-trading" onclick="openTradingMarket()">
-                                <i class="fas fa-chart-line"></i> 거래 마켓 열기
+                            <button class="btn btn-trading" onclick="openP2PMarket()">
+                                <i class="fas fa-chart-line"></i> P2P 마켓 열기
                             </button>
                         </div>
                     </div>
@@ -3008,6 +3023,16 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
                 }});
             }}
 
+            // P2P 마켓 열기
+            function openP2PMarket() {{
+                alert('P2P 전력 거래 마켓플레이스가 곧 열립니다!\\n\\n• 실시간 매칭 알고리즘\\n• 자동 거래 실행\\n• 수수료 최적화');
+            }}
+            
+            // 탄소 시장 열기
+            function openCarbonMarket() {{
+                alert('탄소 크레딧 거래 시장이 곧 열립니다!\\n\\n• 크레딧 발행 및 추적\\n• 검증 및 인증 시스템\\n• 블록체인 기록');
+            }}
+            
             // 페이지 로드 시 초기화
             document.addEventListener('DOMContentLoaded', function() {{
                 initGlobalMap();
