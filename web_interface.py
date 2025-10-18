@@ -2587,96 +2587,118 @@ async def statistics_page(request: Request, lang: str = Query("ko", description=
 
             <!-- 전력/탄소 거래 플랫폼 -->
             <div class="row">
-                <div class="col-md-6">
-                    <div class="market-card">
-                        <h4><i class="fas fa-bolt"></i> P2P 전력 거래 마켓플레이스</h4>
+                <div class="col-12">
+                    <div class="platform-card">
+                        <h4><i class="fas fa-exchange-alt"></i> 전력/탄소 거래 플랫폼</h4>
                         <div class="row">
-                            <div class="col-6">
-                                <h6>판매 호가</h6>
-                                <div class="trading-table">
-                                    <div class="trading-item">
-                                        <span>🇫🇮 Finland</span>
-                                        <span>45 kW @ ₩185/kWh <span class="price-trend price-up">↗ +2.3%</span></span>
+                            <div class="col-md-6">
+                                <div class="market-card">
+                                    <h6><i class="fas fa-bolt"></i> P2P 전력 거래 마켓플레이스</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h6>판매 호가</h6>
+                                            <div class="trading-table">
+                                                <div class="trading-item">
+                                                    <span>🇫🇮 Finland</span>
+                                                    <span>45 kW @ ₩185/kWh <span class="price-trend price-up">↗ +2.3%</span></span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇸🇪 Sweden</span>
+                                                    <span>32 kW @ ₩192/kWh <span class="price-trend price-up">↗ +1.8%</span></span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇷🇴 Romania</span>
+                                                    <span>28 kW @ ₩178/kWh <span class="price-trend price-down">↘ -0.5%</span></span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇬🇷 Greece</span>
+                                                    <span>38 kW @ ₩201/kWh <span class="price-trend price-up">↗ +3.1%</span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6>구매 호가</h6>
+                                            <div class="trading-table">
+                                                <div class="trading-item">
+                                                    <span>🏭 Industrial Co.</span>
+                                                    <span>120 kW @ ₩200/kWh</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🏢 Office Complex</span>
+                                                    <span>85 kW @ ₩195/kWh</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🏪 Retail Chain</span>
+                                                    <span>65 kW @ ₩190/kWh</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🏥 Hospital</span>
+                                                    <span>45 kW @ ₩205/kWh</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="trading-item">
-                                        <span>🇸🇪 Sweden</span>
-                                        <span>32 kW @ ₩192/kWh <span class="price-trend price-up">↗ +1.8%</span></span>
-                                    </div>
-                                    <div class="trading-item">
-                                        <span>🇷🇴 Romania</span>
-                                        <span>28 kW @ ₩178/kWh <span class="price-trend price-down">↘ -0.5%</span></span>
-                                    </div>
-                                    <div class="trading-item">
-                                        <span>🇬🇷 Greece</span>
-                                        <span>38 kW @ ₩201/kWh <span class="price-trend price-up">↗ +3.1%</span></span>
+                                    <div class="text-center mt-3">
+                                        <button class="btn btn-trading" onclick="openP2PMarket()">
+                                            <i class="fas fa-chart-line"></i> P2P 마켓 열기
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <h6>구매 호가</h6>
-                                <div class="trading-table">
-                                    <div class="trading-item">
-                                        <span>🏭 Industrial Co.</span>
-                                        <span>120 kW @ ₩200/kWh</span>
+                            <div class="col-md-6">
+                                <div class="carbon-card">
+                                    <h6><i class="fas fa-leaf"></i> 탄소 크레딧 거래</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h6>보유 크레딧</h6>
+                                            <div class="trading-table">
+                                                <div class="trading-item">
+                                                    <span>🇫🇮 Finland</span>
+                                                    <span>652톤 (₩29.3M)</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇸🇪 Sweden</span>
+                                                    <span>1,200톤 (₩54.0M)</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇷🇴 Romania</span>
+                                                    <span>450톤 (₩20.3M)</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>🇬🇷 Greece</span>
+                                                    <span>5,000톤 (₩225.0M)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6>시장 정보</h6>
+                                            <div class="trading-table">
+                                                <div class="trading-item">
+                                                    <span>현재 가격</span>
+                                                    <span>₩45,000/톤 <span class="price-trend price-up">↗ +2.3%</span></span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>24h 변동</span>
+                                                    <span>+₩1,050/톤</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>월간 거래량</span>
+                                                    <span>1,847톤</span>
+                                                </div>
+                                                <div class="trading-item">
+                                                    <span>시장 캡</span>
+                                                    <span>₩328.6M</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="trading-item">
-                                        <span>🏢 Office Complex</span>
-                                        <span>85 kW @ ₩195/kWh</span>
-                                    </div>
-                                    <div class="trading-item">
-                                        <span>🏪 Retail Chain</span>
-                                        <span>65 kW @ ₩190/kWh</span>
-                                    </div>
-                                    <div class="trading-item">
-                                        <span>🏥 Hospital</span>
-                                        <span>45 kW @ ₩205/kWh</span>
+                                    <div class="text-center mt-3">
+                                        <button class="btn btn-trading" onclick="openCarbonMarket()">
+                                            <i class="fas fa-seedling"></i> 탄소 시장 열기
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-center mt-3">
-                            <button class="btn btn-trading" onclick="openP2PMarket()">
-                                <i class="fas fa-chart-line"></i> P2P 마켓 열기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="carbon-card">
-                        <h4><i class="fas fa-leaf"></i> 탄소 크레딧 거래</h4>
-                        <div class="row">
-                            <div class="col-6">
-                                <h6>보유 크레딧</h6>
-                                <div class="mb-2">
-                                    <small>🇫🇮 Finland: 652톤 (₩29.3M)</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇸🇪 Sweden: 1,200톤 (₩54.0M)</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇷🇴 Romania: 450톤 (₩20.3M)</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>🇬🇷 Greece: 5,000톤 (₩225.0M)</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <h6>시장 가격</h6>
-                                <div class="mb-2">
-                                    <small>현재 가격: ₩45,000/톤</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>24h 변동: +2.3%</small>
-                                </div>
-                                <div class="mb-2">
-                                    <small>월간 거래량: 1,847톤</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-center mt-3">
-                            <button class="btn btn-trading" onclick="openCarbonMarket()">
-                                <i class="fas fa-seedling"></i> 탄소 시장 열기
-                            </button>
                         </div>
                     </div>
                 </div>
